@@ -1,0 +1,22 @@
+[
+ {"text":"Ein Junge bekam jede Nacht um genau drei Uhr eine Nachricht. Von seiner eigenen Handynummer.", "shots":["sleep_wide","clock","phone_notif"]},
+ {"text":"In der ersten Nachricht stand nur: Schöne blaue Jacke heute.", "shots":["boy_bed_phone","phone_msg1"]},
+ {"text":"Er hatte an diesem Tag tatsächlich eine blaue Jacke getragen.", "shots":["jacket","boy_shock"]},
+ {"text":"Er dachte an einen Fehler im Netz und schlief weiter.", "shots":["boy_shrug","sleep_top"]},
+ {"text":"Doch in der nächsten Nacht kam wieder eine Nachricht. Warum hast du in der Pause allein gegessen?", "shots":["sit_up","phone_msg2","cafeteria"]},
+ {"text":"Jede Nacht wusste der Absender mehr über seinen Tag.", "shots":["phone_stack","boy_tired"]},
+ {"text":"Seine Freunde in der Schule lachten nur darüber. Nur sein bester Freund Leon sagte, er solle die Nummer wechseln.", "shots":["hall_show","friends_laugh","leon_intro","leon_talk"]},
+ {"text":"Also holte er sich eine neue Nummer und gab sie nur Leon.", "shots":["phone_newnum","give_leon"]},
+ {"text":"In dieser Nacht war es still. Er schlief zum ersten Mal wieder durch.", "shots":["sleep_calm","morning"]},
+ {"text":"Eine Woche später, um drei Uhr nachts, leuchtete sein Handy wieder auf.", "shots":["clock","nightstand_buzz","eyes_open"]},
+ {"text":"Neue Nummer. Gleicher Absender. Und diesmal stand da: Dreh dich um.", "shots":["phone_turn","eyes_xcu"]},
+ {"text":"Er drehte sich langsam um. Im Regal, zwischen seinen Büchern, blinkte ein kleines rotes Licht.", "shots":["turn_ots","shelf_push","led_close"]},
+ {"text":"Eine winzige Kamera.", "shots":["cam_xcu"]},
+ {"text":"Er rannte zu seinen Eltern, und sie riefen sofort die Polizei.", "shots":["run","parents"]},
+ {"text":"Die Beamten fanden heraus, mit welchem Konto die Kamera verbunden war.", "shots":["cop_evidence","laptop_search"]},
+ {"text":"Es war Leon.", "shots":["laptop_leon","boy_shock2"]},
+ {"text":"Sein bester Freund hatte bei einer Übernachtung die Kamera versteckt und alles gefilmt. Für seinen Kanal.", "shots":["sleepover","leon_edit","monitor_thumb"]},
+ {"text":"Das Video hatte da schon über zwei Millionen Aufrufe.", "shots":["monitor_views","leon_laugh"]},
+ {"text":"Und in den Kommentaren fragten alle, ob der Junge echt so dumm sei.", "shots":["phone_comments","boy_sad"]},
+ {"text":"Würdest du ihm verzeihen?", "shots":["final"]}
+]
