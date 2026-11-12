@@ -93,6 +93,51 @@ Im HUD steht immer „Grafik verstärkt, Zahlen exakt“. Im Bedienfeld kannst d
 
 ---
 
+---
+
+## 🎬 TikTok-Videos erstellen
+
+Die Videos sind im Stil von Erklär-Cartoons aufgebaut: Sprecherstimme, Untertitel mit 1–3 Wörtern
+(Schlüsselwörter farbig), schnelle Schnitte, Sticker, hochzählende Zahlen und unser Moderator **Kapitän Durst**.
+
+### 1. Drehbuch schreiben
+Jede Folge ist eine Datei in **`folgen/`** (Beispiel: `folgen/folge-01.json`). Pro Satz ein „Beat“:
+
+```json
+{ "text": "Gerade leben hier {gruen:{einwohner}} Menschen.",
+  "kamera": "asia",
+  "sticker": [{ "typ": "zahl", "label": "EINWOHNER", "von": 0, "bis": "{einwohner}", "farbe": "gruen" }] }
+```
+
+- **Hervorheben:** `*Wort*` = gelb, `{gruen:Wort}`, `{rot:Wort}`, `{blau:Wort}`
+- **Echte Zahlen** (werden automatisch eingesetzt): `{tag}` `{einwohner}` `{follower}` `{neue_follower}` `{pro_tag}`
+  `{pro_tag_zahl}` `{verbraucht}` `{verbraucht_zahl}` `{likes}` `{kommentare}` `{shares}` `{reicht}` `{reicht_kurz}`
+- **Kamera:** `kapitaen` (Moderator im Bild), `space`, `orbit`, `europe`, `africa`, `asia`, `americas`, `australia`,
+  `northsea`, `sunda`, `pacific`, `flyover`, `bering`
+- **Sticker:** `tag`, `schild`, `zahl`, `info`, `zeiger` (zeigt auf einen Ort), `namensschild`, `profil`, `statistik`
+- **Weitere Felder:** `"strohhalm": true`, `"aktion": "winken" | "trinken"`, `"wasser": { "von": "jetzt", "bis": 0.5 }`
+  (Vorschau, wird als VORSCHAU gekennzeichnet), `"min": 2.5` (Mindestdauer), `"audio": "aufnahmen/satz-03.mp3"`
+
+### 2. Ansehen (ohne Ton)
+`npm run dev` → im Bedienfeld unter „Folge abspielen“ die Folge auswählen → ▶
+
+### 3. Video rendern
+```bash
+npm run video -- --folge folge-01            # echte Zahlen
+npm run video -- --folge folge-01 --demo     # Probevideo mit Beispielzahlen
+```
+Ergebnis: `output/folge-01.mp4` (1080×1920, 30 fps) + `output/folge-01.srt` (Untertitel).
+Optionen: `--musik musik.mp3` (leise im Hintergrund), `--seit 2026-11-12` (für `{neue_follower}`),
+`--hoehe 1280 --fps 24` (kleiner/schneller), `--leicht` (schneller auf Rechnern ohne gute Grafikkarte), `--bis 5` (nur 5 Sekunden testen).
+
+### 🎙️ Stimme
+Standard ist eine **Computer-Teststimme** (espeak-ng, muss installiert sein: `sudo apt install espeak-ng mbrola mbrola-de6`).
+Sie klingt robotisch – für echte Videos besser:
+- **Deine eigene Stimme**: jeden Satz aufnehmen und im Drehbuch eintragen: `"audio": "aufnahmen/satz-01.mp3"`
+- oder eine **KI-Stimme** (z. B. aus CapCut oder ElevenLabs) als Datei pro Satz exportieren und genauso eintragen.
+
+Das Video passt sich automatisch an die Länge der Aufnahmen an, Untertitel laufen synchron mit.
+
 ## 🧱 Projektstruktur
 
 ```
@@ -106,12 +151,16 @@ src/earth/          3D-Erde mit Three.js
   earthMaterial.ts  Shader: Land, Wasser, Meeresboden, Licht
   sky.ts            Wolken, Atmosphäre, Sterne, Sonne
   people.ts         Menschen (Instancing, bis 4.000 Figuren)
+  mascot.ts         Kapitän Durst + Riesen-Strohhalm
   camera.ts         Kamera-Shots & Kamerafahrten
   scene.ts          alles zusammen
 src/ui/             HUD (im Video) und Bedienfeld
 server/             Speicherung (store.ts) + kleine Web-Schnittstelle
 scripts/sim.ts      Terminal-Werkzeug
 scripts/screenshot.ts  Vorschaubild 9:16 rendern
+scripts/render-video.ts  fertiges TikTok-Video (MP4) rendern
+folgen/             Drehbücher der Folgen
+src/video/          Zeitleiste, Untertitel, Sticker-Abspieler
 tests/              automatische Tests (npm test)
 tools/prepare_assets.py  erzeugt public/assets aus Rohdaten (nur nötig, wenn man die Karten neu bauen will)
 public/assets/      fertige Erd-Daten (Höhen, Masken, Texturen, Städte)

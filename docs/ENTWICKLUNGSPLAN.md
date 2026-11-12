@@ -14,7 +14,10 @@
 - [x] Kamera-Shots inkl. Kamerafahrten, 9:16-Format, TikTok-HUD
 - [x] 26 automatische Tests
 
-## Phase 2 – Videoproduktion
+## Phase 2 – Videoproduktion (Grundlage fertig ✅)
+- [x] Drehbuch-Format, Untertitel, Sticker, Moderator, Renderer mit Stimme + Plopp-Effekten
+- [ ] Bessere Stimme (eigene Aufnahme / KI-Stimme), Hintergrundmusik
+- [ ] Mehr Moderator-Animationen, weitere Figuren (z. B. neue Einwohner im Bild)
 - Aufnahme-Skript: Playwright rendert Bild für Bild (`window.__sim.renderAt(t)`, feste Zeit -> ruckelfrei),
   FFmpeg setzt daraus ein MP4 (1080×1920, 30/60 fps, H.264) zusammen
 - Szenen-Beschreibung pro Video (JSON): Shot-Abfolge, Texteinblendungen („TAG 12“, „+1.200 MENSCHEN“),
