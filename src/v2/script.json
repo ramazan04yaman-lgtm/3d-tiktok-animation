@@ -1,0 +1,20 @@
+[
+ {"scene":"bed3am",   "text":"Du wachst um drei Uhr nachts auf,"},
+ {"scene":"empty",    "text":"und jeder Mensch auf der Erde ist verschwunden."},
+ {"scene":"parents",  "text":"Deine Eltern? Weg. Nur ihre Kleidung liegt noch im Bett."},
+ {"scene":"phone",    "text":"Du schreibst allen. Aber niemand antwortet."},
+ {"scene":"car",      "text":"Draußen läuft noch ein Auto. Die Tür ist offen. Kein Fahrer."},
+ {"scene":"light",    "text":"Die Ampel schaltet auf Rot. Für niemanden."},
+ {"scene":"power",    "text":"Doch Kraftwerke laufen ohne Menschen nicht lange."},
+ {"scene":"city",     "text":"Schon nach wenigen Stunden wird eine Stadt nach der anderen dunkel."},
+ {"scene":"subway",   "text":"Nach zwei Tagen steht die U-Bahn unter Wasser, weil keiner mehr die Pumpen bedient."},
+ {"scene":"fridge",   "text":"Dein Kühlschrank ist warm. Das Essen fängt an zu verrotten."},
+ {"scene":"market",   "text":"Der ganze Supermarkt gehört dir allein."},
+ {"scene":"cans",     "text":"Aber nach einem Jahr kannst du nur noch Konserven essen."},
+ {"scene":"dogs",     "text":"Hunde, die niemand mehr füttert, ziehen in Rudeln durch die Straßen."},
+ {"scene":"grass",    "text":"Nach zehn Jahren bricht Gras durch den Asphalt,"},
+ {"scene":"deer",     "text":"und Rehe laufen über die leere Autobahn."},
+ {"scene":"bridge",   "text":"Nach hundert Jahren stürzen die ersten Brücken ein."},
+ {"scene":"roof",     "text":"Und du bist der letzte Mensch, der noch weiß, wie die Welt mal war."},
+ {"scene":"face",     "text":"Was würdest du als Erstes tun?"}
+]
