@@ -1,0 +1,9 @@
+[
+ {"scene":"hook",    "label":"",                 "text":"Was wäre, wenn der Mond heute Nacht einfach verschwindet?", "hl":["Mond","verschwindet"]},
+ {"scene":"dark",    "label":"SEKUNDE 0",        "text":"In der ersten Sekunde merkt niemand etwas. Nur der Nachthimmel wird plötzlich viel dunkler.", "hl":["dunkler"]},
+ {"scene":"tides",   "label":"NACH 6 STUNDEN",   "text":"Nach sechs Stunden kommt die Flut nicht mehr. Die Gezeiten schrumpfen auf ein Drittel.", "hl":["Flut","Drittel"]},
+ {"scene":"animals", "label":"NACH 1 MONAT",     "text":"Korallen und Schildkröten, die sich nach dem Mondlicht richten, verlieren die Orientierung.", "hl":["Korallen","Orientierung"]},
+ {"scene":"wobble",  "label":"NACH MILLIONEN JAHREN", "text":"Doch das Schlimmste kommt langsam. Ohne den Mond beginnt die Erdachse zu taumeln.", "hl":["Erdachse","taumeln"]},
+ {"scene":"climate", "label":"DIE FOLGE",        "text":"Eiszeiten und Hitzewellen wechseln sich ab. Ganze Kontinente werden unbewohnbar.", "hl":["Eiszeiten","Hitzewellen","unbewohnbar"]},
+ {"scene":"outro",   "label":"",                 "text":"Der Mond ist also nicht nur schön. Er hält unseren Planeten am Leben. Welches Szenario soll als Nächstes kommen?", "hl":["am","Leben","Nächstes"]}
+]
