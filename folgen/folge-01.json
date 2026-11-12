@@ -147,7 +147,7 @@
           "typ": "schild",
           "text": "IRGENDWANN ...",
           "farbe": "rot",
-          "y": 14
+          "y": 18
         }
       ]
     },
@@ -164,7 +164,7 @@
           "typ": "schild",
           "text": "VORSCHAU",
           "farbe": "weissrot",
-          "y": 14
+          "y": 18
         }
       ]
     },
