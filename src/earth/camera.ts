@@ -22,6 +22,7 @@ export interface Shot {
 }
 
 export const SHOTS: Record<string, Shot> = {
+  kapitaen:  { label: '🧑‍✈️ Kapitän Durst (Moderator)', lat: 22, lon: -35, dist: 4.6, tilt: 0, focus: 0, spin: 5 },
   space:     { label: '🌍 Erde aus dem All', lat: 12, lon: 15, dist: 5.6, tilt: 0, focus: 0, spin: 6 },
   orbit:     { label: '🔄 Drehung um die Erde', lat: 8, lon: -40, dist: 4.2, tilt: 0, focus: 0, spin: 18 },
   europe:    { label: '🇪🇺 Europa', lat: 50, lon: 12, dist: 2.0, tilt: 14, focus: 1 },

@@ -5,7 +5,8 @@ import { seaLevelForDriedArea } from '../sim/visualScale.ts';
 import { type EarthAssets, loadAssets } from './assets.ts';
 import { CameraDirector } from './camera.ts';
 import { createEarthMaterial } from './earthMaterial.ts';
-import { latLonToVec3 } from './geo.ts';
+import { latLonToVec3, tangentFrame } from './geo.ts';
+import { Mascot, createGiantStraw } from './mascot.ts';
 import { People } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
@@ -27,6 +28,12 @@ export class EarthScene {
   drainShown = 0;
   drainTarget = 0;
   showClouds = true;
+  showPeople = true;
+  mascot!: Mascot;
+  mascotVisible = false;
+  strawVisible = false;
+  previewActive = false;
+  private straw!: THREE.Object3D;
   readonly info = { seaLevel: 0 };
 
   readonly canvas: HTMLCanvasElement;
@@ -51,6 +58,21 @@ export class EarthScene {
     this.people = new People(this.assets);
     this.scene.add(earth, this.clouds, this.atmo, this.stars, this.sun, this.people.group, this.sunLight,
       new THREE.HemisphereLight('#bfe3ff', '#3a2a1a', 0.9));
+    // Moderator: hängt an der Kamera (steht immer vorne im Bild, unten mittig)
+    this.mascot = new Mascot();
+    this.mascot.root.scale.setScalar(0.2);
+    this.mascot.root.position.set(0, -0.47, -1.2);
+    this.mascot.root.rotation.y = -0.15;
+    const key = new THREE.DirectionalLight('#ffffff', 2.2);
+    key.position.set(-1, 1.5, 1);
+    this.camera.add(this.mascot.root, key);
+    this.scene.add(this.camera);
+    // Riesen-Strohhalm im Atlantik
+    const f = tangentFrame(26, -42);
+    this.straw = createGiantStraw();
+    this.straw.position.copy(f.up);
+    this.straw.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
+    this.scene.add(this.straw);
     this.director = new CameraDirector(this.camera);
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.enabled = false;
@@ -119,6 +141,10 @@ export class EarthScene {
     const altitude = Math.max(0.01, this.camera.position.length() - 1);
     this.people.figureSize = THREE.MathUtils.clamp(altitude * 0.0065, 0.0006, 0.009);
     this.people.update(time);
+    this.mascot.root.visible = this.mascotVisible;
+    if (this.mascotVisible) this.mascot.update(time);
+    this.straw.visible = this.strawVisible;
+    this.people.group.visible = this.showPeople;
 
     this.renderer.render(this.scene, this.camera);
   }

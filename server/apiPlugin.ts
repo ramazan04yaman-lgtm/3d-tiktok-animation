@@ -8,6 +8,8 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
+import { buildTimeline } from '../src/video/script.ts';
+import { echteZahlen, folgenPfad, listFolgen, loadFolge } from './folgen.ts';
 import { DEFAULT_PATH, type EntryInput, type SimFile, addEntry, loadOrCreate, removeEntry, saveFile, today } from './store.ts';
 
 function send(res: ServerResponse, status: number, body: unknown): void {
@@ -46,6 +48,13 @@ export function simulationApi(file = DEFAULT_PATH): Plugin {
             if (req.method === 'GET' && url.startsWith('/state')) {
               // Bei jedem Abruf: alle vergangenen Tage verbuchen und speichern
               return send(res, 200, view(saveFile(loadOrCreate(file), file)));
+            }
+            if (req.method === 'GET' && url.startsWith('/folgen')) return send(res, 200, listFolgen());
+            if (req.method === 'GET' && url.startsWith('/timeline')) {
+              const q = new URL(url, 'http://x').searchParams;
+              const folge = loadFolge(folgenPfad(q.get('folge') ?? ''));
+              const z = echteZahlen(file, q.get('seit') ?? undefined);
+              return send(res, 200, { timeline: buildTimeline({ folge, ...z }), snapshot: z.snapshot });
             }
             if (req.method === 'POST' && url === '/entries') {
               const body = (await readBody(req)) as EntryInput;

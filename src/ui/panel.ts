@@ -10,7 +10,9 @@ export interface PanelCallbacks {
   onFreeCamera(on: boolean): void;
   onPreview(v: number | null): void;
   onVisualMode(m: VisualMode): void;
-  onToggle(what: 'hud' | 'clouds' | 'people', on: boolean): void;
+  onToggle(what: 'hud' | 'clouds' | 'people' | 'stats' | 'straw' | 'mascot', on: boolean): void;
+  onPlay(folge: string): Promise<void>;
+  onStop(): void;
 }
 
 export class Panel {
@@ -38,6 +40,11 @@ export class Panel {
       </form>
       <div id="msg" class="msg"></div>
 
+      <h2>🎞️ Folge abspielen (Vorschau)</h2>
+      <p class="hint">Spielt ein Drehbuch aus dem Ordner <b>folgen/</b> mit deinen echten Zahlen ab – ohne Ton.
+      Das fertige Video (mit Stimme) erzeugt <code>npm run video</code>.</p>
+      <div class="row"><select id="folge"></select><button id="play">▶ Abspielen</button><button id="stop">■</button></div>
+
       <h2>🎬 Kamera</h2>
       <div class="shots">${Object.entries(SHOTS).map(([k, s]) => `<button data-shot="${k}">${s.label}</button>`).join('')}
         <button data-free="1">🖱️ Freie Kamera (Maus)</button></div>
@@ -54,6 +61,9 @@ export class Panel {
       <label class="row"><input type="checkbox" id="hud" checked> HUD</label>
       <label class="row"><input type="checkbox" id="clouds" checked> Wolken</label>
       <label class="row"><input type="checkbox" id="people" checked> Menschen</label>
+      <label class="row"><input type="checkbox" id="stats" checked> Detail-Statistik im Bild</label>
+      <label class="row"><input type="checkbox" id="straw"> Riesen-Strohhalm</label>
+      <label class="row"><input type="checkbox" id="mascot"> Kapitän Durst</label>
 
       <h2>📒 Logbuch</h2>
       <div id="log" class="log"></div>`;
@@ -67,9 +77,11 @@ export class Panel {
     prev.addEventListener('input', () => { const v = Number(prev.value) / 1000; pv.textContent = `${(v * 100).toFixed(1)} % ausgetrocknet`; cb.onPreview(v); });
     root.querySelector('#previewOff')!.addEventListener('click', () => { prev.value = '0'; pv.textContent = ''; cb.onPreview(null); });
     root.querySelector<HTMLSelectElement>('#vmode')!.addEventListener('change', (e) => cb.onVisualMode((e.target as HTMLSelectElement).value as VisualMode));
-    for (const k of ['hud', 'clouds', 'people'] as const) {
+    for (const k of ['hud', 'clouds', 'people', 'stats', 'straw', 'mascot'] as const) {
       root.querySelector<HTMLInputElement>('#' + k)!.addEventListener('change', (e) => cb.onToggle(k, (e.target as HTMLInputElement).checked));
     }
+    root.querySelector('#play')!.addEventListener('click', () => void this.play(root.querySelector<HTMLSelectElement>('#folge')!.value));
+    root.querySelector('#stop')!.addEventListener('click', () => cb.onStop());
     root.querySelector('#log')!.addEventListener('click', (e) => {
       const id = (e.target as HTMLElement).dataset.del;
       if (id && confirm('Diesen Eintrag wirklich löschen? Der Stand wird neu berechnet.')) void this.run(() => api.remove(id), 'Eintrag gelöscht.');
@@ -114,6 +126,15 @@ export class Panel {
     } catch (e) {
       this.msg('❌ ' + (e as Error).message, 'err');
     }
+  }
+
+  setFolgen(list: string[]): void {
+    this.root.querySelector<HTMLSelectElement>('#folge')!.innerHTML = list.map((f) => `<option>${f}</option>`).join('');
+  }
+
+  async play(folge: string): Promise<void> {
+    if (!folge) return this.msg('Keine Folge gefunden (Ordner folgen/).', 'warn');
+    try { await this.cb.onPlay(folge); this.msg('▶ ' + folge); } catch (e) { this.msg('❌ ' + (e as Error).message, 'err'); }
   }
 
   setState(s: ApiState): void {

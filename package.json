@@ -13,11 +13,13 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test --test-reporter=spec \"tests/**/*.test.ts\"",
     "sim": "node scripts/sim.ts",
-    "screenshot": "node scripts/screenshot.ts"
+    "screenshot": "node scripts/screenshot.ts",
+    "video": "node scripts/render-video.ts"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",
     "@fontsource/lilita-one": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
     "three": "^0.180.0"
   },
   "devDependencies": {
