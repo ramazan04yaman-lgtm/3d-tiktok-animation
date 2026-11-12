@@ -3,7 +3,7 @@
  *
  *   npm run video -- --folge folge-01                 (echte Zahlen aus data/simulation.json)
  *   npm run video -- --folge folge-01 --demo          (Probevideo mit Beispielzahlen)
- *   Optionen: --hoehe 1920 --fps 30 --seit 2026-11-12 --musik pfad.mp3 --bis 5 (nur die ersten 5 s)
+ *   Optionen: --leicht (schneller, für Rechner ohne Grafikkarte) --hoehe 1920 --fps 30 --seit 2026-11-12 --musik pfad.mp3 --bis 5 (nur die ersten 5 s)
  *
  * Ablauf: 1) Stimme je Satz erzeugen (oder eigene Aufnahme)  2) Zeitleiste berechnen
  *         3) Browser rendert Bild für Bild  4) FFmpeg: Bilder + Ton -> MP4
@@ -73,7 +73,7 @@ const { chromium } = require('playwright');
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('console', (m: { type(): string; text(): string }) => { if (m.type() === 'error') console.error('[browser]', m.text()); });
-await page.goto(`http://127.0.0.1:${addr.port}/?capture=${H}`);
+await page.goto(`http://127.0.0.1:${addr.port}/?capture=${H}${args.leicht ? '&leicht=1' : ''}`);
 await page.waitForFunction(() => (window as any).__sim?.ready(), null, { timeout: 300_000 });
 await page.evaluate(([tl, s, demo]: [unknown, unknown, boolean]) => (window as any).__sim.loadStory(tl, s, demo), [timeline, zahlen.snapshot, !!args.demo]);
 

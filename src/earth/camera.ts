@@ -30,7 +30,7 @@ export const SHOTS: Record<string, Shot> = {
   asia:      { label: '🌏 Asien', lat: 30, lon: 95, dist: 2.6, tilt: 12, focus: 1 },
   americas:  { label: '🌎 Amerika', lat: 15, lon: -80, dist: 3.2, tilt: 8, focus: 1 },
   australia: { label: '🦘 Australien', lat: -24, lon: 134, dist: 2.1, tilt: 12, focus: 1 },
-  northsea:  { label: '🌊 Nordsee (Küste)', lat: 55, lon: 3, dist: 1.22, tilt: 22, focus: 1 },
+  northsea:  { label: '🌊 Nordsee (Küste)', lat: 55, lon: 3, dist: 1.3, tilt: 12, focus: 1 },
   sunda:     { label: '🏝️ Indonesien (Schelf)', lat: 0, lon: 110, dist: 1.35, tilt: 20, focus: 1 },
   pacific:   { label: '🌊 Pazifik', lat: 0, lon: -160, dist: 3.4, tilt: 0, focus: 0.5, spin: 4 },
   flyover:   {

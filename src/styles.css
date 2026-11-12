@@ -47,19 +47,19 @@ body.capture .stage { border-radius: 0; box-shadow: none; height: auto; }
 
 /* ---------- HUD (skaliert mit der Bildhöhe: 1cqh = 1 % der Höhe) ---------- */
 .hud, .story { position: absolute; inset: 0; pointer-events: none; color: #14182a; font-family: 'Montserrat', sans-serif; }
-.hud-bar { position: absolute; top: 2.4cqh; left: 4%; display: flex; align-items: center; gap: .9cqh; background: #fff;
-  border-radius: 1.1cqh; padding: .6cqh 1cqh; border: .25cqh solid #14182a; box-shadow: 0 .45cqh 0 rgba(0,0,0,.3); }
-.tag-live { background: #ff2a4a; color: #fff; font-weight: 900; font-size: 1.15cqh; padding: .45cqh .8cqh; border-radius: .6cqh; display: flex; align-items: center; gap: .5cqh; }
+.hud-bar { position: absolute; top: 2.4cqh; left: 3%; max-width: 53%; display: flex; align-items: center; gap: .6cqh; background: #fff;
+  border-radius: 1.1cqh; padding: .55cqh .8cqh; border: .25cqh solid #14182a; box-shadow: 0 .45cqh 0 rgba(0,0,0,.3); }
+.tag-live { background: #ff2a4a; color: #fff; font-weight: 900; font-size: 1.0cqh; padding: .4cqh .6cqh; border-radius: .6cqh; display: flex; align-items: center; gap: .5cqh; }
 .tag-live i { width: .8cqh; height: .8cqh; border-radius: 50%; background: #fff; display: block; }
 .hud-bar-text { display: flex; flex-direction: column; line-height: 1.05; }
 .hud-bar-text small { color: #ff2a4a; font-weight: 900; font-size: 1.05cqh; }
-.hud-bar-text span { font-weight: 900; font-size: 1.55cqh; }
+.hud-bar-text span { font-weight: 900; font-size: 1.4cqh; white-space: nowrap; }
 .hud-bar-text b { background: #ffd23a; border: .2cqh solid #14182a; border-radius: .5cqh; padding: 0 .6cqh; margin-left: .3cqh; font-variant-numeric: tabular-nums; }
-.hud-house { font-size: 2.2cqh; }
-.hud-water { position: absolute; top: 2.4cqh; right: 4%; width: 41%; background: #14182a; color: #fff; border-radius: 1.1cqh; padding: .6cqh 1cqh .8cqh;
+.hud-house { display: none; }
+.hud-water { position: absolute; top: 2.4cqh; right: 3%; width: 40%; background: #14182a; color: #fff; border-radius: 1.1cqh; padding: .6cqh 1cqh .8cqh;
   border: .25cqh solid #14182a; box-shadow: 0 .45cqh 0 rgba(0,0,0,.3); }
 .hud-water small { display: block; font-size: 1.0cqh; font-weight: 900; color: #8fb3ff; letter-spacing: .03em; }
-.hud-water b { display: block; font-weight: 900; font-size: 1.5cqh; color: #3fe0ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hud-water b { display: block; font-weight: 900; font-size: 1.35cqh; color: #3fe0ff; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hud .bar { height: .8cqh; background: #2a3150; border-radius: 1cqh; overflow: hidden; margin-top: .4cqh; }
 .hud .bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #1593ff, #3fe0e6); }
 .hud-stats { position: absolute; left: 4%; right: 4%; bottom: 3cqh; }

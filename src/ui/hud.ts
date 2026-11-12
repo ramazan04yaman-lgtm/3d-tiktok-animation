@@ -36,7 +36,7 @@ export class Hud {
     root.innerHTML = `
       <div class="hud-bar">
         <div class="tag-live"><i></i>EXPERIMENT</div>
-        <div class="hud-bar-text"><small>WASSER DER ERDE</small><span>EINWOHNER: <b data-k="pop">0</b></span></div>
+        <div class="hud-bar-text"><small>WASSER DER ERDE</small><span>👥 EINWOHNER <b data-k="pop">0</b></span></div>
         <div class="hud-house">🏠</div>
       </div>
       <div class="hud-water"><small>WASSER ÜBRIG</small><b data-k="pct">100 %</b><div class="bar"><i data-k="bar"></i></div></div>

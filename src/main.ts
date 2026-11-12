@@ -26,6 +26,7 @@ const loading = document.querySelector<HTMLElement>('#loading')!;
 const hudEl = document.querySelector<HTMLElement>('#hud')!;
 const storyEl = document.querySelector<HTMLElement>('#story')!;
 const scene = new EarthScene(canvas);
+if (params.get('leicht')) scene.segments = 512;
 const hud = new Hud(hudEl);
 
 let snapshot: Snapshot = toSnapshot(replay('2026-01-01', [], '2026-01-01'));

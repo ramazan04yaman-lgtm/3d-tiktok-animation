@@ -63,8 +63,11 @@ export class Mascot {
     // Körper (Jacke)
     const torso = part(new THREE.CapsuleGeometry(0.36, 0.42, 6, 20), jacket);
     torso.position.y = 0.95;
-    const shirt = part(new THREE.SphereGeometry(0.2, 16, 12), '#ffffff', 0.02);
-    shirt.scale.set(1, 1.3, 0.5); shirt.position.set(0, 1.08, 0.3);
+    const shirt = part(new THREE.ConeGeometry(0.17, 0.3, 3), '#ffffff', 0.03);
+    shirt.rotation.set(Math.PI, 0, 0); shirt.position.set(0, 1.22, 0.3); shirt.scale.z = 0.4;
+    const tie = part(new THREE.ConeGeometry(0.05, 0.22, 4), '#ff3b5c', 0.04);
+    tie.rotation.x = Math.PI; tie.position.set(0, 1.15, 0.36); tie.scale.z = 0.5;
+    this.body.add(tie);
     const badge = part(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 20), '#ffd23a', 0.03, { emissive: '#553b00' });
     badge.rotation.x = Math.PI / 2; badge.position.set(0, 0.9, 0.36);
     const drop = part(new THREE.SphereGeometry(0.045, 12, 10), '#2fb4ff', 0);
@@ -123,11 +126,9 @@ export class Mascot {
       cheek.position.set(x, -0.12, 0.47); cheek.rotation.y = x * 1.1; this.head.add(cheek);
     }
     // Mund (wird beim Sprechen bewegt)
-    this.mouth = part(new THREE.SphereGeometry(0.13, 20, 12), '#7a1f2b', 0.06);
-    this.mouth.scale.set(1.2, 0.35, 0.5);
-    this.mouth.position.set(0, -0.24, 0.47);
-    const tongue = part(new THREE.SphereGeometry(0.07, 12, 8), '#ff6b81', 0);
-    tongue.position.set(0, -0.3, 0.3); this.mouth.add(tongue);
+    this.mouth = part(new THREE.SphereGeometry(0.1, 20, 12), '#4a0f1c', 0.04);
+    this.mouth.scale.set(1.3, 0.35, 0.35);
+    this.mouth.position.set(0, -0.26, 0.47);
     // Kapitänsmütze
     const hat = new THREE.Group();
     const crown = part(new THREE.CylinderGeometry(0.5, 0.46, 0.26, 32), '#ffffff');
@@ -153,7 +154,7 @@ export class Mascot {
     this.body.rotation.y = Math.sin(t * 0.8) * 0.12;
     this.head.rotation.z = Math.sin(t * 1.7) * 0.06;
     this.head.rotation.x = Math.sin(t * 2.3) * 0.04;
-    const open = this.talking ? 0.35 + 0.75 * Math.max(0, Math.sin(t * 17) * Math.sin(t * 6.3 + 1)) : 0.35;
+    const open = this.talking ? 0.3 + 0.6 * Math.max(0, Math.sin(t * 17) * Math.sin(t * 6.3 + 1)) : 0.3;
     this.mouth.scale.y = open;
     this.armR.rotation.z = this.waving ? -2.5 + Math.sin(t * 9) * 0.35 : -0.15 + Math.sin(t * 2) * 0.05;
     this.armR.rotation.x = 0;

@@ -37,6 +37,8 @@ export class EarthScene {
   readonly info = { seaLevel: 0 };
 
   readonly canvas: HTMLCanvasElement;
+  /** Kugel-Auflösung (weniger = schneller beim Rendern ohne Grafikkarte). */
+  segments = 1024;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -50,7 +52,7 @@ export class EarthScene {
   async init(onProgress?: (p: number) => void): Promise<void> {
     this.assets = await loadAssets(this.renderer, onProgress);
     this.earthMat = createEarthMaterial(this.assets);
-    const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 1024, 512), this.earthMat);
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(1, this.segments, this.segments / 2), this.earthMat);
     this.clouds = createClouds(this.assets);
     this.atmo = createAtmosphere();
     this.stars = createStars();
