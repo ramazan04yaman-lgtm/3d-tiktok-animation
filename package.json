@@ -1,0 +1,29 @@
+{
+  "name": "erde-austrinken",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Können wir das gesamte Wasser der Erde austrinken? – 3D-Simulation für TikTok",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-reporter=spec \"tests/**/*.test.ts\"",
+    "sim": "node scripts/sim.ts",
+    "screenshot": "node scripts/screenshot.ts"
+  },
+  "dependencies": {
+    "@fontsource/baloo-2": "^5.3.0",
+    "@fontsource/lilita-one": "^5.3.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
