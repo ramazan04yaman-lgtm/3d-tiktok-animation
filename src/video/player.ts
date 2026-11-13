@@ -3,6 +3,7 @@
  * Figur, Untertitel und Sticker. Alles hängt nur von t ab -> jedes Bild
  * ist reproduzierbar (wichtig für die Video-Aufnahme).
  */
+import * as THREE from 'three';
 import type { EarthScene } from '../earth/scene.ts';
 import { latLonToVec3 } from '../earth/geo.ts';
 import { groupDE } from '../sim/format.ts';
@@ -110,7 +111,11 @@ export class StoryPlayer {
       const rot = Number(el.dataset.rot ?? 0);
       el.style.opacity = local < delay ? '0' : '1';
       if (s.typ === 'zeiger') {
-        const pos = latLonToVec3(s.lat, s.lon, 1.002);
+        let pos: THREE.Vector3;
+        if (s.ziel === 'einwohner1') {
+          const f = this.scene.people.firstPerson();
+          pos = this.scene.people.positionOf(0) ?? latLonToVec3(f.lat, f.lon, 1.002);
+        } else pos = latLonToVec3(s.lat ?? 0, s.lon ?? 0, 1.002);
         const cam = this.scene.camera;
         const visible = pos.clone().normalize().dot(cam.position.clone().sub(pos).normalize()) > 0.05;
         const v = pos.project(cam);

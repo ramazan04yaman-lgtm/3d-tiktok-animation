@@ -41,6 +41,7 @@ let ready = false;
 function applySnapshot(s: Snapshot): void {
   snapshot = s;
   scene.people.setPopulation(BigInt(snapshot.population));
+  scene.updateFirstPerson();
   updateDrain();
 }
 

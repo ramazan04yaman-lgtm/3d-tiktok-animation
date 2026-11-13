@@ -37,3 +37,24 @@ test('Flächen-Skala: 0 = heutige Küste, 1 = alles trocken, monoton', () => {
   let prev = 1;
   for (let i = 0; i <= 20; i++) { const l = seaLevelForDriedArea(hyps, i / 20); assert.ok(l <= prev); prev = l; }
 });
+
+import { parseWords, chunk } from '../src/video/script.ts';
+import { schnittpunkte, parsePausen } from '../server/aufnahme.ts';
+
+test('Untertitel: Hervorhebungen und Satzzeichen', () => {
+  const w = parseWords('Ich bin {blau:Kapitän Durst}. *Wasser* weg!');
+  assert.deepEqual(w.map((x) => x.text), ['Ich', 'bin', 'Kapitän', 'Durst.', 'Wasser', 'weg!']);
+  assert.equal(w[2].farbe, 'blau');
+  assert.equal(w[4].farbe, 'gelb');
+  assert.ok(chunk(w).every((c) => c.length <= 3));
+});
+
+test('Eigene Aufnahme: Schnitt an den längsten Pausen', () => {
+  const log = ['silence_start: 0', 'silence_end: 0.4', 'silence_start: 2.0', 'silence_end: 3.1',
+    'silence_start: 4.0', 'silence_end: 4.2', 'silence_start: 6.0', 'silence_end: 7.0', 'silence_start: 9.5', 'silence_end: 10'].join('\n');
+  const teile = schnittpunkte(parsePausen(log), 10, 3);
+  assert.equal(teile.length, 3);
+  // kurze Pause bei 4.0 (Atemholen) wird NICHT geschnitten
+  assert.ok(teile[1][0] < 4.0 && teile[1][1] > 4.2);
+  assert.throws(() => schnittpunkte(parsePausen(log), 10, 6), /Pausen/);
+});

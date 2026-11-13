@@ -10,7 +10,7 @@ export type Sticker =
   | { typ: 'schild'; text: string; farbe?: Farbe | 'weissrot'; drehung?: number; y?: number } // schräges Schild
   | { typ: 'zahl'; label: string; von?: string | number; bis: string | number; einheit?: string; farbe?: Farbe } // zählt hoch
   | { typ: 'info'; zeilen: string[]; y?: number }                       // dunkler Infokasten
-  | { typ: 'zeiger'; text: string; lat: number; lon: number }           // Schild mit Pfeil auf einen Ort der Erde
+  | { typ: 'zeiger'; text: string; lat?: number; lon?: number; ziel?: 'einwohner1' } // Pfeil auf Ort oder Mensch Nr. 1
   | { typ: 'namensschild'; name: string; titel: string }                // wie "BÜRGERMEISTER LEO"
   | { typ: 'profil' }                                                   // Follower-Karte
   | { typ: 'statistik' };                                               // komplette Wasser-Statistik
@@ -41,7 +41,11 @@ export interface Folge {
   titel: string;
   /** Kontoname für die Follower-Karte. */
   konto?: string;
-  stimme?: { typ: 'espeak'; stimme?: string; tempo?: number } | { typ: 'keine' };
+  /**
+   * Stimme:  "aufnahme" = deine eigene Aufnahme am Stück (wird an den Pausen in Sätze geschnitten),
+   *          "espeak"   = Computer-Teststimme,  "keine" = ohne Stimme.
+   */
+  stimme?: { typ: 'espeak'; stimme?: string; tempo?: number } | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
   beats: Beat[];
 }
 

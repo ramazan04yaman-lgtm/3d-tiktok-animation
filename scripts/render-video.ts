@@ -3,6 +3,7 @@
  *
  *   npm run video -- --folge folge-01                 (echte Zahlen aus data/simulation.json)
  *   npm run video -- --folge folge-01 --demo          (Probevideo mit Beispielzahlen)
+ *   npm run video -- --folge folge-01 --aufnahme meine-stimme.m4a   (DEINE Stimme am Stück)
  *   Optionen: --leicht (schneller, für Rechner ohne Grafikkarte) --hoehe 1920 --fps 30 --seit 2026-11-12 --musik pfad.mp3 --bis 5 (nur die ersten 5 s)
  *
  * Ablauf: 1) Stimme je Satz erzeugen (oder eigene Aufnahme)  2) Zeitleiste berechnen
@@ -13,6 +14,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createServer } from 'vite';
+import { zerschneide } from '../server/aufnahme.ts';
 import { beispielZahlen, echteZahlen, folgenPfad, loadFolge } from '../server/folgen.ts';
 import { buildTimeline, ersetze, plain, platzhalter } from '../src/video/script.ts';
 
@@ -32,18 +34,23 @@ const out = path.resolve(args.out ?? path.join(outDir, `${name}${args.demo ? '-p
 
 const folgePfad = folgenPfad(name);
 const folge = loadFolge(folgePfad);
-const zahlen = args.demo ? beispielZahlen() : echteZahlen(undefined, args.seit);
+const zahlen = args.demo ? beispielZahlen(new Date(), Number(args.demo) || 1) : echteZahlen(undefined, args.seit);
 const p = platzhalter(zahlen.snapshot, zahlen.seit);
 const sec = (f: string) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 
 // ---------- 1. Stimme ----------
 console.log(`🎙️  Stimme für ${folge.beats.length} Sätze …`);
-const stimme = folge.stimme ?? { typ: 'espeak' };
+const stimme = args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'espeak' as const };
 const audioFiles: (string | undefined)[] = [];
 const dauer: (number | undefined)[] = [];
+const geschnitten = stimme.typ === 'aufnahme'
+  ? zerschneide(path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei), folge.beats.length, work)
+  : null;
+if (geschnitten) console.log(`✂️  Deine Aufnahme wurde in ${geschnitten.length} Sätze geschnitten.`);
 folge.beats.forEach((b, i) => {
   let f: string | undefined;
   if (b.audio) f = path.resolve(path.dirname(folgePfad), b.audio);
+  else if (geschnitten) f = geschnitten[i];
   else if (stimme.typ === 'espeak') {
     const text = plain(ersetze(b.sprache ?? b.text, p)).replace(/(\d)\.(?=\d{3})/g, '$1');
     f = path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`);

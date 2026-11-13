@@ -2,11 +2,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { seaLevelForDriedArea } from '../sim/visualScale.ts';
-import { type EarthAssets, loadAssets } from './assets.ts';
+import { type EarthAssets, loadAssets, sampleElevation } from './assets.ts';
 import { CameraDirector } from './camera.ts';
 import { createEarthMaterial } from './earthMaterial.ts';
-import { latLonToVec3, tangentFrame } from './geo.ts';
+import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
+import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
+import { createHomestead } from './homestead.ts';
+import { SHOTS } from './camera.ts';
 import { People } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
@@ -34,6 +37,9 @@ export class EarthScene {
   strawVisible = false;
   previewActive = false;
   private straw!: THREE.Object3D;
+  private homestead = createHomestead();
+  /** Größe einer Figur in der Nahaufnahme von Mensch Nr. 1. */
+  static CLOSEUP_SIZE = 0.0032;
   readonly info = { seaLevel: 0 };
 
   readonly canvas: HTMLCanvasElement;
@@ -75,6 +81,8 @@ export class EarthScene {
     this.straw.position.copy(f.up);
     this.straw.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
     this.scene.add(this.straw);
+    this.homestead.visible = false;
+    this.scene.add(this.homestead);
     this.director = new CameraDirector(this.camera);
     this.controls = new OrbitControls(this.camera, this.canvas);
     this.controls.enabled = false;
@@ -82,6 +90,17 @@ export class EarthScene {
     this.controls.minDistance = 1.03;
     this.controls.maxDistance = 8;
     this.controls.addEventListener('start', () => { this.director.free = true; });
+  }
+
+  /** Kamera-Shot + Grundstück für Mensch Nr. 1 vorbereiten (nach setPopulation aufrufen). */
+  updateFirstPerson(): void {
+    const p = this.people.firstPerson();
+    SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: 1.04, tilt: 2.0, focus: 1 };
+    const f = tangentFrame(p.lat, p.lon);
+    const h = Math.max(0, sampleElevation(this.assets, p.lat, p.lon));
+    this.homestead.position.copy(f.up).multiplyScalar(1 + (h * RELIEF_EXAGGERATION) / EARTH_RADIUS_M);
+    this.homestead.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
+    this.homestead.scale.setScalar(EarthScene.CLOSEUP_SIZE * 1.35);
   }
 
   setFreeCamera(on: boolean): void {
@@ -141,7 +160,9 @@ export class EarthScene {
 
     // Menschen: Größe passend zum Kameraabstand
     const altitude = Math.max(0.01, this.camera.position.length() - 1);
-    this.people.figureSize = THREE.MathUtils.clamp(altitude * 0.0065, 0.0006, 0.009);
+    const closeup = this.director.shotName === 'einwohner1' && !this.director.free;
+    this.people.figureSize = closeup ? EarthScene.CLOSEUP_SIZE : THREE.MathUtils.clamp(altitude * 0.0065, 0.0006, 0.009);
+    this.homestead.visible = closeup;
     this.people.update(time);
     this.mascot.root.visible = this.mascotVisible;
     if (this.mascotVisible) this.mascot.update(time);

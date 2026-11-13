@@ -16,6 +16,7 @@ import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
 export const MAX_FIGURES = 4000;
 
 interface Person {
+  lat: number; lon: number; city: string;
   base: THREE.Vector3; east: THREE.Vector3; north: THREE.Vector3; up: THREE.Vector3;
   angle: number; radius: number; speed: number; phase: number; drinkEvery: number;
 }
@@ -82,11 +83,26 @@ export class People {
     const h = Math.max(0, sampleElevation(this.assets, lat, lon));
     const f = tangentFrame(lat, lon);
     return {
+      lat, lon, city: city.name,
       base: latLonToVec3(lat, lon, 1 + (h * RELIEF_EXAGGERATION) / EARTH_RADIUS_M), ...f,
       angle: hash(i * 7 + 6) * Math.PI * 2, radius: 0.5 + hash(i * 11) * 2.5,
       speed: (0.25 + hash(i * 13) * 0.5) * (hash(i * 17) < 0.5 ? -1 : 1),
       phase: hash(i * 19) * 10, drinkEvery: 3 + hash(i * 23) * 5,
     };
+  }
+
+  /** Aktuelle 3D-Position über dem Kopf einer Figur (für Zeiger-Sticker). */
+  positionOf(i: number): THREE.Vector3 | null {
+    if (i >= this.shown) return null;
+    const m = new THREE.Matrix4();
+    this.heads.getMatrixAt(i, m);
+    return new THREE.Vector3(0, 1.45, 0).applyMatrix4(m);
+  }
+
+  /** Ort von Mensch Nr. 1 (für Nahaufnahmen). */
+  firstPerson(): { lat: number; lon: number; city: string } {
+    const p = this.persons[0] ?? this.makePerson(0);
+    return { lat: p.lat, lon: p.lon, city: p.city };
   }
 
   /** Setzt die echte Einwohnerzahl (exakt, BigInt). */
@@ -104,7 +120,7 @@ export class People {
     for (let i = 0; i < this.shown; i++) {
       const p = this.persons[i];
       const a = p.angle + time * p.speed / p.radius;
-      const r = p.radius * s * 2.2;
+      const r = p.radius * s * (this.shown === 1 ? 0.6 : 2.2);
       // Laufen im Kreis um einen Treffpunkt (Gruppen in der Stadt)
       tmp.copy(p.base).addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
       const bob = Math.abs(Math.sin(time * 9 + p.phase)) * 0.12 * s;

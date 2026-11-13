@@ -32,6 +32,7 @@ export function platzhalter(s: Snapshot, seit?: Snapshot): Record<string, string
   return {
     tag: String(Math.max(1, s.daysProcessed)),
     einwohner: groupDE(B(s.population)),
+    einwohner_text: B(s.population) === 1n ? 'ein Mensch' : `${groupDE(B(s.population))} Menschen`,
     follower: groupDE(B(s.followers)),
     neue_follower: groupDE(B(s.followers) - B(seit?.followers ?? '0')),
     pro_tag: liter(s.dailyMl),
@@ -58,7 +59,13 @@ export function parseWords(text: string): CaptionWord[] {
     else if (m[3]) for (const w of m[3].split(/\s+/)) out.push({ text: w, farbe: 'gelb' });
     else out.push({ text: m[4] });
   }
-  return out.filter((w) => w.text.length);
+  // Reine Satzzeichen ("." "!" "...") an das vorige Wort hängen
+  const res: CaptionWord[] = [];
+  for (const w of out) {
+    if (/^[.,!?:;…]+$/.test(w.text) && res.length) res[res.length - 1] = { ...res[res.length - 1], text: res[res.length - 1].text + w.text };
+    else if (w.text.length) res.push(w);
+  }
+  return res;
 }
 
 /** Text ohne Markierungen (für die Stimme). */
