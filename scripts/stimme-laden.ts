@@ -8,9 +8,11 @@ import path from 'node:path';
 
 const dir = path.resolve(import.meta.dirname, '..', 'tools', 'stimmen');
 fs.mkdirSync(dir, { recursive: true });
-const base = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/high/de_DE-thorsten-high';
-for (const ext of ['.onnx.json', '.onnx']) {
-  const ziel = path.join(dir, 'de_DE-thorsten-high' + ext);
+const HF = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/';
+const stimmen = [['thorsten/high/', 'de_DE-thorsten-high'], ['thorsten_emotional/medium/', 'de_DE-thorsten_emotional-medium']];
+for (const [ordner, name] of stimmen) for (const ext of ['.onnx.json', '.onnx']) {
+  const base = HF + ordner + name;
+  const ziel = path.join(dir, name + ext);
   if (fs.existsSync(ziel) && fs.statSync(ziel).size > 1000) { console.log('✔ vorhanden:', ziel); continue; }
   console.log('⬇️  lade', ziel, '…');
   const r = await fetch(base + ext);

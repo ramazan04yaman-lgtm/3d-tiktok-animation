@@ -171,7 +171,8 @@ export interface BuildInput {
   sprechdauer?: (number | undefined)[];
 }
 
-export const PAUSE = 0.18;
+/** Pause nach jedem Satz (Sekunden) – kurz für ein flottes TikTok-Tempo. */
+export const PAUSE = 0.08;
 
 export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput): Timeline {
   const p = platzhalter(snapshot, seit);

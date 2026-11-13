@@ -3,7 +3,13 @@
   "konto": "@wasserderErde",
   "stimme": {
     "typ": "piper",
-    "tempo": 0.93
+    "modell": "tools/stimmen/de_DE-thorsten_emotional-medium.onnx",
+    "sprecher": 0,
+    "tempo": 0.78,
+    "rauschen": 0.9,
+    "betonung": 1.1,
+    "beschleunigen": 1.15,
+    "energie": true
   },
   "beats": [
     {

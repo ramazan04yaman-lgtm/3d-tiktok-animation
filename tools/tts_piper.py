@@ -10,7 +10,7 @@ from piper import PiperVoice, SynthesisConfig
 job = json.load(open(sys.argv[1]))
 voice = PiperVoice.load(job['modell'])
 cfg = SynthesisConfig(speaker_id=job.get('sprecher'), length_scale=job.get('tempo', 1.0),
-                      noise_scale=0.6, noise_w_scale=0.75, normalize_audio=True)
+                      noise_scale=job.get('rauschen', 0.6), noise_w_scale=job.get('betonung', 0.75), normalize_audio=True)
 for s in job['saetze']:
     with wave.open(s['datei'], 'wb') as w:
         voice.synthesize_wav(s['text'], w, syn_config=cfg)

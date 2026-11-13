@@ -65,7 +65,11 @@ export interface Folge {
    *          "espeak"   = Computer-Teststimme,  "keine" = ohne Stimme.
    */
   stimme?: { typ: 'espeak'; stimme?: string; tempo?: number }
-    | { typ: 'piper'; modell?: string; sprecher?: number; tempo?: number }
+    | { typ: 'piper'; modell?: string; sprecher?: number; tempo?: number;
+        /** Lebendigkeit: mehr = mehr Schwankung in Ton und Rhythmus (Standard 0.6 / 0.75). */
+        rauschen?: number; betonung?: number;
+        /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
+        beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
   beats: Beat[];
 }

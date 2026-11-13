@@ -55,6 +55,7 @@ if (stimme.typ === 'piper') {
   const modell = path.resolve(root, stimme.modell ?? 'tools/stimmen/de_DE-thorsten-high.onnx');
   if (!fs.existsSync(modell)) throw new Error(`Stimme fehlt: ${modell}\n   Bitte einmal "npm run stimme-laden" ausführen.`);
   const job = { modell, tempo: stimme.tempo ?? 0.95, sprecher: stimme.sprecher ?? null,
+    rauschen: stimme.rauschen ?? 0.6, betonung: stimme.betonung ?? 0.75,
     saetze: folge.beats.map((b, i) => ({ text: sprechText(b), datei: path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`) })) };
   // Aufnahmen wiederverwenden, wenn sich der Text nicht geändert hat (gleiche Länge -> fortsetzbar)
   const jobFile = path.join(work, 'tts.json');
@@ -66,11 +67,24 @@ if (stimme.typ === 'piper') {
     execFileSync('python3', [path.join(root, 'tools/tts_piper.py'), jobFile], { stdio: 'inherit' });
   }
 }
+/** Nachbearbeitung der KI-Stimme: schneller (ohne Tonhöhenänderung), Präsenz, Kompressor -> mehr Energie. */
+function veredeln(roh: string): string {
+  if (stimme.typ !== 'piper' || (!stimme.beschleunigen && !stimme.energie)) return roh;
+  const out = roh.replace(/\.wav$/, '-fx.wav');
+  const filter = [
+    stimme.beschleunigen ? `atempo=${stimme.beschleunigen}` : '',
+    stimme.energie ? 'highpass=f=80,equalizer=f=3000:t=q:w=1.2:g=3,equalizer=f=200:t=q:w=1:g=-2,acompressor=threshold=-20dB:ratio=3:attack=5:release=90:makeup=2' : '',
+    // Stille am Anfang/Ende kürzen -> flüssigeres Tempo
+    'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.02,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse',
+  ].filter(Boolean).join(',');
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', roh, '-af', filter, '-ar', '44100', out]);
+  return out;
+}
 folge.beats.forEach((b, i) => {
   let f: string | undefined;
   if (b.audio) f = path.resolve(path.dirname(folgePfad), b.audio);
   else if (geschnitten) f = geschnitten[i];
-  else if (stimme.typ === 'piper') f = path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`);
+  else if (stimme.typ === 'piper') f = veredeln(path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`));
   else if (stimme.typ === 'espeak') {
     f = path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`);
     execFileSync('espeak-ng', ['-v', stimme.stimme ?? 'mb-de6', '-s', String(stimme.tempo ?? 165), '-w', f, sprechText(b)]);
