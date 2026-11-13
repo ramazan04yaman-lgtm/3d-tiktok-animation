@@ -68,6 +68,7 @@ export function percentExact(a: bigint, b: bigint, decimals = 12): string {
 /** Dauer in Tagen -> lesbarer Text (Jahre, ggf. wissenschaftlich). */
 export function formatDuration(days: bigint | null): string {
   if (days === null) return '∞ (noch niemand trinkt)';
+  if (days === 1n) return '1 Tag';
   if (days < 365n) return groupDE(days) + ' Tage';
   const years = days / 365n;
   if (years < 1_000_000_000n) return groupDE(years) + ' Jahre';

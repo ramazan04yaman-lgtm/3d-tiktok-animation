@@ -6,7 +6,8 @@ import type { SimConfig } from './config.ts';
 
 /** Ist die maximale Trinkmenge erreicht? */
 export function trinkMaximum(followers: bigint, config: SimConfig): boolean {
-  return followers / config.meilensteine.trinkSchritt >= config.meilensteine.trinkMaxStufen;
+  const max = config.meilensteine.trinkMaxStufen;
+  return max !== null && followers / config.meilensteine.trinkSchritt >= max;
 }
 
 export interface Stufe {
@@ -39,8 +40,8 @@ export function stufeFuer(followers: bigint, config: SimConfig, aktiv = true): S
   const f = followers < 0n ? 0n : followers;
   const st = aktiv
     ? { like: f / m.likeSchritt, kommentar: f / m.kommentarSchritt, share: f / m.shareSchritt,
-        // Verdopplung nur bis zur Höchststufe (10 Stufen = 10.000 Follower), danach bleibt die Trinkmenge gleich
-        trinken: f / m.trinkSchritt > m.trinkMaxStufen ? m.trinkMaxStufen : f / m.trinkSchritt }
+        // Verdopplung je Meilenstein (optional mit Höchststufe)
+        trinken: m.trinkMaxStufen !== null && f / m.trinkSchritt > m.trinkMaxStufen ? m.trinkMaxStufen : f / m.trinkSchritt }
     : { like: 0n, kommentar: 0n, share: 0n, trinken: 0n };
   return {
     likeMl: config.mlPerLike + st.like * m.likePlusMl,
@@ -61,7 +62,7 @@ export function naechsteMeilensteine(followers: bigint, config: SimConfig): Naec
     { regel: 'share', follower: next(m.shareSchritt), neuMl: 0n },
   ];
   // Trink-Verdopplung nur, solange die Höchststufe noch nicht erreicht ist
-  if (followers / m.trinkSchritt < m.trinkMaxStufen) list.push({ regel: 'trinken', follower: next(m.trinkSchritt), neuMl: 0n });
+  if (m.trinkMaxStufen === null || followers / m.trinkSchritt < m.trinkMaxStufen) list.push({ regel: 'trinken', follower: next(m.trinkSchritt), neuMl: 0n });
   for (const n of list) {
     const s = stufeFuer(n.follower, config);
     n.neuMl = n.regel === 'like' ? s.likeMl : n.regel === 'kommentar' ? s.kommentarMl : n.regel === 'share' ? s.shareMl : s.trinkMl;

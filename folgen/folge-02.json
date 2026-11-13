@@ -129,20 +129,20 @@
       ]
     },
     {
-      "text": "Alle tausend Follower {rot:verdoppelt} sich die Trinkmenge – bis auf {rot:{max_pro_kopf}} pro Kopf!",
+      "text": "Alle zehntausend Follower {rot:verdoppelt} sich die Trinkmenge – für {rot:alle} Einwohner!",
       "kamera": "orbit",
       "min": 4.2,
       "sticker": [
         {
           "typ": "schild",
-          "text": "×2 ALLE 1.000 FOLLOWER",
+          "text": "×2 ALLE 10.000 FOLLOWER",
           "farbe": "rot",
           "y": 15,
           "drehung": -4
         },
         {
           "typ": "schild",
-          "text": "MAXIMUM: 10.240 L PRO TAG",
+          "text": "FÜR ALLE EINWOHNER",
           "farbe": "gelb",
           "y": 22,
           "drehung": 3
@@ -189,10 +189,10 @@
       ]
     },
     {
-      "text": "{blau:Tausend} Menschen, ein Jahr lang.",
+      "text": "{blau:Fünfzigtausend} Menschen, ein Jahr lang.",
       "kamera": "europa",
       "szenario": {
-        "einwohner": 1000,
+        "einwohner": 50000,
         "tage": 365
       },
       "min": 4.2,
@@ -203,29 +203,14 @@
       ]
     },
     {
-      "text": "{blau:Zehntausend} Menschen: Jeder trinkt jetzt {rot:10.240 Liter} am Tag.",
+      "text": "{blau:Zweihunderttausend} Menschen: Jeder trinkt schon über {rot:zehn Millionen Liter} am Tag.",
       "kamera": "space",
       "uebergang": 2,
       "szenario": {
-        "einwohner": 10000,
+        "einwohner": 200000,
         "tage": 365
       },
-      "min": 4.6,
-      "sticker": [
-        {
-          "typ": "szenario"
-        }
-      ],
-      "sprache": "Zehntausend Menschen: Jeder trinkt jetzt zehntausendzweihundertvierzig Liter am Tag."
-    },
-    {
-      "text": "{blau:Eine Million} Menschen, zehn Jahre lang.",
-      "kamera": "space",
-      "szenario": {
-        "einwohner": 1000000,
-        "tage": 3650
-      },
-      "min": 4.2,
+      "min": 4.8,
       "sticker": [
         {
           "typ": "szenario"
@@ -233,15 +218,29 @@
       ]
     },
     {
-      "text": "Und selbst wenn {rot:alle acht Milliarden} Menschen folgen würden …",
+      "text": "{rot:Vierhundertfünfzigtausend} Menschen, nur einen Tag!",
+      "kamera": "space",
+      "szenario": {
+        "einwohner": 450000,
+        "tage": 1
+      },
+      "min": 4.4,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "Und ab {rot:{leer_an_einem_tag} Followern} ist die Erde an einem einzigen Tag {rot:leergetrunken}.",
       "kamera": "finale",
       "uebergang": 2.4,
       "strohhalm": true,
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365
+        "einwohner": 490000,
+        "tage": 1
       },
-      "min": 4.2,
+      "min": 5,
       "effekte": [
         {
           "t": 0.05,
@@ -251,49 +250,30 @@
       "sticker": [
         {
           "typ": "zahl",
-          "label": "EINWOHNER",
+          "label": "ERDE AN 1 TAG LEER AB",
           "von": 0,
-          "bis": "8.000.000.000",
+          "bis": "{leer_an_einem_tag}",
           "farbe": "rot"
         }
       ]
     },
     {
-      "text": "… reicht das Wasser noch {rot:{reicht_bei_8000000000}}.",
-      "kamera": "finale",
-      "strohhalm": true,
-      "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365
-      },
-      "min": 3.6,
-      "sticker": [
-        {
-          "typ": "schild",
-          "text": "⏳ NOCH {reicht_bei_8000000000}",
-          "farbe": "rot",
-          "y": 18,
-          "drehung": -3
-        }
-      ]
-    },
-    {
-      "text": "Also: Wie weit kommen {gelb:wir}?",
+      "text": "Schaffen wir {rot:{leer_an_einem_tag} Follower}?",
       "kamera": "finale",
       "strohhalm": true,
       "untertitel": false,
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365
+        "einwohner": 490000,
+        "tage": 1
       },
-      "min": 2.8,
+      "min": 3.2,
       "sticker": [
         {
           "typ": "titel",
           "zeilen": [
-            "WIE WEIT",
-            "KOMMEN",
-            "{gelb:WIR?}"
+            "SCHAFFEN WIR",
+            "{rot:{leer_an_einem_tag}}",
+            "FOLLOWER?"
           ]
         }
       ]
@@ -309,8 +289,8 @@
         }
       ],
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365
+        "einwohner": 490000,
+        "tage": 1
       }
     }
   ]

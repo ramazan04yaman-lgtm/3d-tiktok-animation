@@ -86,7 +86,8 @@ export function ersetze(text: string, p: Record<string, string>): string {
       // So lange reicht das restliche Wasser, wenn es n Einwohner (= Follower) gäbe
       const e = BigInt(n), perDay = e * stufeFuer(e, DEFAULT_CONFIG).trinkMl;
       const rest = BigInt(p.__rest ?? '0');
-      return perDay > 0n ? formatDuration((rest + perDay - 1n) / perDay) : '∞';
+      if (perDay <= 0n) return '∞';
+      return perDay >= rest ? 'weniger als 1 Tag' : formatDuration((rest + perDay - 1n) / perDay);
     })
     .replace(/\{pro_kopf_bei_(\d+)\}/g, (_m, n: string) => formatMenge(stufeFuer(BigInt(n), DEFAULT_CONFIG).trinkMl))
     .replace(/\{([a-z_]+)\}/g, (m, k: string) => (k in p ? p[k] : m));
