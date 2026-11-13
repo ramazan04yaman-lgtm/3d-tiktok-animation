@@ -33,7 +33,7 @@ export const SHOTS: Record<string, Shot> = {
   kapitaen:  { label: '🧑‍✈️ Kapitän Durst (Moderator)', lat: 22, lon: -35, dist: 4.6, tilt: 0, focus: 0, spin: 5 },
   intro:     { label: '🎬 Intro: Weltall, langsamer Zoom', lat: 15, lon: -20, dist: 8.5, tilt: 0, focus: 0, spin: 7, zoom: -0.55, zoomBis: 4.2 },
   zoom:      { label: '🔍 Zoom auf die Erde', lat: 20, lon: 5, dist: 4.4, tilt: 4, focus: 0.4, spin: 6, zoom: -0.45, zoomBis: 2.4 },
-  ozean:     { label: '🌊 Ozean-Nahaufnahme', lat: 14, lon: -162, dist: 1.4, tilt: 6, focus: 0.9, spin: 3, sonne: [9, 16] },
+  ozean:     { label: '🌊 Ozean-Nahaufnahme', lat: 12, lon: -165, dist: 1.75, tilt: 12, focus: 0.75, spin: 3.5, sonne: [16, 34] },
   rueckflug: { label: '🚀 Rückflug ins All', lat: 30, lon: 20, dist: 1.6, tilt: 10, focus: 0.6, spin: 9, zoom: 0.7, zoomBis: 4.6 },
   europa:    { label: '🌍 Europa (Küsten)', lat: 47, lon: 10, dist: 1.75, tilt: 10, focus: 1, spin: 2.5 },
   finale:    { label: '🎬 Finale: Erde im All', lat: 10, lon: -30, dist: 3.3, tilt: 0, focus: 0, spin: 10, zoom: 0.35, zoomBis: 5.2 },
