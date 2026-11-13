@@ -130,9 +130,31 @@ Ergebnis: `output/folge-01.mp4` (1080×1920, 30 fps) + `output/folge-01.srt` (Un
 Optionen: `--musik musik.mp3` (leise im Hintergrund), `--seit 2026-11-12` (für `{neue_follower}`),
 `--hoehe 1280 --fps 24` (kleiner/schneller), `--leicht` (schneller auf Rechnern ohne gute Grafikkarte), `--bis 5` (nur 5 Sekunden testen).
 
-### 🎙️ Deine eigene Stimme (empfohlen!)
-Die eingebaute Computerstimme ist nur zum Testen – sie klingt robotisch.
+### 🎙️ Stimme
+**Standard: natürliche deutsche KI-Stimme „Thorsten“** (Piper, läuft offline, Lizenz CC0 – auch für TikTok erlaubt).
+Einmalig einrichten: `npm run stimme-laden` (lädt die Stimme ~110 MB und installiert Piper).
+Im Drehbuch: `"stimme": { "typ": "piper", "tempo": 0.93 }` (kleiner = schneller).
 
+Wenn eine Zahl falsch ausgesprochen wird, im Beat `"sprache": "..."` mit ausgeschriebenem Text angeben.
+
+### 🎵 Musik und Soundeffekte
+Werden automatisch erzeugt (eigene Kompositionen, keine Lizenzprobleme):
+- `"musik": "ruhig" | "treibend" | "drama"` ab einem Beat
+- Effekte kommen automatisch: Whoosh bei Kamerafahrten, Plopp bei Schildern, Ticken + „Ding“ bei Zahlen,
+  Schluckgeräusch bei Menschen-Nahaufnahmen, Tropfen bei Szenarien; zusätzlich per `"effekte": [{ "t": 0.2, "typ": "riser" }]`
+  (Typen: pop, whoosh, tick, ding, gulp, impact, riser, drop)
+- Die Musik wird automatisch leiser, wenn gesprochen wird; Gesamtlautstärke auf TikTok-Niveau (-14 LUFS).
+- Eigene Musik: `--musik datei.mp3`
+
+### 🌍 Neue Drehbuch-Möglichkeiten (Version 2)
+- `"szenario": { "einwohner": 1000000, "tage": 365 }` + Sticker `{ "typ": "szenario" }`: „Was wäre, wenn …“ –
+  gerechnet mit den echten Regeln (10 L pro Mensch und Tag); der Wasserstand im Bild passt genau dazu.
+- `"einwohner_vorschau": 2000` + Kamera `"gruppe"`: Dorf mit Menschengruppe (wird als VORSCHAU gekennzeichnet)
+- Sticker `{ "typ": "zahlen" }`: große Zahlenkacheln mit allen Werten; `{ "typ": "titel", "zeilen": [...] }`: große Überschrift
+- `"untertitel": false`: Untertitel für diesen Beat ausblenden
+- Kameras: `intro`, `zoom`, `ozean`, `europa`, `einwohner1`, `gruppe`, `rueckflug`, `finale` (+ alle bisherigen)
+
+### 🎙️ Deine eigene Stimme (optional)
 **So geht's:**
 1. Text anzeigen lassen: `npm run sprechertext -- --folge folge-01`
 2. Mit dem Handy (Sprachmemo) **alles am Stück** einsprechen.
@@ -148,7 +170,7 @@ Das Programm schneidet die Aufnahme an den Pausen, gleicht die Lautstärke an, u
 Alternativ geht auch eine Datei pro Satz (`"audio": "aufnahmen/satz-03.mp3"` im jeweiligen Beat)
 oder eine KI-Stimme (z. B. CapCut/ElevenLabs), die du genauso als Datei einträgst.
 
-Die Computer-Teststimme braucht: `sudo apt install espeak-ng mbrola mbrola-de6`.
+Die alte Computer-Teststimme (`"typ": "espeak"`) braucht: `sudo apt install espeak-ng mbrola mbrola-de6`.
 
 ## 🧱 Projektstruktur
 
