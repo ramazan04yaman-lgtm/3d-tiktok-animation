@@ -42,6 +42,8 @@ export class People {
   private assets: EarthAssets;
   /** Wie viele echte Menschen eine Figur darstellt. */
   perFigure = 1;
+  /** Plattformen (Grundstück/Dorf): Figuren darauf stehen auf deren Höhe statt auf dem Gelände. */
+  platforms: { up: THREE.Vector3; cosR: number; r: number; active: boolean }[] = [];
   /** Größe einer Figur (Szeneneinheiten), wird je nach Kameraabstand gesetzt. */
   figureSize = 0.004;
 
@@ -69,7 +71,7 @@ export class People {
     }
     // Städte gewichten (Wurzel der Einwohnerzahl -> auch kleinere Städte bekommen Leute)
     let acc = 0;
-    for (const city of assets.cities) { acc += Math.sqrt(city.pop); this.cumWeights.push(acc); }
+    for (const city of assets.cities) { acc += Math.pow(city.pop, 0.8); this.cumWeights.push(acc); }
   }
 
   private makePerson(i: number): Person {
@@ -78,8 +80,8 @@ export class People {
     while (lo < hi) { const mid = (lo + hi) >> 1; if (this.cumWeights[mid] < r) lo = mid + 1; else hi = mid; }
     const city = this.assets.cities[lo];
     // kleine Streuung um die Stadt
-    const lat = city.lat + (hash(i * 7 + 4) - 0.5) * 0.25;
-    const lon = city.lon + (hash(i * 7 + 5) - 0.5) * 0.25;
+    const lat = city.lat + (hash(i * 7 + 4) - 0.5) * 0.11;
+    const lon = city.lon + (hash(i * 7 + 5) - 0.5) * 0.11;
     const h = Math.max(0, sampleElevation(this.assets, lat, lon));
     const f = tangentFrame(lat, lon);
     return {
@@ -97,6 +99,20 @@ export class People {
     const m = new THREE.Matrix4();
     this.heads.getMatrixAt(i, m);
     return new THREE.Vector3(0, 1.45, 0).applyMatrix4(m);
+  }
+
+  /** Stadt mit den meisten gezeigten Figuren (für Gruppen-Nahaufnahmen). */
+  busiestCity(): { lat: number; lon: number; city: string; count: number } {
+    const m = new Map<string, { lat: number; lon: number; n: number }>();
+    for (let i = 0; i < this.shown; i++) {
+      const p = this.persons[i];
+      const e = m.get(p.city) ?? { lat: 0, lon: 0, n: 0 };
+      e.lat += p.lat; e.lon += p.lon; e.n++;
+      m.set(p.city, e);
+    }
+    let best = { lat: 0, lon: 0, city: '', count: 0 };
+    for (const [city, e] of m) if (e.n > best.count) best = { lat: e.lat / e.n, lon: e.lon / e.n, city, count: e.n };
+    return best;
   }
 
   /** Ort von Mensch Nr. 1 (für Nahaufnahmen). */
@@ -120,9 +136,11 @@ export class People {
     for (let i = 0; i < this.shown; i++) {
       const p = this.persons[i];
       const a = p.angle + time * p.speed / p.radius;
-      const r = p.radius * s * (this.shown === 1 ? 0.6 : 2.2);
+      const r = p.radius * Math.min(s, 0.0009) * (this.shown === 1 ? 0.6 : 2.2);
       // Laufen im Kreis um einen Treffpunkt (Gruppen in der Stadt)
-      tmp.copy(p.base).addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
+      tmp.copy(p.base);
+      for (const pl of this.platforms) if (pl.active && p.up.dot(pl.up) > pl.cosR) tmp.copy(p.up).multiplyScalar(pl.r);
+      tmp.addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
       const bob = Math.abs(Math.sin(time * 9 + p.phase)) * 0.12 * s;
       tmp.addScaledVector(p.up, bob);
       fwd.copy(p.east).multiplyScalar(-Math.sin(a) * Math.sign(p.speed)).addScaledVector(p.north, Math.cos(a) * Math.sign(p.speed));

@@ -6,7 +6,10 @@
 import { ML_PER_LITER } from '../sim/config.ts';
 import { formatDuration, groupDE } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
-import type { Beat, Caption, CaptionWord, Farbe, Folge, Sticker, Timeline, TimelineBeat } from './types.ts';
+import { DEFAULT_CONFIG } from '../sim/config.ts';
+import { percentExact } from '../sim/format.ts';
+import { visualDrainFraction } from '../sim/visualScale.ts';
+import type { Beat, Caption, CaptionWord, Effekt, Farbe, Folge, Musik, Sticker, Szenario, Timeline, TimelineBeat } from './types.ts';
 
 const B = (s: string) => BigInt(s);
 
@@ -94,6 +97,28 @@ export function schaetzeDauer(text: string): number {
   return Math.max(0.8, silben * 0.2 + (text.match(/[.!?]/g)?.length ?? 0) * 0.15);
 }
 
+/**
+ * Szenario mit den ECHTEN Regeln rechnen: zusätzlich zum heutigen Verbrauch trinken
+ * `einwohner` Menschen `tage` Tage lang je 10 L. Liefert Zahlen + visuellen Wasserstand.
+ */
+export function rechneSzenario(s: Snapshot, sz: Szenario) {
+  const total = B(s.totalWaterMl);
+  const extra = BigInt(sz.einwohner) * DEFAULT_CONFIG.mlPerPersonPerDay * BigInt(sz.tage);
+  const consumed = B(s.totalConsumedMl) + extra;
+  const rest = consumed >= total ? 0n : total - consumed;
+  const perDay = BigInt(sz.einwohner) * DEFAULT_CONFIG.mlPerPersonPerDay;
+  const tageLeer = perDay > 0n ? (rest + perDay - 1n) / perDay : null;
+  return {
+    drain: visualDrainFraction(consumed, total),
+    getrunken: zahlWorte(extra / ML_PER_LITER) + ' Liter',
+    uebrig: percentExact(rest, total, 9) + ' %',
+    reicht: tageLeer === null ? '∞' : formatDuration(tageLeer),
+  };
+}
+
+const kurzZahl = (n: number) => n >= 1e9 ? `${(n / 1e9).toLocaleString('de-DE')} MRD.` : n >= 1e6 ? `${(n / 1e6).toLocaleString('de-DE')} MIO.` : groupDE(n);
+const kurzDauer = (t: number) => t % 365 === 0 ? `${groupDE(t / 365)} ${t === 365 ? 'JAHR' : 'JAHRE'}` : `${groupDE(t)} TAGE`;
+
 export interface BuildInput {
   folge: Folge;
   snapshot: Snapshot;
@@ -108,7 +133,9 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput
   const p = platzhalter(snapshot, seit);
   const beats: TimelineBeat[] = [];
   const captions: Caption[] = [];
-  const pops: number[] = [];
+  const events: Timeline['events'] = [];
+  const musik: { start: number; typ: Musik }[] = [];
+  const ev = (t: number, typ: Effekt, lautstaerke?: number) => events.push({ t, typ, ...(lautstaerke ? { lautstaerke } : {}) });
   let t = 0;
   let kamera = 'space';
   folge.beats.forEach((b: Beat, i) => {
@@ -118,7 +145,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput
     const dauer = Math.max(b.min ?? 0, sprech + PAUSE);
     kamera = b.kamera ?? kamera;
     // Untertitel proportional zur Wortlänge über die Sprechzeit verteilen
-    const chunks = chunk(words);
+    const chunks = b.untertitel === false ? [] : chunk(words);
     const weight = (c: CaptionWord[]) => c.reduce((a, w) => a + w.text.length + 2, 0);
     const total = chunks.reduce((a, c) => a + weight(c), 0) || 1;
     let ct = t;
@@ -127,18 +154,55 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput
       captions.push({ start: ct, end: ct + d, words: c });
       ct += d;
     }
-    const sticker: Sticker[] = (b.sticker ?? []).map((s) => fillSticker(s, p));
-    if (sticker.length) pops.push(t + 0.05);
+    // Szenario mit echten Regeln rechnen
+    const sz = b.szenario ? rechneSzenario(snapshot, b.szenario) : null;
+    let prevDrain: number | 'jetzt' = 'jetzt';
+    if (beats.length) prevDrain = beats[beats.length - 1].wasser.bis;
+    const conv = (v: number | 'jetzt' | 'szenario' | undefined, fallback: number | 'jetzt'): number | 'jetzt' =>
+      v === undefined ? fallback : v === 'szenario' ? (sz ? sz.drain : 'jetzt') : v;
+    const bis = conv(b.wasser?.bis, b.szenario ? (sz!.drain) : 'jetzt');
+    const von = conv(b.wasser?.von, b.szenario ? prevDrain : bis);
+    const sticker: Sticker[] = (b.sticker ?? []).map((s) => {
+      const f = fillSticker(s, p);
+      if (f.typ === 'szenario' && b.szenario && sz) {
+        return { typ: 'szenario', zeilen: [
+          `${kurzZahl(b.szenario.einwohner)} MENSCHEN · ${kurzDauer(b.szenario.tage)}`,
+          `🥤 ${sz.getrunken.toUpperCase()}`,
+          `💧 NOCH ${sz.uebrig}`,
+          `⏳ REICHT NOCH ${sz.reicht.toUpperCase()}`,
+        ] };
+      }
+      return f;
+    });
+    if (b.einwohner_vorschau && !sticker.some((s) => s.typ === 'schild' && /VORSCHAU/.test(s.text))) {
+      sticker.push({ typ: 'schild', text: `👥 ${groupDE(b.einwohner_vorschau)} MENSCHEN`, farbe: 'weissrot', y: 22, drehung: -3 });
+    }
+    // Soundeffekte passend zu Kamera, Stickern und Zahlen
+    if ((b.uebergang ?? 0) >= 1) ev(t, 'whoosh', 0.8);
+    sticker.forEach((s, k) => {
+      const at = t + 0.05 + k * 0.12;
+      if (s.typ === 'zahl' && typeof s.bis !== 'string' || s.typ === 'zahl' && /^[\d.]+$/.test(String(s.bis))) {
+        for (let q = 0; q < 14; q++) ev(at + 0.2 + q * 0.09, 'tick', 0.6);
+        ev(at + 1.5, 'ding');
+      } else if (s.typ === 'zahlen') {
+        ev(at, 'whoosh', 0.6); for (let q = 0; q < 7; q++) ev(at + 0.15 + q * 0.12, 'pop', 0.6);
+      } else ev(at, 'pop');
+    });
+    if (b.szenario) { ev(t + 0.1, 'drop', 0.8); ev(t + 0.6, 'drop', 0.6); }
+    if (b.aktion === 'trinken' || kamera === 'einwohner1' || kamera === 'gruppe') ev(t + Math.min(1.2, dauer * 0.4), 'gulp', 0.7);
+    for (const e of b.effekte ?? []) ev(t + e.t, e.typ);
+    if (b.musik) musik.push({ start: t, typ: b.musik });
     beats.push({
       start: t, end: t + dauer, kamera, uebergang: b.uebergang ?? 0,
-      sticker, wasser: { von: b.wasser?.von ?? b.wasser?.bis ?? 'jetzt', bis: b.wasser?.bis ?? 'jetzt' },
+      sticker, wasser: { von, bis }, vorschauEinwohner: b.einwohner_vorschau,
       strohhalm: b.strohhalm ?? false, aktion: b.aktion, sprechen: { start: t, end: t + sprech },
     });
     t += dauer;
   });
   // letzter Untertitel bleibt bis zum Ende stehen
   if (captions.length) captions[captions.length - 1].end = t;
-  return { titel: folge.titel, konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, pops };
+  if (!musik.length || musik[0].start > 0) musik.unshift({ start: 0, typ: 'ruhig' });
+  return { titel: folge.titel, konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
 }
 
 function fillSticker(s: Sticker, p: Record<string, string>): Sticker {
@@ -149,6 +213,7 @@ function fillSticker(s: Sticker, p: Record<string, string>): Sticker {
     case 'info': return { ...s, zeilen: s.zeilen.map(r) };
     case 'zeiger': return { ...s, text: r(s.text) };
     case 'namensschild': return { ...s, name: r(s.name), titel: r(s.titel) };
+    case 'titel': return { ...s, zeilen: s.zeilen.map(r) };
     default: return s;
   }
 }

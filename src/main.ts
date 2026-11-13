@@ -50,7 +50,7 @@ function updateDrain(): void { if (!story) scene.drainTarget = preview ?? realDr
 
 function startStory(tl: Timeline, startAt = time): void {
   story?.dispose();
-  story = new StoryPlayer(tl, scene, storyEl, realDrain, () => String(Math.max(1, snapshot.daysProcessed)));
+  story = new StoryPlayer(tl, scene, storyEl, realDrain, () => String(Math.max(1, snapshot.daysProcessed)), snapshot);
   storyStart = startAt;
   hud.showStats = false;
   document.body.classList.add('story');
@@ -59,6 +59,7 @@ function startStory(tl: Timeline, startAt = time): void {
 function stopStory(): void {
   story?.dispose();
   story = null;
+  scene.people.setPopulation(BigInt(snapshot.population));
   scene.mascotVisible = scene.strawVisible = scene.previewActive = false;
   hud.showStats = (document.querySelector<HTMLInputElement>('#stats')?.checked) ?? true;
   document.body.classList.remove('story');
@@ -149,6 +150,7 @@ async function main(): Promise<void> {
 
 // Steuerung von außen (Video-Renderer, Screenshots)
 Object.assign(window, {
+  __dbg: () => ({ shot: scene.director.shotName, dist: scene.camera.position.length().toFixed(3), state: scene.director.state }),
   __sim: {
     ready: () => ready,
     renderAt: (t: number, dt = 1 / 30) => tick(t, dt),

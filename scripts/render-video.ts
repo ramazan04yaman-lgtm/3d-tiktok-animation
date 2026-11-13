@@ -40,21 +40,32 @@ const sec = (f: string) => Number(execFileSync('ffprobe', ['-v', 'error', '-show
 
 // ---------- 1. Stimme ----------
 console.log(`🎙️  Stimme für ${folge.beats.length} Sätze …`);
-const stimme = args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'espeak' as const };
+const stimme = args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'piper' as const };
 const audioFiles: (string | undefined)[] = [];
 const dauer: (number | undefined)[] = [];
+/** Text für die Stimme: ohne Emojis/Markierungen, Tausenderpunkte weg. */
+const sprechText = (b: { text: string; sprache?: string }) => plain(ersetze(b.sprache ?? b.text, p))
+  .replace(/(\d)\.(?=\d{3})/g, '$1').replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
 const geschnitten = stimme.typ === 'aufnahme'
   ? zerschneide(path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei), folge.beats.length, work)
   : null;
 if (geschnitten) console.log(`✂️  Deine Aufnahme wurde in ${geschnitten.length} Sätze geschnitten.`);
+if (stimme.typ === 'piper') {
+  const modell = path.resolve(root, stimme.modell ?? 'tools/stimmen/de_DE-thorsten-high.onnx');
+  if (!fs.existsSync(modell)) throw new Error(`Stimme fehlt: ${modell}\n   Bitte einmal "npm run stimme-laden" ausführen.`);
+  const job = { modell, tempo: stimme.tempo ?? 0.95, sprecher: stimme.sprecher ?? null,
+    saetze: folge.beats.map((b, i) => ({ text: sprechText(b), datei: path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`) })) };
+  fs.writeFileSync(path.join(work, 'tts.json'), JSON.stringify(job, null, 2));
+  execFileSync('python3', [path.join(root, 'tools/tts_piper.py'), path.join(work, 'tts.json')], { stdio: 'inherit' });
+}
 folge.beats.forEach((b, i) => {
   let f: string | undefined;
   if (b.audio) f = path.resolve(path.dirname(folgePfad), b.audio);
   else if (geschnitten) f = geschnitten[i];
+  else if (stimme.typ === 'piper') f = path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`);
   else if (stimme.typ === 'espeak') {
-    const text = plain(ersetze(b.sprache ?? b.text, p)).replace(/(\d)\.(?=\d{3})/g, '$1');
     f = path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`);
-    execFileSync('espeak-ng', ['-v', stimme.stimme ?? 'mb-de6', '-s', String(stimme.tempo ?? 165), '-w', f, text]);
+    execFileSync('espeak-ng', ['-v', stimme.stimme ?? 'mb-de6', '-s', String(stimme.tempo ?? 165), '-w', f, sprechText(b)]);
   }
   audioFiles.push(f);
   dauer.push(f ? sec(f) : undefined);
@@ -104,32 +115,26 @@ await browser.close();
 await server.close();
 console.log('\n🔊 Ton mischen …');
 
-// ---------- 4. Ton: Stimme + "Plopp" bei Stickern (+ Musik) ----------
-const inputs: string[] = [];
-const filters: string[] = [];
-let n = 0;
-timeline.beats.forEach((b, i) => {
-  const f = audioFiles[i];
-  if (!f || b.start >= total) return;
-  inputs.push('-i', f);
-  filters.push(`[${n}:a]aresample=44100,aformat=channel_layouts=stereo,adelay=${Math.round(b.start * 1000)}:all=1,volume=1.6[a${n}]`);
-  n++;
-});
-const pop = path.join(work, 'plopp.wav');
-execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', "aevalsrc='0.6*sin(2*PI*(500+3000*t)*t)*exp(-25*t)':s=44100:d=0.18", pop]);
-for (const t of timeline.pops) {
-  if (t >= total) continue;
-  inputs.push('-i', pop);
-  filters.push(`[${n}:a]aformat=channel_layouts=stereo,adelay=${Math.round(t * 1000)}:all=1,volume=0.5[a${n}]`);
-  n++;
-}
-if (args.musik) {
-  inputs.push('-stream_loop', '-1', '-i', path.resolve(args.musik));
-  filters.push(`[${n}:a]aresample=44100,aformat=channel_layouts=stereo,volume=0.12[a${n}]`);
-  n++;
-}
-const mix = `${filters.join(';')};${Array.from({ length: n }, (_, i) => `[a${i}]`).join('')}amix=inputs=${n}:normalize=0,atrim=0:${total.toFixed(3)}[out]`;
-execFileSync('ffmpeg', ['-y', '-v', 'error', ...inputs, '-i', silent, '-filter_complex', mix,
-  '-map', `${n}:v`, '-map', '[out]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', out]);
+// ---------- 4. Ton: Stimme + Musik (wird unter der Stimme leiser) + Effekte ----------
+const plan = {
+  dauer: total,
+  abschnitte: timeline.musik.map((m) => ({ start: m.start, typ: m.typ })),
+  events: timeline.events.filter((e) => e.t < total),
+  stimme: timeline.beats.map((b, i) => ({ t: b.start, datei: audioFiles[i] })).filter((v) => v.datei && v.t < total),
+};
+fs.writeFileSync(path.join(work, 'ton-plan.json'), JSON.stringify(plan, null, 2));
+const [mus, sfx, voc] = ['musik', 'effekte', 'stimme'].map((n) => path.join(work, `${n}.wav`));
+execFileSync('python3', [path.join(root, 'tools/sound.py'), path.join(work, 'ton-plan.json'), mus, sfx, voc], { stdio: 'inherit' });
+const musikDatei = args.musik ? path.resolve(args.musik) : mus;
+const mix = [
+  `[0:a]aformat=channel_layouts=stereo,volume=1.0,asplit=2[v][vs]`,
+  `[1:a]aformat=channel_layouts=stereo,volume=${args.musik ? 0.25 : 0.55}[m0]`,
+  `[m0][vs]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=350[m]`,
+  `[2:a]aformat=channel_layouts=stereo,volume=0.7[f]`,
+  `[v][m][f]amix=inputs=3:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=11,atrim=0:${total.toFixed(3)}[out]`,
+].join(';');
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', voc, ...(args.musik ? ['-stream_loop', '-1'] : []), '-i', musikDatei, '-i', sfx, '-i', silent,
+  '-filter_complex', mix, '-map', '3:v', '-map', '[out]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
+  '-shortest', '-movflags', '+faststart', out]);
 console.log(`✅ Fertig: ${out}  (${total.toFixed(1)} s, ${W}x${H}, ${FPS} fps)`);
 console.log(`   Untertitel: ${out.replace(/\.mp4$/, '.srt')}`);

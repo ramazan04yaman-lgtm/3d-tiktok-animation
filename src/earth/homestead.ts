@@ -14,9 +14,9 @@ function toon(geo: THREE.BufferGeometry, color: string, outline = 0.06): THREE.M
 /** Maße in "Figurenhöhen" (1 = Größe einer Figur), wird außen skaliert. */
 export function createHomestead(): THREE.Group {
   const g = new THREE.Group();
-  const ground = toon(new THREE.CylinderGeometry(7, 7.3, 0.25, 64), '#7ccf4a', 0.01);
+  const ground = toon(new THREE.CylinderGeometry(12, 12.4, 0.25, 72), '#7ccf4a', 0.01);
   ground.position.y = -0.12;
-  const dirt = toon(new THREE.CylinderGeometry(7.35, 6.6, 0.6, 64), '#a8794a', 0.01);
+  const dirt = toon(new THREE.CylinderGeometry(12.45, 11.5, 0.6, 72), '#a8794a', 0.01);
   dirt.position.y = -0.55;
   const path = toon(new THREE.BoxGeometry(0.6, 0.03, 2.2), '#e8d29a', 0);
   path.position.set(-0.4, 0.02, 1.4);
@@ -55,5 +55,45 @@ export function createHomestead(): THREE.Group {
     g.add(bush);
   }
   g.add(ground, dirt, path, house, trunk, crown, barrel, water, pole, flag);
+  return g;
+}
+
+/** Ein kleines Cartoon-Dorf mit Brunnen in der Mitte (für Nahaufnahmen von Menschengruppen). */
+export function createVillage(): THREE.Group {
+  const g = new THREE.Group();
+  const ground = toon(new THREE.CylinderGeometry(13, 13.4, 0.25, 72), '#86d24f', 0.01);
+  ground.position.y = -0.12;
+  const dirt = toon(new THREE.CylinderGeometry(13.45, 12.5, 0.7, 72), '#a8794a', 0.01);
+  dirt.position.y = -0.6;
+  const plaza = toon(new THREE.CylinderGeometry(3.2, 3.2, 0.06, 48), '#f1dfb0', 0);
+  // Brunnen
+  const basin = toon(new THREE.CylinderGeometry(1.1, 1.2, 0.45, 32), '#c9d3e6');
+  basin.position.y = 0.22;
+  const water = toon(new THREE.CylinderGeometry(0.95, 0.95, 0.05, 32), '#39b6ff', 0);
+  water.position.y = 0.43;
+  const column = toon(new THREE.CylinderGeometry(0.15, 0.2, 1.1, 12), '#c9d3e6');
+  column.position.y = 0.8;
+  const top = toon(new THREE.SphereGeometry(0.28, 14, 10), '#39b6ff');
+  top.position.y = 1.4;
+  g.add(ground, dirt, plaza, basin, water, column, top);
+  const colors = ['#ff4f4f', '#ffb238', '#4d7cff', '#2fd6b4', '#b678ff', '#ff7a2f'];
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2, r = 6.2 + (i % 2) * 1.2;
+    const h = new THREE.Group();
+    const wallH = 1.1 + (i % 3) * 0.3;
+    const wall = toon(new THREE.BoxGeometry(1.5, wallH, 1.3), '#fff3d6');
+    wall.position.y = wallH / 2;
+    const roof = toon(new THREE.ConeGeometry(1.25, 0.85, 4), colors[i % colors.length]);
+    roof.position.y = wallH + 0.42; roof.rotation.y = Math.PI / 4;
+    const door = toon(new THREE.BoxGeometry(0.38, 0.6, 0.05), '#8a5a33', 0);
+    door.position.set(0, 0.3, 0.66);
+    h.add(wall, roof, door);
+    h.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+    h.lookAt(0, 0, 0);
+    g.add(h);
+    const tree = toon(new THREE.SphereGeometry(0.55, 12, 10), '#3fae3a');
+    tree.position.set(Math.cos(a + 0.35) * 8.2, 0.7, Math.sin(a + 0.35) * 8.2);
+    g.add(tree);
+  }
   return g;
 }

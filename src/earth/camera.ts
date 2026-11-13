@@ -19,10 +19,24 @@ export interface Shot {
   /** Kamerafahrt: Wegpunkte [lat, lon], Dauer in Sekunden. */
   path?: [number, number][];
   pathSeconds?: number;
+  /** Zoom-Fahrt: Abstand ändert sich um so viel pro Sekunde (negativ = heranfahren). */
+  zoom?: number;
+  /** Grenze für die Zoom-Fahrt. */
+  zoomBis?: number;
+  /** Sonnenstand relativ zur Kamera [Grad Breite, Grad Länge] (Standard [18, 55]). */
+  sonne?: [number, number];
+  /** Feste Figurengröße in diesem Shot (Nahaufnahmen von Menschen). */
+  figur?: number;
 }
 
 export const SHOTS: Record<string, Shot> = {
   kapitaen:  { label: '🧑‍✈️ Kapitän Durst (Moderator)', lat: 22, lon: -35, dist: 4.6, tilt: 0, focus: 0, spin: 5 },
+  intro:     { label: '🎬 Intro: Weltall, langsamer Zoom', lat: 15, lon: -20, dist: 8.5, tilt: 0, focus: 0, spin: 7, zoom: -0.55, zoomBis: 4.2 },
+  zoom:      { label: '🔍 Zoom auf die Erde', lat: 20, lon: 5, dist: 4.4, tilt: 4, focus: 0.4, spin: 6, zoom: -0.45, zoomBis: 2.4 },
+  ozean:     { label: '🌊 Ozean-Nahaufnahme', lat: 14, lon: -162, dist: 1.4, tilt: 6, focus: 0.9, spin: 3, sonne: [9, 16] },
+  rueckflug: { label: '🚀 Rückflug ins All', lat: 30, lon: 20, dist: 1.6, tilt: 10, focus: 0.6, spin: 9, zoom: 0.7, zoomBis: 4.6 },
+  europa:    { label: '🌍 Europa (Küsten)', lat: 47, lon: 10, dist: 1.75, tilt: 10, focus: 1, spin: 2.5 },
+  finale:    { label: '🎬 Finale: Erde im All', lat: 10, lon: -30, dist: 3.3, tilt: 0, focus: 0, spin: 10, zoom: 0.35, zoomBis: 5.2 },
   space:     { label: '🌍 Erde aus dem All', lat: 12, lon: 15, dist: 5.6, tilt: 0, focus: 0, spin: 6 },
   orbit:     { label: '🔄 Drehung um die Erde', lat: 8, lon: -40, dist: 4.2, tilt: 0, focus: 0, spin: 18 },
   europe:    { label: '🇪🇺 Europa', lat: 50, lon: 12, dist: 2.0, tilt: 14, focus: 1 },
@@ -95,7 +109,15 @@ export class CameraDirector {
     let lat = s.lat, lon = s.lon;
     if (s.path) [lat, lon] = pathPos(s.path, ((t / (s.pathSeconds ?? 20)) % 1 + 1) % 1);
     if (s.spin) lon += s.spin * t;
-    return { lat, lon, dist: s.dist, tilt: s.tilt, focus: s.focus };
+    let dist = s.dist;
+    if (s.zoom) {
+      // weiche Zoom-Fahrt (bremst zum Ziel hin ab)
+      const lim = s.zoomBis ?? (s.zoom < 0 ? 1.1 : 8);
+      const span = lim - s.dist;
+      const k = 1 - Math.exp(-Math.abs(s.zoom * t / (span || 1)));
+      dist = s.dist + span * k;
+    }
+    return { lat, lon, dist, tilt: s.tilt, focus: s.focus };
   }
 
   update(time: number): CamState {

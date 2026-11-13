@@ -6,7 +6,10 @@
 import * as THREE from 'three';
 import type { EarthScene } from '../earth/scene.ts';
 import { latLonToVec3 } from '../earth/geo.ts';
-import { groupDE } from '../sim/format.ts';
+import { ML_PER_LITER } from '../sim/config.ts';
+import { formatLiters, groupDE, percentExact, sci } from '../sim/format.ts';
+import type { Snapshot } from '../sim/snapshot.ts';
+import { parseWords } from './script.ts';
 import { statistikHTML } from '../ui/hud.ts';
 import type { Sticker, Timeline, TimelineBeat } from './types.ts';
 
@@ -31,9 +34,10 @@ export class StoryPlayer {
   private scene: EarthScene;
   private realDrain: () => number;
   private dayLabel: () => string;
+  private snapshot: Snapshot;
 
-  constructor(timeline: Timeline, scene: EarthScene, layer: HTMLElement, realDrain: () => number, dayLabel: () => string) {
-    this.timeline = timeline; this.scene = scene; this.layer = layer;
+  constructor(timeline: Timeline, scene: EarthScene, layer: HTMLElement, realDrain: () => number, dayLabel: () => string, snapshot: Snapshot) {
+    this.timeline = timeline; this.scene = scene; this.layer = layer; this.snapshot = snapshot;
     this.realDrain = realDrain; this.dayLabel = dayLabel;
     layer.innerHTML = '<div class="stickers"></div><div class="caption"></div>';
     this.stickerEl = layer.querySelector('.stickers')!;
@@ -54,7 +58,10 @@ export class StoryPlayer {
     const beat = this.timeline.beats[i];
     if (i !== this.beatIndex) {
       this.beatIndex = i;
-      const shot = beat.kamera === 'kapitaen' ? 'kapitaen' : beat.kamera;
+      const shot = beat.kamera;
+      // Vorschau mit mehr Menschen (oder zurück zur echten Einwohnerzahl)
+      this.scene.people.setPopulation(BigInt(beat.vorschauEinwohner ?? this.snapshot.population));
+      if (shot === 'gruppe') this.scene.updateGroupShot();
       this.scene.setFreeCamera(false);
       this.scene.director.setShot(shot, beat.start, beat.uebergang > 0 ? beat.uebergang : 0.0001);
       this.stickerEl.innerHTML = beat.sticker.map((s, k) => this.stickerHTML(s, k)).join('');
@@ -65,7 +72,7 @@ export class StoryPlayer {
     const k = easeInOut(clamp01(local / Math.max(0.5, beat.end - beat.start - 0.2)));
     const drain = val(beat.wasser.von) + (val(beat.wasser.bis) - val(beat.wasser.von)) * k;
     this.scene.drainTarget = this.scene.drainShown = drain;
-    this.scene.previewActive = beat.wasser.von !== 'jetzt' || beat.wasser.bis !== 'jetzt';
+    this.scene.previewActive = beat.wasser.von !== 'jetzt' || beat.wasser.bis !== 'jetzt' || !!beat.vorschauEinwohner;
     // Figur + Strohhalm
     this.scene.mascotVisible = beat.kamera === 'kapitaen';
     this.scene.mascot.talking = t >= beat.sprechen.start && t <= beat.sprechen.end;
@@ -98,7 +105,29 @@ export class StoryPlayer {
         <div class="pstats"><div><b data-k="follower-n">0</b><small>Follower</small></div></div>
         <div class="pbtn">Folgen</div><div class="prule">1 Follower = 1 Mensch 🌍</div></div>`;
       case 'statistik': return `<div class="st st-stats" ${id}>${statistikHTML()}</div>`;
+      case 'titel': return `<div class="st st-titel" ${id}>${s.zeilen.map((z, i) => `<div class="tz" data-z="${i}">${
+        parseWords(z).map((w) => `<span class="${w.farbe ?? ''}">${esc(w.text.toUpperCase())}</span>`).join(' ')}</div>`).join('')}</div>`;
+      case 'szenario': return `<div class="st st-szenario" ${id}><div class="sz-kopf">WAS WÄRE, WENN …</div>${
+        (s.zeilen ?? []).map((z, i) => `<div class="sz-z sz-${i}">${esc(z)}</div>`).join('')}</div>`;
+      case 'zahlen': return this.zahlenHTML(id);
     }
+  }
+
+  private zahlenHTML(id: string): string {
+    const s = this.snapshot, B = (x: string) => BigInt(x);
+    const kachel = (ico: string, lbl: string, val: string, cls = '', anim?: string) =>
+      `<div class="zk ${cls}"><small>${ico} ${lbl}</small><b ${anim ? `data-count="${anim}"` : ''}>${esc(val)}</b></div>`;
+    return `<div class="st st-zahlen" ${id}>
+      <div class="zk-kopf">💧 DER STAND HEUTE</div>
+      ${kachel('👥', 'EINWOHNER', groupDE(B(s.population)), 'gross gruen', s.population)}
+      ${kachel('🥤', 'VERBRAUCH PRO TAG', formatLiters(B(s.dailyMl)), 'gross blau')}
+      ${kachel('🚰', 'SCHON AUSGETRUNKEN', formatLiters(B(s.totalConsumedMl)), 'breit')}
+      ${kachel('🌊', 'NOCH ÜBRIG', sci(B(s.remainingMl) / ML_PER_LITER) + ' L', 'breit')}
+      <div class="zk-pct">${percentExact(B(s.remainingMl), B(s.totalWaterMl), 14)} % übrig</div>
+      ${kachel('❤️', 'LIKES', formatLiters(B(s.consumedMl.likes)), 'klein')}
+      ${kachel('💬', 'KOMMENTARE', formatLiters(B(s.consumedMl.comments)), 'klein')}
+      ${kachel('🔁', 'SHARES', formatLiters(B(s.consumedMl.shares)), 'klein')}
+    </div>`;
   }
 
   private animateStickers(beat: TimelineBeat, local: number): void {
@@ -127,11 +156,29 @@ export class StoryPlayer {
       }
       el.style.transform = `translateX(-50%) rotate(${rot}deg) scale(${p})`;
       if (s.typ === 'zahl') {
-        const from = parseNum(s.von), to = parseNum(s.bis);
-        const q = easeInOut(clamp01((local - delay - 0.2) / 1.3));
         const n = el.querySelector<HTMLElement>('[data-num]')!;
-        const txt = groupDE(Math.round(from + (to - from) * q)) + (s.einheit ? ' ' + s.einheit : '');
+        let txt: string;
+        if (typeof s.bis === 'string' && !/^[\d.]+$/.test(s.bis)) txt = s.bis;
+        else {
+          const from = parseNum(s.von), to = parseNum(s.bis);
+          const q = easeInOut(clamp01((local - delay - 0.2) / 1.3));
+          txt = groupDE(Math.round(from + (to - from) * q)) + (s.einheit ? ' ' + s.einheit : '');
+        }
         if (n.textContent !== txt) n.textContent = txt;
+      }
+      if (s.typ === 'titel' || s.typ === 'zahlen' || s.typ === 'szenario') {
+        // Zeilen/Kacheln nacheinander einblenden
+        el.querySelectorAll<HTMLElement>('.tz, .zk, .zk-pct, .sz-z').forEach((z, j) => {
+          const q = easeOutBack(clamp01((local - delay - 0.12 - j * 0.13) / 0.32));
+          z.style.transform = `scale(${q})`; z.style.opacity = q > 0.02 ? '1' : '0';
+        });
+        el.querySelectorAll<HTMLElement>('[data-count]').forEach((n) => {
+          const target = Number(n.dataset.count);
+          if (target > 1 && Number.isSafeInteger(target)) {
+            const q = easeInOut(clamp01((local - delay - 0.3) / 1.4));
+            n.textContent = groupDE(Math.round(target * q));
+          }
+        });
       }
       if (s.typ === 'profil') {
         const n = el.querySelector<HTMLElement>('[data-k="follower-n"]')!;

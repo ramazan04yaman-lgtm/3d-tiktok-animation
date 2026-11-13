@@ -153,7 +153,7 @@ export function createEarthMaterial(a: EarthAssets): THREE.ShaderMaterial {
         col *= 1.0 - 0.45 * smoothstep(0.2, 0.9, cs) * day;
         // Spiegelung der Sonne + Himmel auf dem Wasser
         vec3 H = normalize(L + V);
-        float spec = pow(max(dot(N, H), 0.0), 220.0) * 2.4 + pow(max(dot(N, H), 0.0), 24.0) * 0.12;
+        float spec = pow(max(dot(N, H), 0.0), 260.0) * 1.7 + pow(max(dot(N, H), 0.0), 30.0) * 0.08;
         float fres = pow(1.0 - max(dot(N, V), 0.0), 5.0);
         col += wet * day * (spec * srgb(vec3(1.0, 0.95, 0.85)) + fres * 0.35 * srgb(vec3(0.55, 0.78, 1.0)));
         // Abendrot an der Tag-Nacht-Grenze

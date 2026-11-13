@@ -1,0 +1,248 @@
+{
+  "titel": "Version 2 – Können wir das Wasser der Erde austrinken?",
+  "konto": "@wasserderErde",
+  "stimme": {
+    "typ": "piper",
+    "tempo": 0.93
+  },
+  "beats": [
+    {
+      "text": "Was würde passieren, wenn wir gemeinsam versuchen würden, das *gesamte Wasser* der Erde auszutrinken?",
+      "kamera": "intro",
+      "musik": "ruhig",
+      "untertitel": false,
+      "min": 5.2,
+      "sticker": [
+        {
+          "typ": "titel",
+          "zeilen": [
+            "WAS PASSIERT,",
+            "WENN WIR DAS",
+            "{blau:GANZE WASSER}",
+            "DER ERDE",
+            "{gelb:AUSTRINKEN?}"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Wir probieren es aus. Mit der *echten Erde*.",
+      "kamera": "zoom",
+      "uebergang": 1.8,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🌍 ECHTE ERDDATEN",
+          "farbe": "weiss",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Auf ihr gibt es rund {blau:1,386 Trilliarden Liter} Wasser.",
+      "sprache": "Auf ihr gibt es rund 1,386 Trilliarden Liter Wasser.",
+      "kamera": "ozean",
+      "uebergang": 2.2,
+      "min": 4,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "WASSER AUF DER ERDE",
+          "bis": "1,386 × 10²¹ L",
+          "farbe": "blau"
+        }
+      ]
+    },
+    {
+      "text": "Die Regel: Jeder neue Follower wird ein {gruen:Mensch} auf der Erde.",
+      "kamera": "europa",
+      "uebergang": 2,
+      "musik": "treibend",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "+1 FOLLOWER = 1 MENSCH 🌍",
+          "farbe": "gelb",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Und jeder Mensch trinkt {gruen:zehn Liter} am Tag.",
+      "kamera": "einwohner1",
+      "uebergang": 2.4,
+      "min": 3.4,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 10 LITER PRO TAG",
+          "farbe": "gruen",
+          "y": 14,
+          "drehung": 3
+        }
+      ]
+    },
+    {
+      "text": "Likes, Kommentare und Shares kosten *extra* Wasser.",
+      "kamera": "einwohner1",
+      "sticker": [
+        {
+          "typ": "info",
+          "y": 13,
+          "zeilen": [
+            "❤️ 1 LIKE = 10 ML",
+            "💬 1 KOMMENTAR = 500 ML",
+            "🔁 1 SHARE = 2 LITER"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Heute lebt hier {gruen:{einwohner_text}}.",
+      "kamera": "einwohner1",
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "EINWOHNER",
+          "von": 0,
+          "bis": "{einwohner}",
+          "farbe": "gruen"
+        },
+        {
+          "typ": "zeiger",
+          "text": "MENSCH NR. 1",
+          "ziel": "einwohner1"
+        }
+      ]
+    },
+    {
+      "text": "Stell dir vor, es wären {gruen:zweitausend}. Zusammen trinken sie {blau:zwanzigtausend Liter} am Tag.",
+      "kamera": "gruppe",
+      "uebergang": 2.2,
+      "einwohner_vorschau": 2000,
+      "min": 5,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 20.000 LITER PRO TAG",
+          "farbe": "blau",
+          "y": 30,
+          "drehung": 2
+        }
+      ]
+    },
+    {
+      "text": "Zurück zur Erde. So steht es {gelb:heute}.",
+      "kamera": "rueckflug",
+      "uebergang": 2.4,
+      "min": 6.5,
+      "sticker": [
+        {
+          "typ": "zahlen"
+        }
+      ]
+    },
+    {
+      "text": "Und was passiert, wenn mehr Menschen mittrinken?",
+      "kamera": "europa",
+      "uebergang": 2.2,
+      "musik": "drama",
+      "effekte": [
+        {
+          "t": 0.2,
+          "typ": "riser"
+        }
+      ]
+    },
+    {
+      "text": "{blau:Eine Million} Menschen, ein Jahr lang.",
+      "kamera": "europa",
+      "szenario": {
+        "einwohner": 1000000,
+        "tage": 365
+      },
+      "min": 4.2,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "{blau:Eine Milliarde} Menschen, zehn Jahre lang.",
+      "kamera": "space",
+      "uebergang": 2,
+      "szenario": {
+        "einwohner": 1000000000,
+        "tage": 3650
+      },
+      "min": 4.2,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "{rot:Acht Milliarden} Menschen, tausend Jahre lang.",
+      "kamera": "space",
+      "szenario": {
+        "einwohner": 8000000000,
+        "tage": 365000
+      },
+      "min": 4.6,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "Wie viele Menschen brauchen wir, um das Wasser der Erde *aufzubrauchen*?",
+      "kamera": "finale",
+      "uebergang": 2.5,
+      "strohhalm": true,
+      "untertitel": false,
+      "min": 4.6,
+      "effekte": [
+        {
+          "t": 0.05,
+          "typ": "impact"
+        }
+      ],
+      "sticker": [
+        {
+          "typ": "titel",
+          "zeilen": [
+            "WIE VIELE",
+            "MENSCHEN",
+            "BRAUCHEN WIR,",
+            "UM ALLES",
+            "{rot:AUSZUTRINKEN?}"
+          ]
+        }
+      ],
+      "szenario": {
+        "einwohner": 8000000000,
+        "tage": 365000
+      }
+    },
+    {
+      "text": "Folge uns und werde {gruen:Teil des Experiments!} Schreib deine Schätzung in die {blau:Kommentare!}",
+      "kamera": "finale",
+      "strohhalm": true,
+      "min": 5,
+      "sticker": [
+        {
+          "typ": "profil"
+        }
+      ],
+      "szenario": {
+        "einwohner": 8000000000,
+        "tage": 365000
+      }
+    }
+  ]
+}

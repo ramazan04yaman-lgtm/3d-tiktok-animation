@@ -13,7 +13,15 @@ export type Sticker =
   | { typ: 'zeiger'; text: string; lat?: number; lon?: number; ziel?: 'einwohner1' } // Pfeil auf Ort oder Mensch Nr. 1
   | { typ: 'namensschild'; name: string; titel: string }                // wie "BÜRGERMEISTER LEO"
   | { typ: 'profil' }                                                   // Follower-Karte
-  | { typ: 'statistik' };                                               // komplette Wasser-Statistik
+  | { typ: 'statistik' }                                                 // komplette Wasser-Statistik (klein)
+  | { typ: 'zahlen' }                                                   // große Zahlenkacheln mit allen Werten
+  | { typ: 'titel'; zeilen: string[] }                                  // große Überschrift (mit Hervorhebungen)
+  | { typ: 'szenario'; zeilen?: string[] };                             // Szenario-Karte (wird aus "szenario" berechnet)
+
+export type Musik = 'ruhig' | 'treibend' | 'drama';
+export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop';
+/** Was-wäre-wenn: so viele Menschen trinken so viele Tage lang (gerechnet mit den echten Regeln). */
+export interface Szenario { einwohner: number; tage: number }
 
 export interface Beat {
   /** Gesprochener Text (mit Hervorhebungen und Platzhaltern). */
@@ -25,8 +33,18 @@ export interface Beat {
   /** Übergangszeit der Kamera in Sekunden (0 = harter Schnitt). */
   uebergang?: number;
   sticker?: Sticker[];
-  /** Austrocknung für die Darstellung: "jetzt" (echter Stand) oder Vorschau 0..1; "von" animiert. */
-  wasser?: { von?: number | 'jetzt'; bis: number | 'jetzt' };
+  /** Austrocknung für die Darstellung: "jetzt" (echter Stand), Vorschau 0..1 oder "szenario"; "von" animiert. */
+  wasser?: { von?: number | 'jetzt' | 'szenario'; bis: number | 'jetzt' | 'szenario' };
+  /** Szenario für diesen Beat (bestimmt Wasserstand + Szenario-Karte). */
+  szenario?: Szenario;
+  /** Vorschau mit mehr Menschen (wird als VORSCHAU gekennzeichnet). */
+  einwohner_vorschau?: number;
+  /** Musikabschnitt ab diesem Beat. */
+  musik?: Musik;
+  /** Zusätzliche Soundeffekte (Sekunden ab Beat-Beginn). */
+  effekte?: { t: number; typ: Effekt }[];
+  /** Untertitel für diesen Beat ausblenden (z. B. wenn ein Titel-Sticker den Text zeigt). */
+  untertitel?: boolean;
   /** Riesen-Strohhalm im Ozean zeigen. */
   strohhalm?: boolean;
   /** Kapitän winkt / trinkt. */
@@ -45,7 +63,9 @@ export interface Folge {
    * Stimme:  "aufnahme" = deine eigene Aufnahme am Stück (wird an den Pausen in Sätze geschnitten),
    *          "espeak"   = Computer-Teststimme,  "keine" = ohne Stimme.
    */
-  stimme?: { typ: 'espeak'; stimme?: string; tempo?: number } | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  stimme?: { typ: 'espeak'; stimme?: string; tempo?: number }
+    | { typ: 'piper'; modell?: string; sprecher?: number; tempo?: number }
+    | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
   beats: Beat[];
 }
 
@@ -60,6 +80,7 @@ export interface TimelineBeat {
   uebergang: number;
   sticker: Sticker[];
   wasser: { von: number | 'jetzt'; bis: number | 'jetzt' };
+  vorschauEinwohner?: number;
   strohhalm: boolean;
   aktion?: 'winken' | 'trinken';
   sprechen: { start: number; end: number };
@@ -71,6 +92,8 @@ export interface Timeline {
   dauer: number;
   beats: TimelineBeat[];
   captions: Caption[];
-  /** Zeitpunkte für "Plopp"-Geräusche (Sticker erscheinen). */
-  pops: number[];
+  /** Soundeffekte (Zeitpunkt + Art). */
+  events: { t: number; typ: Effekt; lautstaerke?: number }[];
+  /** Musikabschnitte. */
+  musik: { start: number; typ: Musik }[];
 }

@@ -5,3 +5,4 @@ dist/
 output/
 data/backups/
 data/*.tmp
+tools/stimmen/*.onnx
