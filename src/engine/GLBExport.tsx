@@ -15,7 +15,7 @@ function Exporter() {
   const scene = useThree((s) => s.scene);
   useEffect(() => {
     window.__MX_GLB__ = async () => {
-      const root = scene.getObjectByName('Kettle') ?? scene;
+      const root = scene.children.find((o) => o.type === 'Group') ?? scene;
       const clone = root.clone(true);
       // drop helpers that glTF cannot represent meaningfully (x-ray ghosts, lights)
       const remove: THREE.Object3D[] = [];

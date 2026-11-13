@@ -1,13 +1,22 @@
 import { Environment, Lightformer } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { getRadialFadeTexture } from '../effects/textures';
+import { getRadialFadeTexture, getStoneTexture } from '../effects/textures';
 
 /**
  * Fully procedural photo studio: softbox reflections via Lightformers (no HDRI download),
  * shadow-casting key light, cool rim lights and a glossy floor fading into the dark background.
  */
-export function Studio({ background = '#06070a', floorColor = '#0d0f13' }: { background?: string; floorColor?: string }) {
+export interface StudioProps {
+  background?: string;
+  floorColor?: string;
+  /** 'floor' = glossy studio floor (kettle), 'counter' = dark stone kitchen countertop */
+  surface?: 'floor' | 'counter';
+  /** half-extent of the key light's shadow frustum */
+  shadowExtent?: [left: number, right: number, top: number, bottom: number];
+}
+
+export function Studio({ background = '#06070a', floorColor = '#0d0f13', surface = 'floor', shadowExtent = [-3, 3, 4, -2] }: StudioProps) {
   const floorMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -38,18 +47,37 @@ export function Studio({ background = '#06070a', floorColor = '#0d0f13' }: { bac
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0004}
         shadow-normalBias={0.02}
-        shadow-camera-left={-3}
-        shadow-camera-right={3}
-        shadow-camera-top={4}
-        shadow-camera-bottom={-2}
+        shadow-camera-left={shadowExtent[0]}
+        shadow-camera-right={shadowExtent[1]}
+        shadow-camera-top={shadowExtent[2]}
+        shadow-camera-bottom={shadowExtent[3]}
         shadow-camera-near={1}
         shadow-camera-far={20}
       />
       <spotLight position={[-5, 4, -4]} intensity={30} angle={0.5} penumbra={0.8} color="#7fb8ff" />
       <spotLight position={[5, 3, -5]} intensity={30} angle={0.5} penumbra={0.9} color="#ffd1a3" />
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.001} receiveShadow material={floorMat}>
-        <circleGeometry args={[9, 96]} />
-      </mesh>
+      {surface === 'floor' ? (
+        <mesh rotation-x={-Math.PI / 2} position-y={-0.001} receiveShadow material={floorMat}>
+          <circleGeometry args={[9, 96]} />
+        </mesh>
+      ) : (
+        <Countertop />
+      )}
     </>
+  );
+}
+
+/** Dark speckled stone worktop (procedural texture), front edge visible, fades into the dark studio. */
+function Countertop() {
+  const mats = useMemo(() => {
+    const map = getStoneTexture();
+    const top = new THREE.MeshPhysicalMaterial({ color: '#2a2c31', map, roughness: 0.32, clearcoat: 0.5, clearcoatRoughness: 0.25, metalness: 0.05 });
+    const edge = new THREE.MeshStandardMaterial({ color: '#16171a', map, roughness: 0.4 });
+    return [edge, edge, top, edge, edge, edge];
+  }, []);
+  return (
+    <mesh position={[0, -0.3, 2]} receiveShadow material={mats}>
+      <boxGeometry args={[30, 0.6, 22]} />
+    </mesh>
   );
 }

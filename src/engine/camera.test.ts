@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CameraPath } from './camera';
 import { VIDEO } from './config';
 import { kettleCamera } from '../projects/kettle/script';
+import { espressoCamera } from '../projects/espresso/script';
 
 /** Analyse a path frame by frame like the exporter would see it. */
 function analyse(path: CameraPath, duration: number) {
@@ -37,8 +38,11 @@ describe('CameraPath', () => {
     expect(p.sample(4).position).toEqual([0, 0, 3]);
   });
 
-  it('has continuous velocity (no jerks) on the kettle camera path', () => {
-    const { maxSpeed, maxAccel } = analyse(kettleCamera, 60);
+  it.each([
+    ['kettle', kettleCamera],
+    ['espresso', espressoCamera],
+  ])('has continuous velocity (no jerks) on the %s camera path', (_name, path) => {
+    const { maxSpeed, maxAccel } = analyse(path, 60);
     // Units are decimetres; < 6 dm/s is a calm dolly, accel bound rules out velocity jumps.
     console.log({ maxSpeed, maxAccel });
     expect(maxSpeed).toBeLessThan(6);
