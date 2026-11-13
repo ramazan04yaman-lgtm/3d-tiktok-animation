@@ -2,14 +2,8 @@
   "titel": "Version 2 – Können wir das Wasser der Erde austrinken?",
   "konto": "@wasserderErde",
   "stimme": {
-    "typ": "piper",
-    "modell": "tools/stimmen/de_DE-thorsten_emotional-medium.onnx",
-    "sprecher": 0,
-    "tempo": 0.78,
-    "rauschen": 0.9,
-    "betonung": 1.1,
-    "beschleunigen": 1.15,
-    "energie": true
+    "typ": "aufnahme",
+    "datei": "aufnahmen/folge-02-felix.mp3"
   },
   "beats": [
     {
@@ -299,5 +293,15 @@
         "tage": 1
       }
     }
-  ]
+  ],
+  "stimme_ki": {
+    "typ": "piper",
+    "modell": "tools/stimmen/de_DE-thorsten_emotional-medium.onnx",
+    "sprecher": 0,
+    "tempo": 0.78,
+    "rauschen": 0.9,
+    "betonung": 1.1,
+    "beschleunigen": 1.15,
+    "energie": true
+  }
 }

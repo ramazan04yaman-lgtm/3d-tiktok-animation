@@ -6,6 +6,7 @@
  * jeweils etwa 1 Sekunde Pause machen.
  */
 import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export interface Pause { start: number; end: number }
@@ -51,6 +52,35 @@ export function schnittpunkte(pausen: Pause[], gesamt: number, n: number): [numb
   for (const c of cuts) { res.push([Math.max(0, von - 0.05), c.start + 0.08]); von = c.end; }
   res.push([Math.max(0, von - 0.05), Math.min(gesamt, ende + 0.08)]);
   return res;
+}
+
+export interface AusgerichteterSatz { start: number; end: number; woerter: { wort: string; start: number; end: number }[] }
+
+/**
+ * Genauer: Spracherkennung (Whisper) ordnet jedes Wort des Drehbuchs der Aufnahme zu.
+ * Schneidet an den echten Satzgrenzen und liefert Wortzeiten (relativ zum Satzbeginn) für die Untertitel.
+ * Gibt null zurück, wenn die Spracherkennung nicht installiert ist.
+ */
+export function zerschneideMitText(datei: string, saetze: string[], zielOrdner: string, werkzeuge: string):
+  { dateien: string[]; woerter: { start: number; end: number }[][] } | null {
+  const sj = path.join(zielOrdner, 'saetze.json'), aj = path.join(zielOrdner, 'ausrichtung.json');
+  writeFileSync(sj, JSON.stringify(saetze));
+  try {
+    execFileSync('python3', [path.join(werkzeuge, 'ausrichten.py'), datei, sj, aj], { stdio: 'inherit', env: { ...process.env, HF_HUB_DISABLE_XET: '1' } });
+  } catch { return null; }
+  const erg = JSON.parse(readFileSync(aj, 'utf8')) as { saetze: AusgerichteterSatz[] };
+  const gesamt = dauer(datei);
+  const dateien: string[] = [], woerter: { start: number; end: number }[][] = [];
+  erg.saetze.forEach((s, i) => {
+    const naechster = erg.saetze[i + 1]?.start ?? gesamt;
+    const von = Math.max(0, s.start - 0.06), bis = Math.min(gesamt, Math.max(s.end + 0.12, Math.min(naechster - 0.02, s.end + 0.25)));
+    const out = path.join(zielOrdner, `stimme-${String(i).padStart(2, '0')}.wav`);
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', von.toFixed(3), '-to', bis.toFixed(3), '-i', datei,
+      '-af', 'highpass=f=70,loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '44100', '-ac', '1', out]);
+    dateien.push(out);
+    woerter.push(s.woerter.map((w) => ({ start: Math.max(0, w.start - von), end: Math.max(0, w.end - von) })));
+  });
+  return { dateien, woerter };
 }
 
 /** Schneidet die Aufnahme in n Satz-Dateien (WAV) und gibt die Pfade zurück. */

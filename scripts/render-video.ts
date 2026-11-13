@@ -14,7 +14,7 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createServer } from 'vite';
-import { zerschneide } from '../server/aufnahme.ts';
+import { zerschneide, zerschneideMitText } from '../server/aufnahme.ts';
 import { beispielZahlen, echteZahlen, folgenPfad, loadFolge } from '../server/folgen.ts';
 import { buildTimeline, ersetze, plain, platzhalter } from '../src/video/script.ts';
 
@@ -47,10 +47,20 @@ const dauer: (number | undefined)[] = [];
 const sprechText = (b: { text: string; sprache?: string }) => plain(ersetze(b.sprache ?? b.text, p))
   .replace(/(\d)\.(?=\d{3})/g, '$1').replace(/\p{Extended_Pictographic}/gu, '')
   .replace(/(\d) L\b/g, '$1 Liter').replace(/(\d) ml\b/g, '$1 Milliliter').replace(/\s+/g, ' ').trim();
-const geschnitten = stimme.typ === 'aufnahme'
-  ? zerschneide(path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei), folge.beats.length, work)
-  : null;
-if (geschnitten) console.log(`✂️  Deine Aufnahme wurde in ${geschnitten.length} Sätze geschnitten.`);
+let wortzeiten: ({ start: number; end: number }[] | undefined)[] | undefined;
+let geschnitten: string[] | null = null;
+if (stimme.typ === 'aufnahme') {
+  const datei = path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei);
+  const genau = zerschneideMitText(datei, folge.beats.map((b) => sprechText(b)), work, path.join(root, 'tools'));
+  if (genau) {
+    geschnitten = genau.dateien;
+    wortzeiten = genau.woerter;
+    console.log(`✂️  Aufnahme wortgenau in ${geschnitten.length} Sätze geschnitten (Spracherkennung).`);
+  } else {
+    geschnitten = zerschneide(datei, folge.beats.length, work);
+    console.log(`✂️  Aufnahme an den Pausen in ${geschnitten.length} Sätze geschnitten.`);
+  }
+}
 if (stimme.typ === 'piper') {
   const modell = path.resolve(root, stimme.modell ?? 'tools/stimmen/de_DE-thorsten-high.onnx');
   if (!fs.existsSync(modell)) throw new Error(`Stimme fehlt: ${modell}\n   Bitte einmal "npm run stimme-laden" ausführen.`);
@@ -94,7 +104,7 @@ folge.beats.forEach((b, i) => {
 });
 
 // ---------- 2. Zeitleiste ----------
-const timeline = buildTimeline({ folge, ...zahlen, sprechdauer: dauer });
+const timeline = buildTimeline({ folge, ...zahlen, sprechdauer: dauer, wortzeiten });
 const total = Math.min(timeline.dauer, args.bis ? Number(args.bis) : Infinity);
 const frames = Math.ceil(total * FPS);
 fs.writeFileSync(path.join(work, 'zeitleiste.json'), JSON.stringify(timeline, null, 2));

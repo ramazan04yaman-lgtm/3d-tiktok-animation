@@ -169,12 +169,14 @@ export interface BuildInput {
   seit?: Snapshot;
   /** Gemessene Länge der Sprachaufnahme je Beat (Sekunden); fehlt -> Schätzung. */
   sprechdauer?: (number | undefined)[];
+  /** Wortgenaue Zeiten je Beat (relativ zum Beat-Beginn), z. B. aus der Spracherkennung. */
+  wortzeiten?: ({ start: number; end: number }[] | undefined)[];
 }
 
 /** Pause nach jedem Satz (Sekunden) – kurz für ein flottes TikTok-Tempo. */
 export const PAUSE = 0.08;
 
-export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput): Timeline {
+export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }: BuildInput): Timeline {
   const p = platzhalter(snapshot, seit);
   const beats: TimelineBeat[] = [];
   const captions: Caption[] = [];
@@ -193,11 +195,23 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput
     const chunks = b.untertitel === false ? [] : chunk(words);
     const weight = (c: CaptionWord[]) => c.reduce((a, w) => a + w.text.length + 2, 0);
     const total = chunks.reduce((a, c) => a + weight(c), 0) || 1;
-    let ct = t;
-    for (const c of chunks) {
-      const d = (weight(c) / total) * sprech;
-      captions.push({ start: ct, end: ct + d, words: c });
-      ct += d;
+    const wz = wortzeiten?.[i];
+    if (wz && wz.length === words.length && chunks.length) {
+      // Wortgenau: jedes Untertitel-Stück startet, wenn sein erstes Wort gesprochen wird
+      let k = 0;
+      chunks.forEach((c, j) => {
+        const start = t + (j === 0 ? 0 : wz[k].start);
+        k += c.length;
+        const end = j + 1 < chunks.length ? t + wz[k].start : t + sprech;
+        captions.push({ start, end: Math.max(end, start + 0.05), words: c });
+      });
+    } else {
+      let ct = t;
+      for (const c of chunks) {
+        const d = (weight(c) / total) * sprech;
+        captions.push({ start: ct, end: ct + d, words: c });
+        ct += d;
+      }
     }
     // Szenario mit echten Regeln rechnen
     const sz = b.szenario ? rechneSzenario(snapshot, b.szenario) : null;

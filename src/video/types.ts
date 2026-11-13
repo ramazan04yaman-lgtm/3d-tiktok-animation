@@ -71,6 +71,8 @@ export interface Folge {
         /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
         beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  /** Ersatz-Stimme (Notiz, wird nicht automatisch benutzt). */
+  stimme_ki?: Folge['stimme'];
   beats: Beat[];
 }
 
