@@ -113,7 +113,6 @@ if (!fs.existsSync(keyFile) || fs.readFileSync(keyFile, 'utf8') !== segKey) {
   for (const f of fs.readdirSync(work)) if (/^abschnitt-\d+\.(mp4|ok)$/.test(f)) fs.unlinkSync(path.join(work, f));
   fs.writeFileSync(keyFile, segKey);
 }
-const stage = page.locator('#stage');
 const segCount = Math.ceil(frames / SEG);
 const t0 = Date.now();
 let gerendert = 0;
@@ -134,8 +133,17 @@ for (const seg of offen) {
   const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS), name + '.mp4'], { stdio: ['pipe', 'inherit', 'inherit'] });
   for (let i = f0; i < f1; i++) {
-    await page.evaluate(([t, dt]: [number, number]) => (window as any).__sim.renderAt(t, dt), [i / FPS, 1 / FPS]);
-    const buf: Buffer = await stage.screenshot({ type: 'jpeg', quality: 93 });
+    // Bild rendern + aufnehmen (bei Fehlern bis zu 3 Wiederholungen)
+    let buf: Buffer | null = null;
+    for (let versuch = 1; !buf; versuch++) {
+      try {
+        await page.evaluate(([t, dt]: [number, number]) => (window as any).__sim.renderAt(t, dt), [i / FPS, 1 / FPS]);
+        buf = await page.screenshot({ type: 'jpeg', quality: 93, clip: { x: 0, y: 0, width: W, height: H }, timeout: 120_000 });
+      } catch (e) {
+        if (versuch >= 3) throw e;
+        console.warn(`\n⚠️  Bild ${i} fehlgeschlagen (${(e as Error).message.split('\n')[0]}) – neuer Versuch …`);
+      }
+    }
     if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once('drain', r));
     gerendert++;
     if (gerendert % FPS === 0) {
