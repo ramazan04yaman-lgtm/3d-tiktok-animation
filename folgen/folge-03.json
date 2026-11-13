@@ -274,13 +274,21 @@
       ]
     },
     {
-      "text": "Folge uns und werde {gruen:Teil des Experiments!} Schreib in die {blau:Kommentare}, wie viele Follower wir schaffen!",
+      "text": "Folge uns und werde {gruen:Teil des Experiments!}",
       "kamera": "finale",
       "strohhalm": true,
-      "min": 5,
+      "min": 5.5,
       "sticker": [
         {
           "typ": "profil"
+        },
+        {
+          "typ": "info",
+          "y": 44,
+          "zeilen": [
+            "💬 SCHREIB IN DIE KOMMENTARE:",
+            "WIE VIELE FOLLOWER SCHAFFEN WIR?"
+          ]
         }
       ],
       "szenario": {

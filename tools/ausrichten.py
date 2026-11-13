@@ -9,7 +9,14 @@ from faster_whisper import WhisperModel
 
 audio, saetze_datei, out = sys.argv[1:4]
 saetze = json.load(open(saetze_datei))
-norm = lambda w: re.sub(r'[^0-9a-zäöüß]', '', w.lower())
+ZAHLWORTE = {'eins': '1', 'zwei': '2', 'drei': '3', 'vier': '4', 'fünf': '5', 'zehn': '10', 'zwanzig': '20', 'hundert': '100',
+  'tausend': '1000', 'zweitausend': '2000', 'zehntausend': '10000', 'zwanzigtausend': '20000', 'fünfzigtausend': '50000',
+  'hunderttausend': '100000', 'zweihunderttausend': '200000', 'dreihunderttausend': '300000', 'vierhunderttausend': '400000',
+  'vierhundertfünfzigtausend': '450000', 'achtundvierzigtausend': '48000'}
+def norm(w):
+    w = re.sub(r'(?<=\d)\.(?=\d{3})', '', w.lower())        # 10.000 -> 10000
+    w = re.sub(r'[^0-9a-zäöüß]', '', w)
+    return ZAHLWORTE.get(w, w)
 
 import subprocess, numpy as np
 # Audio mit FFmpeg dekodieren (16 kHz mono) – unabhängig von der PyAV-Version
@@ -17,8 +24,7 @@ pcm = subprocess.run(['ffmpeg', '-v', 'error', '-i', audio, '-f', 's16le', '-ac'
 samples = np.frombuffer(pcm, '<i2').astype(np.float32) / 32768
 
 model = WhisperModel('small', device='cpu', compute_type='int8')
-segs, _ = model.transcribe(samples, language='de', word_timestamps=True, beam_size=5,
-                           initial_prompt=' '.join(saetze)[:800])
+segs, _ = model.transcribe(samples, language='de', word_timestamps=True, beam_size=5)
 erkannt = [w for s in segs for w in s.words]
 rw = [norm(w.word) for w in erkannt]
 
