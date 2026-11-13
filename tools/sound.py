@@ -158,7 +158,8 @@ def fx(typ):
         # kurze aufsteigende Fanfare (Meilenstein)
         out = np.zeros(int(1.4 * SR))
         for k, n in enumerate([72, 76, 79, 84]):
-            add(out, bell(n, 0.9) * 0.5 + pluck(n, 0.5) * 0.4, k * 0.11)
+            add(out, bell(n, 0.9) * 0.5, k * 0.11)
+            add(out, pluck(n, 0.5) * 0.4, k * 0.11)
         return out * 0.7
     if typ == 'riser':
         d = 2.0; t = t_(d); f = 150 + 900 * (t / d) ** 2
