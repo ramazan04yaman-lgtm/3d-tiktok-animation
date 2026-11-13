@@ -20,6 +20,11 @@ export interface Snapshot {
   daysUntilEmpty: string | null;
   depletedOnDay: string | null;
   entryCount: number;
+  /** Aktuelle Verbrauchsstufe (ml). */
+  stufe: { likeMl: string; kommentarMl: string; shareMl: string; trinkMl: string;
+    meilensteine: { like: string; kommentar: string; share: string; trinken: string } };
+  /** Nächste Meilensteine (der nächste zuerst). */
+  naechste: { regel: string; follower: string; neuMl: string }[];
 }
 
 export function toSnapshot(s: SimState, processedAt: Date = new Date()): Snapshot {
@@ -47,5 +52,14 @@ export function toSnapshot(s: SimState, processedAt: Date = new Date()): Snapsho
     daysUntilEmpty: d === null ? null : d.toString(),
     depletedOnDay: s.depletedOnDay,
     entryCount: s.entryCount,
+    stufe: {
+      likeMl: s.stufe.likeMl.toString(), kommentarMl: s.stufe.kommentarMl.toString(),
+      shareMl: s.stufe.shareMl.toString(), trinkMl: s.stufe.trinkMl.toString(),
+      meilensteine: {
+        like: s.stufe.stufen.like.toString(), kommentar: s.stufe.stufen.kommentar.toString(),
+        share: s.stufe.stufen.share.toString(), trinken: s.stufe.stufen.trinken.toString(),
+      },
+    },
+    naechste: s.naechste.map((n) => ({ regel: n.regel, follower: n.follower.toString(), neuMl: n.neuMl.toString() })),
   };
 }

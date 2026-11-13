@@ -45,7 +45,8 @@ const audioFiles: (string | undefined)[] = [];
 const dauer: (number | undefined)[] = [];
 /** Text für die Stimme: ohne Emojis/Markierungen, Tausenderpunkte weg. */
 const sprechText = (b: { text: string; sprache?: string }) => plain(ersetze(b.sprache ?? b.text, p))
-  .replace(/(\d)\.(?=\d{3})/g, '$1').replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
+  .replace(/(\d)\.(?=\d{3})/g, '$1').replace(/\p{Extended_Pictographic}/gu, '')
+  .replace(/(\d) L\b/g, '$1 Liter').replace(/(\d) ml\b/g, '$1 Milliliter').replace(/\s+/g, ' ').trim();
 const geschnitten = stimme.typ === 'aufnahme'
   ? zerschneide(path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei), folge.beats.length, work)
   : null;

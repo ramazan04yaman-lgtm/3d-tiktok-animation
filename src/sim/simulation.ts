@@ -8,12 +8,24 @@
  *
  * Regeln:
  *  - 1 neuer Follower = 1 neuer Mensch.
- *  - Jeder Mensch trinkt an JEDEM Kalendertag 10 Liter – auch an seinem
- *    Ankunftstag und auch an Tagen ohne neues Video.
- *  - Like = einmalig 10 ml, Kommentar = einmalig 500 ml, Share = einmalig 2 L.
+ *  - Jeder Mensch trinkt an JEDEM Kalendertag – auch an seinem Ankunftstag
+ *    und auch an Tagen ohne neues Video.
+ *  - Likes, Kommentare und Shares kosten einmalig Wasser.
+ *  - MEILENSTEINE (siehe stufen.ts): Mit der gesamten Followerzahl steigen die Werte
+ *    dauerhaft (Like +100 ml je 100 Follower, Kommentar +1 L je 250, Share +4 L je 500,
+ *    Trinkmenge ×2 je 1.000 Follower; Grundwerte 10 ml / 0,5 L / 2 L / 10 L).
+ *
+ * Reihenfolge innerhalb eines Eintrags (festgelegt, damit alles eindeutig ist):
+ *  1. Alle Tage bis einschließlich Eintragstag werden mit der BISHERIGEN Stufe verbucht
+ *     (bereits verbuchtes Wasser ändert sich nie mehr).
+ *  2. Die neuen Follower kommen dazu -> neue Meilensteine sind SOFORT aktiv.
+ *  3. Die neuen Menschen trinken am Ankunftstag mit der neuen Stufe.
+ *  4. Likes/Kommentare/Shares des Eintrags werden mit der neuen Stufe verbucht.
+ *  Ab dem nächsten Tag trinken alle Einwohner mit der neuen Stufe.
  */
 import type { SimConfig } from './config.ts';
 import { DEFAULT_CONFIG } from './config.ts';
+import { type NaechsterMeilenstein, type Stufe, meilensteineAktiv, naechsteMeilensteine, stufeFuer } from './stufen.ts';
 import { type Day, addDays, assertDay, daysBetween } from './days.ts';
 
 export interface Entry {
@@ -68,6 +80,10 @@ export interface SimState {
   reportedHighWater: Counts;
   /** Tag, an dem das Wasser vollständig aufgebraucht war (falls passiert). */
   depletedOnDay: Day | null;
+  /** Aktuell gültige Verbrauchsstufe. */
+  stufe: Stufe;
+  /** Nächste Meilensteine (der nächste zuerst). */
+  naechste: NaechsterMeilenstein[];
   entryCount: number;
 }
 
@@ -136,7 +152,10 @@ export function replay(
     reportedHighWater: { followers: 0, likes: 0, comments: 0, shares: 0 },
     depletedOnDay: null,
     entryCount: entries.length,
+    stufe: stufeFuer(0n, config),
+    naechste: [],
   };
+  const stufeAm = (day: Day) => stufeFuer(s.followers, config, meilensteineAktiv(config, day));
 
   const total = () => s.consumed.drinking + s.consumed.likes + s.consumed.comments + s.consumed.shares;
 
@@ -145,23 +164,33 @@ export function replay(
     if (s.depletedOnDay === null && total() >= config.totalWaterMl) s.depletedOnDay = day;
   };
 
-  /** Verbucht alle Tage NACH lastProcessedDay bis einschließlich `day` – genau einmal. */
-  const advanceTo = (day: Day) => {
-    const n = daysBetween(s.lastProcessedDay, day);
+  /** Verbucht einen Zeitraum mit gleicher Trinkmenge (Tage nach `from` bis einschließlich `to`). */
+  const charge = (from: Day, to: Day) => {
+    const n = daysBetween(from, to);
     if (n <= 0) return;
-    const perDay = s.population * config.mlPerPersonPerDay;
+    const perDay = s.population * stufeAm(to).trinkMl;
     if (s.depletedOnDay === null && perDay > ZERO) {
       // An welchem dieser n Tage wird der Vorrat leer? (exakt, ohne Schleife)
-      const before = total();
-      const left = config.totalWaterMl - before;
+      const left = config.totalWaterMl - total();
       if (left <= perDay * BigInt(n)) {
         const k = left <= ZERO ? 1n : (left + perDay - 1n) / perDay; // Aufrunden
-        s.depletedOnDay = addDays(s.lastProcessedDay, Number(k));
+        s.depletedOnDay = addDays(from, Number(k));
       }
     }
     s.consumed.drinking += perDay * BigInt(n);
-    s.lastProcessedDay = day;
     s.daysProcessed += n;
+  };
+
+  /** Verbucht alle Tage NACH lastProcessedDay bis einschließlich `day` – genau einmal. */
+  const advanceTo = (day: Day) => {
+    if (daysBetween(s.lastProcessedDay, day) <= 0) return;
+    const ab = config.meilensteine.abTag;
+    // Falls die Meilenstein-Regeln mitten im Zeitraum aktiviert wurden: in zwei Teile trennen
+    if (ab !== null && ab > s.lastProcessedDay && ab <= day) {
+      charge(s.lastProcessedDay, addDays(ab, -1));
+      charge(addDays(ab, -1), day);
+    } else charge(s.lastProcessedDay, day);
+    s.lastProcessedDay = day;
   };
 
   for (const e of sortEntries(entries)) {
@@ -169,13 +198,14 @@ export function replay(
     const f = BigInt(e.followers);
     s.followers += f;
     s.population += f;                                  // 1 Follower = 1 Mensch
-    s.consumed.drinking += f * config.mlPerPersonPerDay; // trinkt schon am Ankunftstag
+    const st = stufeAm(e.day);                          // neue Meilensteine sofort aktiv
+    s.consumed.drinking += f * st.trinkMl;              // trinkt schon am Ankunftstag
     s.likes += BigInt(e.likes);
     s.comments += BigInt(e.comments);
     s.shares += BigInt(e.shares);
-    s.consumed.likes += BigInt(e.likes) * config.mlPerLike;
-    s.consumed.comments += BigInt(e.comments) * config.mlPerComment;
-    s.consumed.shares += BigInt(e.shares) * config.mlPerShare;
+    s.consumed.likes += BigInt(e.likes) * st.likeMl;
+    s.consumed.comments += BigInt(e.comments) * st.kommentarMl;
+    s.consumed.shares += BigInt(e.shares) * st.shareMl;
     if (e.reportedTotals) {
       for (const k of ['followers', 'likes', 'comments', 'shares'] as const) {
         const v = e.reportedTotals[k];
@@ -188,7 +218,9 @@ export function replay(
 
   s.totalConsumedMl = total();
   s.remainingMl = s.totalConsumedMl >= config.totalWaterMl ? ZERO : config.totalWaterMl - s.totalConsumedMl;
-  s.dailyMl = s.population * config.mlPerPersonPerDay;
+  s.stufe = stufeAm(addDays(s.lastProcessedDay, 1));
+  s.naechste = naechsteMeilensteine(s.followers, config);
+  s.dailyMl = s.population * s.stufe.trinkMl;
   return s;
 }
 

@@ -7,9 +7,9 @@ import * as THREE from 'three';
 import type { EarthScene } from '../earth/scene.ts';
 import { latLonToVec3 } from '../earth/geo.ts';
 import { ML_PER_LITER } from '../sim/config.ts';
-import { formatLiters, groupDE, percentExact, sci } from '../sim/format.ts';
+import { formatLiters, formatMenge, groupDE, percentExact, sci } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
-import { parseWords } from './script.ts';
+import { naechsteText, parseWords } from './script.ts';
 import { statistikHTML } from '../ui/hud.ts';
 import type { Sticker, Timeline, TimelineBeat } from './types.ts';
 
@@ -110,7 +110,26 @@ export class StoryPlayer {
       case 'szenario': return `<div class="st st-szenario" ${id}><div class="sz-kopf">WAS WÄRE, WENN …</div>${
         (s.zeilen ?? []).map((z, i) => `<div class="sz-z sz-${i}">${esc(z)}</div>`).join('')}</div>`;
       case 'zahlen': return this.zahlenHTML(id);
+      case 'stufen': return this.stufenHTML(id);
     }
+  }
+
+  private stufenHTML(id: string): string {
+    const s = this.snapshot, B = (x: string) => BigInt(x), st = s.stufe;
+    const n0 = s.naechste[0];
+    const fehlt = B(n0.follower) - B(s.followers);
+    const zeile = (ico: string, lbl: string, val: string, stufe: string) =>
+      `<div class="sf-z"><span>${ico} ${lbl}</span><b>${esc(val)}</b><i>Stufe ${esc(stufe)}</i></div>`;
+    return `<div class="st st-stufen" ${id}>
+      <div class="sf-kopf">⚡ VERBRAUCHSSTUFE JETZT</div>
+      ${zeile('🥤', 'Pro Einwohner/Tag', formatMenge(B(st.trinkMl)), st.meilensteine.trinken)}
+      ${zeile('❤️', 'Pro Like', formatMenge(B(st.likeMl)), st.meilensteine.like)}
+      ${zeile('💬', 'Pro Kommentar', formatMenge(B(st.kommentarMl)), st.meilensteine.kommentar)}
+      ${zeile('🔁', 'Pro Share', formatMenge(B(st.shareMl)), st.meilensteine.share)}
+      <div class="sf-next"><small>🎯 NÄCHSTER MEILENSTEIN</small><b>${groupDE(B(n0.follower))} FOLLOWER</b>
+        <span>noch ${groupDE(fehlt)} · dann ${esc(naechsteText(n0))}</span></div>
+      <div class="sf-weg">${s.naechste.slice(1).map((n) => `<div>${groupDE(B(n.follower))} → ${esc(naechsteText(n))}</div>`).join('')}</div>
+    </div>`;
   }
 
   private zahlenHTML(id: string): string {
@@ -166,9 +185,9 @@ export class StoryPlayer {
         }
         if (n.textContent !== txt) n.textContent = txt;
       }
-      if (s.typ === 'titel' || s.typ === 'zahlen' || s.typ === 'szenario') {
+      if (s.typ === 'titel' || s.typ === 'zahlen' || s.typ === 'szenario' || s.typ === 'stufen') {
         // Zeilen/Kacheln nacheinander einblenden
-        el.querySelectorAll<HTMLElement>('.tz, .zk, .zk-pct, .sz-z').forEach((z, j) => {
+        el.querySelectorAll<HTMLElement>('.tz, .zk, .zk-pct, .sz-z, .sf-z, .sf-next, .sf-weg').forEach((z, j) => {
           const q = easeOutBack(clamp01((local - delay - 0.12 - j * 0.13) / 0.32));
           z.style.transform = `scale(${q})`; z.style.opacity = q > 0.02 ? '1' : '0';
         });

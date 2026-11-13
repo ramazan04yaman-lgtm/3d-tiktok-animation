@@ -15,7 +15,10 @@ test('Speichern, Laden und Weiterrechnen über mehrere Tage (Videos an verschied
   f = addEntry(f, { mode: 'new', followers: 100, likes: 1000 }, at('2026-11-12T10:00:00Z')).file;
   saveFile(f, p, at('2026-11-12T10:00:00Z'));
   let loaded = loadFile(p)!;
-  assert.equal(loaded.snapshot.totalConsumedMl, String(100n * 10_000n + 1000n * 10n));
+  // 100 Follower = Like-Meilenstein erreicht -> 110 ml pro Like
+  assert.equal(loaded.snapshot.totalConsumedMl, String(100n * 10_000n + 1000n * 110n));
+  assert.equal(loaded.snapshot.stufe.likeMl, '110');
+  assert.equal(loaded.snapshot.naechste[0].follower, '200');
 
   // 4 Tage kein Video -> beim nächsten Speichern (16.11.) sind 5 Tage verbucht
   saveFile(loaded, p, at('2026-11-16T09:00:00Z'));

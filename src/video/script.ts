@@ -7,7 +7,8 @@ import { ML_PER_LITER } from '../sim/config.ts';
 import { formatDuration, groupDE } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
 import { DEFAULT_CONFIG } from '../sim/config.ts';
-import { percentExact } from '../sim/format.ts';
+import { formatMenge, percentExact } from '../sim/format.ts';
+import { stufeFuer } from '../sim/stufen.ts';
 import { visualDrainFraction } from '../sim/visualScale.ts';
 import type { Beat, Caption, CaptionWord, Effekt, Farbe, Folge, Musik, Sticker, Szenario, Timeline, TimelineBeat } from './types.ts';
 
@@ -45,11 +46,42 @@ export function platzhalter(s: Snapshot, seit?: Snapshot): Record<string, string
     likes: groupDE(B(s.likes)), kommentare: groupDE(B(s.comments)), shares: groupDE(B(s.shares)),
     reicht: years === null ? 'unendlich' : years < 1n ? formatDuration(B(s.daysUntilEmpty!)) : `${zahlWorte(years)} Jahre`,
     reicht_kurz: formatDuration(s.daysUntilEmpty === null ? null : B(s.daysUntilEmpty)),
+    // Meilensteine / Verbrauchsstufe
+    liter_pro_mensch: formatMenge(B(s.stufe.trinkMl)),
+    like_ml: formatMenge(B(s.stufe.likeMl)),
+    kommentar_menge: formatMenge(B(s.stufe.kommentarMl)),
+    share_menge: formatMenge(B(s.stufe.shareMl)),
+    naechster_meilenstein: groupDE(B(s.naechste[0].follower)),
+    fehlende_follower: groupDE(B(s.naechste[0].follower) - B(s.followers)),
+    naechste_belohnung: naechsteText(s.naechste[0]),
+    leer_an_einem_tag: groupDE(leerAnEinemTag(s)),
   };
 }
 
+const REGEL_TEXT: Record<string, string> = { like: 'pro Like', kommentar: 'pro Kommentar', share: 'pro Share', trinken: 'pro Einwohner und Tag' };
+export function naechsteText(n: { regel: string; neuMl: string }): string {
+  return `${formatMenge(B(n.neuMl))} ${REGEL_TEXT[n.regel]}`;
+}
+
+/** Ab wie vielen Followern trinken die Einwohner das restliche Wasser an EINEM Tag aus? */
+export function leerAnEinemTag(s: Snapshot): bigint {
+  const rest = B(s.remainingMl);
+  const ok = (n: bigint) => n * stufeFuer(n, DEFAULT_CONFIG).trinkMl >= rest;
+  let lo = 1n, hi = 1n;
+  while (!ok(hi)) hi *= 2n;
+  while (lo < hi) { const mid = (lo + hi) / 2n; if (ok(mid)) hi = mid; else lo = mid + 1n; }
+  return lo;
+}
+
 export function ersetze(text: string, p: Record<string, string>): string {
-  return text.replace(/\{([a-z_]+)\}/g, (m, k: string) => (k in p ? p[k] : m));
+  return text
+    .replace(/\{pro_tag_bei_(\d+)\}/g, (_m, n: string) => {
+      // Tagesverbrauch, wenn es n Einwohner (= Follower) gäbe – mit Meilenstein-Regeln
+      const e = BigInt(n);
+      return zahlWorte(e * stufeFuer(e, DEFAULT_CONFIG).trinkMl / ML_PER_LITER);
+    })
+    .replace(/\{pro_kopf_bei_(\d+)\}/g, (_m, n: string) => formatMenge(stufeFuer(BigInt(n), DEFAULT_CONFIG).trinkMl))
+    .replace(/\{([a-z_]+)\}/g, (m, k: string) => (k in p ? p[k] : m));
 }
 
 /** Text mit Hervorhebungen -> Wortliste mit Farben. */
@@ -103,16 +135,19 @@ export function schaetzeDauer(text: string): number {
  */
 export function rechneSzenario(s: Snapshot, sz: Szenario) {
   const total = B(s.totalWaterMl);
-  const extra = BigInt(sz.einwohner) * DEFAULT_CONFIG.mlPerPersonPerDay * BigInt(sz.tage);
+  // Mit den Meilenstein-Regeln: so viele Einwohner = so viele Follower
+  const proKopf = stufeFuer(BigInt(sz.einwohner), DEFAULT_CONFIG).trinkMl;
+  const extra = BigInt(sz.einwohner) * proKopf * BigInt(sz.tage);
   const consumed = B(s.totalConsumedMl) + extra;
   const rest = consumed >= total ? 0n : total - consumed;
-  const perDay = BigInt(sz.einwohner) * DEFAULT_CONFIG.mlPerPersonPerDay;
+  const perDay = BigInt(sz.einwohner) * proKopf;
   const tageLeer = perDay > 0n ? (rest + perDay - 1n) / perDay : null;
   return {
     drain: visualDrainFraction(consumed, total),
     getrunken: zahlWorte(extra / ML_PER_LITER) + ' Liter',
     uebrig: percentExact(rest, total, 9) + ' %',
-    reicht: tageLeer === null ? '∞' : formatDuration(tageLeer),
+    reicht: tageLeer === null ? '∞' : tageLeer <= 1n ? 'WENIGER ALS 1 TAG' : formatDuration(tageLeer),
+    proKopf: formatMenge(proKopf),
   };
 }
 
@@ -167,7 +202,8 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer }: BuildInput
       if (f.typ === 'szenario' && b.szenario && sz) {
         return { typ: 'szenario', zeilen: [
           `${kurzZahl(b.szenario.einwohner)} MENSCHEN · ${kurzDauer(b.szenario.tage)}`,
-          `🥤 ${sz.getrunken.toUpperCase()}`,
+          `🥤 ${sz.proKopf.toUpperCase()} PRO KOPF UND TAG`,
+          `🚰 ${sz.getrunken.toUpperCase()}`,
           `💧 NOCH ${sz.uebrig}`,
           `⏳ REICHT NOCH ${sz.reicht.toUpperCase()}`,
         ] };

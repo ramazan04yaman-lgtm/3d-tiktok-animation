@@ -14,7 +14,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { type SimConfigJSON, configFromJSON, configToJSON, DEFAULT_CONFIG } from '../src/sim/config.ts';
-import { type Day, assertDay, todayIn } from '../src/sim/days.ts';
+import { type Day, addDays, assertDay, todayIn } from '../src/sim/days.ts';
 import { type Counts, type Entry, type SimState, deltasFromTotals, replay } from '../src/sim/simulation.ts';
 import { type Snapshot, toSnapshot } from '../src/sim/snapshot.ts';
 
@@ -57,6 +57,13 @@ export function loadFile(p = DEFAULT_PATH): SimFile | null {
   if (!fs.existsSync(p)) return null;
   const file = JSON.parse(fs.readFileSync(p, 'utf8')) as SimFile;
   if (file.format !== FORMAT) throw new Error(`Unbekanntes Dateiformat in ${p}: ${file.format}`);
+  // Ältere Datei ohne Meilenstein-Regeln: Regeln gelten ab dem Tag NACH dem letzten verbuchten Tag.
+  // So bleibt bereits verbrauchtes Wasser exakt unverändert.
+  if (!file.config.regelVersion) {
+    const alt = configFromJSON(file.config);
+    const ab = addDays(file.snapshot?.lastProcessedDay ?? file.startDay, 1);
+    file.config = configToJSON({ ...alt, meilensteine: { ...alt.meilensteine, abTag: ab } });
+  }
   // Integritätsprüfung: Snapshot muss zum Logbuch passen
   if (file.snapshot) {
     const check = computeState(file, file.snapshot.lastProcessedDay);

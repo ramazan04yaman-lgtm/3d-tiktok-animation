@@ -14,7 +14,33 @@ export interface SimConfig {
   mlPerShare: bigint;
   /** Zeitzone, in der ein Kalendertag gezählt wird. */
   timeZone: string;
+  /** Meilenstein-Regeln (wachsender Verbrauch). */
+  meilensteine: MeilensteinRegeln;
 }
+
+/**
+ * MEILENSTEIN-REGELN – der Verbrauch wächst mit der GESAMTEN erreichten Followerzahl:
+ *  - Like:      10 ml  + (Anzahl erreichter 100er-Meilensteine) × 100 ml
+ *  - Kommentar: 0,5 L  + (Anzahl erreichter 250er-Meilensteine) × 1 L
+ *  - Share:     2 L    + (Anzahl erreichter 500er-Meilensteine) × 4 L
+ *  - Trinken:   10 L × 2 hoch (Anzahl erreichter 1.000er-Meilensteine) pro Einwohner und Tag
+ */
+export interface MeilensteinRegeln {
+  /** Ab diesem Tag gelten die Meilenstein-Regeln (vorher: feste Grundwerte). */
+  abTag: string | null;
+  likeSchritt: bigint;      likePlusMl: bigint;
+  kommentarSchritt: bigint; kommentarPlusMl: bigint;
+  shareSchritt: bigint;     sharePlusMl: bigint;
+  trinkSchritt: bigint;     trinkFaktor: bigint;
+}
+
+export const DEFAULT_MEILENSTEINE: MeilensteinRegeln = {
+  abTag: null,
+  likeSchritt: 100n, likePlusMl: 100n,
+  kommentarSchritt: 250n, kommentarPlusMl: 1000n,
+  shareSchritt: 500n, sharePlusMl: 4000n,
+  trinkSchritt: 1000n, trinkFaktor: 2n,
+};
 
 /** 1 km³ = 10^12 Liter = 10^15 ml */
 export const ML_PER_LITER = 1000n;
@@ -34,6 +60,7 @@ export const DEFAULT_CONFIG: SimConfig = {
   mlPerComment: 500n,                     // 500 ml
   mlPerShare: 2n * ML_PER_LITER,          // 2 Liter
   timeZone: 'Europe/Berlin',
+  meilensteine: DEFAULT_MEILENSTEINE,
 };
 
 /** Konfiguration als JSON-taugliches Objekt (BigInt -> String). */
@@ -44,6 +71,9 @@ export interface SimConfigJSON {
   mlPerComment: string;
   mlPerShare: string;
   timeZone: string;
+  /** Version der Regeln: 2 = mit Meilensteinen. */
+  regelVersion?: number;
+  meilensteine?: Record<string, string | null>;
 }
 
 export function configToJSON(c: SimConfig): SimConfigJSON {
@@ -54,6 +84,8 @@ export function configToJSON(c: SimConfig): SimConfigJSON {
     mlPerComment: c.mlPerComment.toString(),
     mlPerShare: c.mlPerShare.toString(),
     timeZone: c.timeZone,
+    regelVersion: 2,
+    meilensteine: Object.fromEntries(Object.entries(c.meilensteine).map(([k, v]) => [k, v === null ? null : String(v)])),
   };
 }
 
@@ -66,5 +98,19 @@ export function configFromJSON(j: Partial<SimConfigJSON> | undefined): SimConfig
     mlPerComment: j?.mlPerComment ? BigInt(j.mlPerComment) : d.mlPerComment,
     mlPerShare: j?.mlPerShare ? BigInt(j.mlPerShare) : d.mlPerShare,
     timeZone: j?.timeZone ?? d.timeZone,
+    meilensteine: meilensteineFromJSON(j?.meilensteine),
+  };
+}
+
+function meilensteineFromJSON(m: Record<string, string | null> | undefined): MeilensteinRegeln {
+  const d = DEFAULT_MEILENSTEINE;
+  if (!m) return { ...d };
+  const b = (k: keyof MeilensteinRegeln, def: bigint) => (m[k] ? BigInt(m[k] as string) : def);
+  return {
+    abTag: m.abTag ?? null,
+    likeSchritt: b('likeSchritt', d.likeSchritt), likePlusMl: b('likePlusMl', d.likePlusMl),
+    kommentarSchritt: b('kommentarSchritt', d.kommentarSchritt), kommentarPlusMl: b('kommentarPlusMl', d.kommentarPlusMl),
+    shareSchritt: b('shareSchritt', d.shareSchritt), sharePlusMl: b('sharePlusMl', d.sharePlusMl),
+    trinkSchritt: b('trinkSchritt', d.trinkSchritt), trinkFaktor: b('trinkFaktor', d.trinkFaktor),
   };
 }

@@ -56,11 +56,28 @@ Vor jeder Änderung legt das Programm automatisch eine Kopie in `data/backups/` 
 
 | Aktion | Wasser |
 |---|---|
-| 1 neuer Follower | 1 neuer Mensch, trinkt **10 L an jedem Tag** |
-| 1 Like | **einmalig** 10 ml |
-| 1 Kommentar | **einmalig** 500 ml |
-| 1 Share | **einmalig** 2 L |
+| 1 neuer Follower | 1 neuer Mensch, trinkt an jedem Tag (Start: **10 L**, siehe Meilensteine) |
+| 1 Like | **einmalig** 10 ml (+ Meilensteine) |
+| 1 Kommentar | **einmalig** 500 ml (+ Meilensteine) |
+| 1 Share | **einmalig** 2 L (+ Meilensteine) |
 | Startvorrat | **≈ 1,386 Mrd. km³ = 1,386 × 10²¹ L** (Näherungswert, Salz- + Süßwasser) |
+
+### ⚡ Meilensteine – der Durst wächst mit der Community
+Die Verbrauchswerte hängen von der **gesamten erreichten Followerzahl** ab und steigen dauerhaft:
+
+| Regel | Formel | Beispiele |
+|---|---|---|
+| Like | 10 ml + (Anzahl 100er-Meilensteine) × 100 ml | 99 F.: 10 ml · 100 F.: 110 ml · 1.000 F.: 1.010 ml |
+| Kommentar | 0,5 L + (Anzahl 250er-Meilensteine) × 1 L | 250 F.: 1,5 L · 1.000 F.: 4,5 L |
+| Share | 2 L + (Anzahl 500er-Meilensteine) × 4 L | 500 F.: 6 L · 2.000 F.: 18 L |
+| Trinken pro Einwohner/Tag | 10 L × 2 hoch (Anzahl 1.000er-Meilensteine) | 1.000 F.: 20 L · 5.000 F.: 320 L |
+
+- Neue Meilensteine gelten **sofort** (auch für die Likes/Kommentare/Shares und neuen Menschen desselben Eintrags);
+  alle Einwohner trinken ab dem nächsten Tag mit der neuen Menge.
+- **Bereits verbrauchtes Wasser wird nie nachträglich verändert** (Tage werden mit der Stufe verbucht, die an dem Tag galt).
+- Spielstände von vor dieser Regel werden automatisch umgestellt: Die Meilensteine gelten ab dem Tag nach dem letzten verbuchten Tag.
+- Rechnung mit BigInt → exakt auch bei riesigen Werten (z. B. 2 hoch 1.000).
+- Spannend: Ab **52.000 Followern** würden die Einwohner das gesamte Wasser an **einem einzigen Tag** austrinken.
 
 **Festgelegte Details** (lassen sich ändern, falls du es anders willst):
 - Ein **Tag** ist ein Kalendertag in **Europe/Berlin** (Mitternacht deutscher Zeit).
@@ -202,7 +219,7 @@ public/assets/      fertige Erd-Daten (Höhen, Masken, Texturen, Städte)
 
 ## 🧪 Tests
 ```bash
-npm test          # 26 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
+npm test          # 41 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
 npm run typecheck
 ```
 

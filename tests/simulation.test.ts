@@ -17,8 +17,9 @@ test('Startvorrat: 1,386 Mrd. km³ = 1,386 × 10²¹ Liter, exakt', () => {
   assert.equal(sci(DEFAULT_CONFIG.totalWaterMl / L), '1,386 × 10²¹');
 });
 
-test('Beispiele aus der Aufgabe: X Menschen trinken 10 × X Liter pro Tag', () => {
-  for (const [people, liters] of [[100, 1_000n], [1_000, 10_000n], [10_000, 100_000n], [100_000, 1_000_000n]] as const) {
+test('Beispiele: Tagesverbrauch aller Menschen (mit Meilenstein-Verdopplung je 1.000 Follower)', () => {
+  // 100 × 10 L | 999 × 10 L | 1.000 × 20 L | 2.500 × 40 L | 10.000 × 10 L × 2^10
+  for (const [people, liters] of [[100, 1_000n], [999, 9_990n], [1_000, 20_000n], [2_500, 100_000n], [10_000, 10_000n * 10n * 1024n]] as const) {
     const s = replay('2026-01-01', [entry('2026-01-01', { followers: people })], '2026-01-01');
     assert.equal(s.population, BigInt(people));
     assert.equal(s.dailyMl, liters * L);
@@ -118,8 +119,10 @@ test('Gesamtstand nach "Neu"-Einträgen zählt nichts doppelt', () => {
   assert.equal(r.deltas.likes, 500);
 });
 
-test('Riesige Zahlen bleiben exakt (keine Rundungsfehler)', () => {
-  const s = replay('2026-01-01', [entry('2026-01-01', { followers: 8_000_000_000, likes: 9_000_000_000_000 })], addDays('2026-01-01', 99_999));
+test('Riesige Zahlen bleiben exakt (keine Rundungsfehler) – Grundregeln ohne Meilensteine', () => {
+  // Meilenstein-Regeln erst ab 2999 aktiv -> hier gelten die festen Grundwerte
+  const flat = { ...DEFAULT_CONFIG, meilensteine: { ...DEFAULT_CONFIG.meilensteine, abTag: '2999-01-01' } };
+  const s = replay('2026-01-01', [entry('2026-01-01', { followers: 8_000_000_000, likes: 9_000_000_000_000 })], addDays('2026-01-01', 99_999), flat);
   // 8 Mrd. Menschen × 100.000 Tage × 10 L = 8 × 10^15 L
   assert.equal(s.consumed.drinking, 8_000_000_000n * 100_000n * 10n * L);
   assert.equal(s.consumed.likes, 90_000_000_000_000n);

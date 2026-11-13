@@ -70,16 +70,16 @@
       ]
     },
     {
-      "text": "Und jeder Mensch trinkt {gruen:zehn Liter} am Tag.",
+      "text": "Und jeder Mensch trinkt {gruen:{liter_pro_mensch}} am Tag.",
       "kamera": "einwohner1",
       "uebergang": 2.4,
       "min": 3.4,
       "sticker": [
         {
           "typ": "schild",
-          "text": "🥤 10 LITER PRO TAG",
+          "text": "🥤 {liter_pro_mensch} PRO TAG",
           "farbe": "gruen",
-          "y": 14,
+          "y": 15,
           "drehung": 3
         }
       ]
@@ -90,11 +90,11 @@
       "sticker": [
         {
           "typ": "info",
-          "y": 13,
+          "y": 15,
           "zeilen": [
-            "❤️ 1 LIKE = 10 ML",
-            "💬 1 KOMMENTAR = 500 ML",
-            "🔁 1 SHARE = 2 LITER"
+            "❤️ 1 LIKE = {like_ml}",
+            "💬 1 KOMMENTAR = {kommentar_menge}",
+            "🔁 1 SHARE = {share_menge}"
           ]
         }
       ]
@@ -118,15 +118,40 @@
       ]
     },
     {
-      "text": "Stell dir vor, es wären {gruen:zweitausend}. Zusammen trinken sie {blau:zwanzigtausend Liter} am Tag.",
-      "kamera": "gruppe",
+      "text": "Aber Achtung: Mit jedem Meilenstein wächst der {rot:Durst}.",
+      "kamera": "orbit",
       "uebergang": 2.2,
-      "einwohner_vorschau": 2000,
-      "min": 5,
+      "min": 6.5,
+      "sticker": [
+        {
+          "typ": "stufen"
+        }
+      ]
+    },
+    {
+      "text": "Alle tausend Follower {rot:verdoppelt} sich die Trinkmenge jedes Menschen!",
+      "kamera": "orbit",
+      "min": 3.2,
       "sticker": [
         {
           "typ": "schild",
-          "text": "🥤 20.000 LITER PRO TAG",
+          "text": "×2 ALLE 1.000 FOLLOWER",
+          "farbe": "rot",
+          "y": 15,
+          "drehung": -4
+        }
+      ]
+    },
+    {
+      "text": "Stell dir vor, es wären {gruen:zweitausend}. Jeder trinkt dann {blau:{pro_kopf_bei_2000}}, zusammen {blau:{pro_tag_bei_2000} Liter} am Tag.",
+      "kamera": "gruppe",
+      "uebergang": 2.2,
+      "einwohner_vorschau": 2000,
+      "min": 6,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 {pro_tag_bei_2000} LITER PRO TAG",
           "farbe": "blau",
           "y": 30,
           "drehung": 2
@@ -157,10 +182,10 @@
       ]
     },
     {
-      "text": "{blau:Eine Million} Menschen, ein Jahr lang.",
+      "text": "{blau:Tausend} Menschen, ein Jahr lang.",
       "kamera": "europa",
       "szenario": {
-        "einwohner": 1000000,
+        "einwohner": 1000,
         "tage": 365
       },
       "min": 4.2,
@@ -171,12 +196,12 @@
       ]
     },
     {
-      "text": "{blau:Eine Milliarde} Menschen, zehn Jahre lang.",
+      "text": "{blau:Zwanzigtausend} Menschen, ein Jahr lang.",
       "kamera": "space",
       "uebergang": 2,
       "szenario": {
-        "einwohner": 1000000000,
-        "tage": 3650
+        "einwohner": 20000,
+        "tage": 365
       },
       "min": 4.2,
       "sticker": [
@@ -186,11 +211,11 @@
       ]
     },
     {
-      "text": "{rot:Acht Milliarden} Menschen, tausend Jahre lang.",
+      "text": "{rot:Achtundvierzigtausend} Menschen, nur einen Tag!",
       "kamera": "space",
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365000
+        "einwohner": 48000,
+        "tage": 1
       },
       "min": 4.6,
       "sticker": [
@@ -200,12 +225,15 @@
       ]
     },
     {
-      "text": "Wie viele Menschen brauchen wir, um das Wasser der Erde *aufzubrauchen*?",
+      "text": "Und ab {rot:{leer_an_einem_tag} Followern} ist die Erde an einem einzigen Tag {rot:leergetrunken}.",
       "kamera": "finale",
-      "uebergang": 2.5,
+      "uebergang": 2.4,
       "strohhalm": true,
-      "untertitel": false,
-      "min": 4.6,
+      "szenario": {
+        "einwohner": 52000,
+        "tage": 1
+      },
+      "min": 5,
       "effekte": [
         {
           "t": 0.05,
@@ -214,19 +242,34 @@
       ],
       "sticker": [
         {
+          "typ": "zahl",
+          "label": "ERDE AN 1 TAG LEER AB",
+          "von": 0,
+          "bis": "{leer_an_einem_tag}",
+          "farbe": "rot"
+        }
+      ]
+    },
+    {
+      "text": "Schaffen wir das? Wie lange brauchen wir bis {rot:{leer_an_einem_tag} Follower}?",
+      "kamera": "finale",
+      "uebergang": 0,
+      "strohhalm": true,
+      "untertitel": false,
+      "min": 4.6,
+      "sticker": [
+        {
           "typ": "titel",
           "zeilen": [
-            "WIE VIELE",
-            "MENSCHEN",
-            "BRAUCHEN WIR,",
-            "UM ALLES",
-            "{rot:AUSZUTRINKEN?}"
+            "SCHAFFEN WIR",
+            "{rot:{leer_an_einem_tag}}",
+            "FOLLOWER?"
           ]
         }
       ],
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365000
+        "einwohner": 52000,
+        "tage": 1
       }
     },
     {
@@ -240,8 +283,8 @@
         }
       ],
       "szenario": {
-        "einwohner": 8000000000,
-        "tage": 365000
+        "einwohner": 52000,
+        "tage": 1
       }
     }
   ]

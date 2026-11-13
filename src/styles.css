@@ -66,7 +66,24 @@ body.capture .stage { border-radius: 0; box-shadow: none; height: auto; }
 .hud-preview { position: absolute; top: 9.5cqh; left: 50%; transform: translateX(-50%) rotate(-3deg); background: #ff2a4a; color: #fff; font-weight: 900;
   font-size: 1.5cqh; padding: .5cqh 1.4cqh; border-radius: .8cqh; border: .25cqh solid #14182a; display: none; white-space: nowrap; }
 .hud-foot { position: absolute; bottom: .8cqh; left: 0; right: 0; font-size: .9cqh; color: rgba(255,255,255,.8); text-align: center; text-shadow: 0 1px 2px #000; font-weight: 800; }
-body.story .hud-foot { bottom: auto; top: 8.2cqh; }
+body.story .hud-foot { bottom: auto; top: 11.6cqh; }
+.hud-ziel { position: absolute; top: 7.8cqh; left: 3%; right: 3%; background: rgba(20, 24, 42, .82); color: #fff; border-radius: .9cqh;
+  padding: .45cqh 1cqh .55cqh; border: .2cqh solid rgba(255,255,255,.6); font-weight: 900; font-size: 1.2cqh; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 1cqh; }
+.hud-ziel b { color: #ffd23a; }
+.hud-ziel .hz-r { color: #9fd8ff; font-weight: 800; }
+.hud-ziel .bar { flex-basis: 100%; height: .55cqh; margin-top: .35cqh; background: #2a3150; }
+.hud-ziel .bar i { background: linear-gradient(90deg, #ffd23a, #ff7a2f); }
+.hud-preview { top: 13.2cqh !important; }
+.st-stufen { top: 15cqh; width: 88%; white-space: normal; background: #fff; border: .35cqh solid #14182a; border-radius: 1.8cqh; padding: 1.2cqh 1.4cqh; box-shadow: 0 .6cqh 0 rgba(0,0,0,.35); }
+.sf-kopf { text-align: center; font-size: 2.1cqh; color: #ff7a2f; margin-bottom: .6cqh; }
+.sf-z { display: grid; grid-template-columns: 1fr auto auto; gap: 1cqh; align-items: baseline; font-size: 1.7cqh; padding: .45cqh 0; border-bottom: .15cqh solid #e5e9f3; transform-origin: 50% 50%; }
+.sf-z b { font-size: 2.3cqh; color: #1287ff; font-variant-numeric: tabular-nums; }
+.sf-z i { font-style: normal; font-size: 1.1cqh; color: #8a93ad; }
+.sf-next { margin-top: .9cqh; background: #14182a; color: #fff; border-radius: 1.1cqh; padding: .8cqh 1cqh; text-align: center; transform-origin: 50% 50%; }
+.sf-next small { display: block; font-size: 1.2cqh; color: #ffd23a; }
+.sf-next b { display: block; font-size: 3.2cqh; color: #63f23a; line-height: 1.1; }
+.sf-next span { display: block; font-size: 1.4cqh; color: #cfe3ff; }
+.sf-weg { margin-top: .7cqh; font-size: 1.35cqh; color: #5a6380; text-align: center; line-height: 1.45; transform-origin: 50% 50%; }
 
 /* Statistik-Karte (HUD im Studio + Sticker im Video) */
 .stat-card { background: #fff; border: .3cqh solid #14182a; border-radius: 1.4cqh; padding: .9cqh 1.4cqh; box-shadow: 0 .5cqh 0 rgba(0,0,0,.3); }
@@ -114,7 +131,7 @@ body.story .hud-foot { bottom: auto; top: 8.2cqh; }
 .st-stats { top: 24cqh; width: 86%; white-space: normal; }
 
 /* ---------- Version 2: Überschrift, Zahlenkacheln, Szenario-Karte ---------- */
-.st-titel { top: 14cqh; width: 94%; text-align: center; white-space: normal; font-size: 4.4cqh; line-height: 1.08; color: #fff;
+.st-titel { top: 16.5cqh; width: 94%; text-align: center; white-space: normal; font-size: 4.4cqh; line-height: 1.08; color: #fff;
   -webkit-text-stroke: .6cqh #000; paint-order: stroke fill; text-shadow: 0 .5cqh 0 #000; }
 .st-titel .tz { transform-origin: 50% 60%; }
 .st-titel .gelb { color: #ffd400; } .st-titel .gruen { color: #63f23a; } .st-titel .rot { color: #ff2a4a; } .st-titel .blau { color: #3fb8ff; }

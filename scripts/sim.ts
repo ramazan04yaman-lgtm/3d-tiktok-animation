@@ -13,6 +13,7 @@ import path from 'node:path';
 import { assertDay } from '../src/sim/days.ts';
 import { formatDuration, formatLiters, groupDE, percentExact, sci } from '../src/sim/format.ts';
 import { daysUntilEmpty } from '../src/sim/simulation.ts';
+import { formatMenge } from '../src/sim/format.ts';
 import { DEFAULT_PATH, addEntry, computeState, loadFile, loadOrCreate, newFile, removeEntry, saveFile, today } from '../server/store.ts';
 
 const [cmd = 'status', ...rest] = process.argv.slice(2);
@@ -50,6 +51,15 @@ function printStatus(): void {
   line('Einwohner gesamt', groupDE(s.population));
   line('Täglicher Trinkverbrauch', formatLiters(s.dailyMl) + ' / Tag');
   line('Wasser reicht noch', formatDuration(daysUntilEmpty(s)));
+  console.log('\n  ⚡ VERBRAUCHSSTUFE (Meilensteine)');
+  line('  pro Einwohner und Tag', `${formatMenge(s.stufe.trinkMl)}  (Stufe ${s.stufe.stufen.trinken})`);
+  line('  pro Like', `${formatMenge(s.stufe.likeMl)}  (Stufe ${s.stufe.stufen.like})`);
+  line('  pro Kommentar', `${formatMenge(s.stufe.kommentarMl)}  (Stufe ${s.stufe.stufen.kommentar})`);
+  line('  pro Share', `${formatMenge(s.stufe.shareMl)}  (Stufe ${s.stufe.stufen.share})`);
+  for (const n of s.naechste) {
+    const was = n.regel === 'like' ? 'pro Like' : n.regel === 'kommentar' ? 'pro Kommentar' : n.regel === 'share' ? 'pro Share' : 'pro Einwohner/Tag';
+    line(`  🎯 bei ${groupDE(n.follower)} Followern`, `${formatMenge(n.neuMl)} ${was} (noch ${groupDE(n.follower - s.followers)})`);
+  }
   line('Berechnete Tage', `${s.daysProcessed} (seit ${s.startDay})`);
   line('Einträge im Logbuch', String(s.entryCount));
   console.log(`\n  Datei: ${file}\n`);

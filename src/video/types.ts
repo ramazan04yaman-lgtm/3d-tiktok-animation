@@ -16,7 +16,8 @@ export type Sticker =
   | { typ: 'statistik' }                                                 // komplette Wasser-Statistik (klein)
   | { typ: 'zahlen' }                                                   // große Zahlenkacheln mit allen Werten
   | { typ: 'titel'; zeilen: string[] }                                  // große Überschrift (mit Hervorhebungen)
-  | { typ: 'szenario'; zeilen?: string[] };                             // Szenario-Karte (wird aus "szenario" berechnet)
+  | { typ: 'szenario'; zeilen?: string[] }
+  | { typ: 'stufen' };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
 
 export type Musik = 'ruhig' | 'treibend' | 'drama';
 export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop';

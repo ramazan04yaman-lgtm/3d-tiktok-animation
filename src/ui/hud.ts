@@ -4,7 +4,7 @@
  * Die ausführliche Statistik-Karte kann zusätzlich eingeblendet werden.
  */
 import { ML_PER_LITER } from '../sim/config.ts';
-import { formatDuration, formatLiters, groupDE, percentExact, sci } from '../sim/format.ts';
+import { formatDuration, formatLiters, formatMenge, groupDE, percentExact, sci } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
 
 export interface HudExtra { visualDrain: number; seaLevel: number; perFigure: number; preview: boolean; mode: string; demo?: boolean }
@@ -40,6 +40,8 @@ export class Hud {
         <div class="hud-house">🏠</div>
       </div>
       <div class="hud-water"><small>WASSER ÜBRIG</small><b data-k="pct">100 %</b><div class="bar"><i data-k="bar"></i></div></div>
+      <div class="hud-ziel"><span>🎯 NÄCHSTER MEILENSTEIN: <b data-k="ziel">100</b> FOLLOWER</span>
+        <span class="hz-r" data-k="zielrest"></span><div class="bar"><i data-k="zielbar"></i></div></div>
       <div class="hud-stats" data-k="stats">${statistikHTML()}</div>
       <div class="hud-preview" data-k="preview">VORSCHAU – NICHT DER ECHTE STAND</div>
       <div class="hud-foot" data-k="foot"></div>`;
@@ -61,6 +63,17 @@ export class Hud {
     this.setAll('likes', formatLiters(B(s.consumedMl.likes)));
     this.setAll('comments', formatLiters(B(s.consumedMl.comments)));
     this.setAll('shares', formatLiters(B(s.consumedMl.shares)));
+    const nxt = s.naechste?.[0];
+    if (nxt) {
+      const f = B(s.followers), z = B(nxt.follower);
+      // Fortschritt seit dem letzten Meilenstein dieser Regel-Schrittweite
+      const schritt = nxt.regel === 'like' ? 100n : nxt.regel === 'kommentar' ? 250n : nxt.regel === 'share' ? 500n : 1000n;
+      const start = z - schritt;
+      this.setAll('ziel', groupDE(z));
+      this.setAll('zielrest', `noch ${groupDE(z - f)} · dann ${formatMenge(B(nxt.neuMl))} ${nxt.regel === 'like' ? 'pro Like' : nxt.regel === 'kommentar' ? 'pro Kommentar' : nxt.regel === 'share' ? 'pro Share' : 'pro Kopf/Tag'}`);
+      const zb = this.root.querySelector<HTMLElement>('[data-k="zielbar"]');
+      if (zb) zb.style.width = `${Math.max(2, Number(((f - start) * 1000n) / schritt) / 10)}%`;
+    }
     this.setAll('eta', formatDuration(s.daysUntilEmpty === null ? null : B(s.daysUntilEmpty)));
     const bar = this.root.querySelector<HTMLElement>('[data-k="bar"]');
     if (bar) bar.style.width = `${Math.max(0.5, (1 - x.visualDrain) * 100)}%`;

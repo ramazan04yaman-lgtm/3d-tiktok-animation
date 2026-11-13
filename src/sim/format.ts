@@ -39,6 +39,12 @@ export function formatLiters(ml: bigint): string {
   return sci(liters) + ' L';
 }
 
+/** Kleine Mengen: 110 ml / 1,5 L / 20 L; große Mengen wie formatLiters. */
+export function formatMenge(ml: bigint): string {
+  if (ml < ML_PER_LITER) return `${ml} ml`;
+  return formatLiters(ml);
+}
+
 /** Kurzform für große Liter-Mengen mit Wort: 2,5 Mio. L / 3,1 Mrd. L ... */
 export function formatLitersShort(ml: bigint): string {
   const l = Number(ml) / 1000;
