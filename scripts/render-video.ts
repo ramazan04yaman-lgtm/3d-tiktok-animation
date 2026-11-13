@@ -56,8 +56,15 @@ if (stimme.typ === 'piper') {
   if (!fs.existsSync(modell)) throw new Error(`Stimme fehlt: ${modell}\n   Bitte einmal "npm run stimme-laden" ausführen.`);
   const job = { modell, tempo: stimme.tempo ?? 0.95, sprecher: stimme.sprecher ?? null,
     saetze: folge.beats.map((b, i) => ({ text: sprechText(b), datei: path.join(work, `stimme-${String(i).padStart(2, '0')}.wav`) })) };
-  fs.writeFileSync(path.join(work, 'tts.json'), JSON.stringify(job, null, 2));
-  execFileSync('python3', [path.join(root, 'tools/tts_piper.py'), path.join(work, 'tts.json')], { stdio: 'inherit' });
+  // Aufnahmen wiederverwenden, wenn sich der Text nicht geändert hat (gleiche Länge -> fortsetzbar)
+  const jobFile = path.join(work, 'tts.json');
+  const neu = JSON.stringify(job, null, 2);
+  const vorhanden = fs.existsSync(jobFile) && fs.readFileSync(jobFile, 'utf8') === neu && job.saetze.every((x) => fs.existsSync(x.datei));
+  if (vorhanden) console.log('♻️  Sprachaufnahmen unverändert – werden wiederverwendet.');
+  else {
+    fs.writeFileSync(jobFile, neu);
+    execFileSync('python3', [path.join(root, 'tools/tts_piper.py'), jobFile], { stdio: 'inherit' });
+  }
 }
 folge.beats.forEach((b, i) => {
   let f: string | undefined;
@@ -96,22 +103,54 @@ await page.goto(`http://127.0.0.1:${addr.port}/?capture=${H}${args.leicht ? '&le
 await page.waitForFunction(() => (window as any).__sim?.ready(), null, { timeout: 300_000 });
 await page.evaluate(([tl, s, demo]: [unknown, unknown, boolean]) => (window as any).__sim.loadStory(tl, s, demo), [timeline, zahlen.snapshot, !!args.demo]);
 
+// Das Video wird in Abschnitten (je 10 s) gerendert. Fertige Abschnitte bleiben erhalten:
+// Nach einem Abbruch rendert derselbe Befehl nur die fehlenden Abschnitte (fortsetzbar).
 const silent = path.join(work, 'bild.mp4');
-const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
-  '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS), silent], { stdio: ['pipe', 'inherit', 'inherit'] });
-const stage = page.locator('#stage');
-const t0 = Date.now();
-for (let i = 0; i < frames; i++) {
-  await page.evaluate(([t, dt]: [number, number]) => (window as any).__sim.renderAt(t, dt), [i / FPS, 1 / FPS]);
-  const buf: Buffer = await stage.screenshot({ type: 'jpeg', quality: 93 });
-  if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once('drain', r));
-  if (i % FPS === 0) {
-    const el = (Date.now() - t0) / 1000;
-    process.stdout.write(`\r🎞️  Bild ${i + 1}/${frames} · ${Math.round(el)} s · noch ca. ${Math.round(el / (i + 1) * (frames - i - 1))} s   `);
-  }
+const SEG = FPS * 10;
+const segKey = JSON.stringify({ timeline, W, H, FPS, leicht: !!args.leicht });
+const keyFile = path.join(work, 'abschnitte.key');
+if (!fs.existsSync(keyFile) || fs.readFileSync(keyFile, 'utf8') !== segKey) {
+  for (const f of fs.readdirSync(work)) if (/^abschnitt-\d+\.(mp4|ok)$/.test(f)) fs.unlinkSync(path.join(work, f));
+  fs.writeFileSync(keyFile, segKey);
 }
-ff.stdin.end();
-await new Promise((r) => ff.on('close', r));
+const stage = page.locator('#stage');
+const segCount = Math.ceil(frames / SEG);
+const t0 = Date.now();
+let gerendert = 0;
+const offen = Array.from({ length: segCount }, (_, i) => i).filter((i) => !fs.existsSync(path.join(work, `abschnitt-${String(i).padStart(3, '0')}.ok`)));
+if (offen.length < segCount) console.log(`⏩ ${segCount - offen.length} von ${segCount} Abschnitten sind schon fertig – mache weiter.`);
+const offenBilder = offen.reduce((a, i) => a + Math.min(SEG, frames - i * SEG), 0);
+for (const seg of offen) {
+  const f0 = seg * SEG, f1 = Math.min(frames, f0 + SEG);
+  // Aufwärmen: Kamera-Übergänge bis zum Abschnittsbeginn nachspielen (ohne Aufnahme)
+  const tStart = f0 / FPS;
+  await page.evaluate(([tl, s, demo]: [unknown, unknown, boolean]) => (window as any).__sim.loadStory(tl, s, demo), [timeline, zahlen.snapshot, !!args.demo]);
+  for (const b of timeline.beats) {
+    if (b.start > tStart) break;
+    await page.evaluate((t: number) => (window as any).__sim.renderAt(t, 1 / 30), b.start + 0.0005);
+    if (b.end <= tStart) await page.evaluate((t: number) => (window as any).__sim.renderAt(t, 1 / 30), b.end - 0.0005);
+  }
+  const name = path.join(work, `abschnitt-${String(seg).padStart(3, '0')}`);
+  const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS), name + '.mp4'], { stdio: ['pipe', 'inherit', 'inherit'] });
+  for (let i = f0; i < f1; i++) {
+    await page.evaluate(([t, dt]: [number, number]) => (window as any).__sim.renderAt(t, dt), [i / FPS, 1 / FPS]);
+    const buf: Buffer = await stage.screenshot({ type: 'jpeg', quality: 93 });
+    if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once('drain', r));
+    gerendert++;
+    if (gerendert % FPS === 0) {
+      const el = (Date.now() - t0) / 1000;
+      process.stdout.write(`\r🎞️  Bild ${i + 1}/${frames} · Abschnitt ${seg + 1}/${segCount} · noch ca. ${Math.round(el / gerendert * (offenBilder - gerendert))} s   `);
+    }
+  }
+  ff.stdin.end();
+  await new Promise((r) => ff.on('close', r));
+  fs.writeFileSync(name + '.ok', '');
+}
+// Abschnitte zusammenfügen
+const liste = path.join(work, 'abschnitte.txt');
+fs.writeFileSync(liste, Array.from({ length: segCount }, (_, i) => `file 'abschnitt-${String(i).padStart(3, '0')}.mp4'`).join('\n'));
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', liste, '-c', 'copy', silent]);
 await browser.close();
 await server.close();
 console.log('\n🔊 Ton mischen …');
@@ -119,7 +158,7 @@ console.log('\n🔊 Ton mischen …');
 // ---------- 4. Ton: Stimme + Musik (wird unter der Stimme leiser) + Effekte ----------
 const plan = {
   dauer: total,
-  abschnitte: timeline.musik.map((m) => ({ start: m.start, typ: m.typ })),
+  abschnitte: timeline.musik.filter((m) => m.start < total - 0.5).map((m) => ({ start: m.start, typ: m.typ })),
   events: timeline.events.filter((e) => e.t < total),
   stimme: timeline.beats.map((b, i) => ({ t: b.start, datei: audioFiles[i] })).filter((v) => v.datei && v.t < total),
 };

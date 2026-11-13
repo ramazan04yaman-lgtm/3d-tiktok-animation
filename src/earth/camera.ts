@@ -75,6 +75,8 @@ function pathPos(path: [number, number][], u: number): [number, number] {
 
 export class CameraDirector {
   shotName = 'space';
+  /** Vorheriger Shot (für weiche Übergänge, z. B. Sonnenstand). */
+  prevShotName = 'space';
   private from: CamState;
   private cur: CamState;
   private transStart = -1;
@@ -95,6 +97,7 @@ export class CameraDirector {
   setShot(name: string, time: number, transition = 3): void {
     if (!SHOTS[name]) throw new Error(`Unbekannter Shot: ${name}`);
     this.from = { ...this.cur };
+    this.prevShotName = this.shotName;
     this.shotName = name;
     this.transStart = time;
     this.transDur = transition;
@@ -143,6 +146,12 @@ export class CameraDirector {
     this.camera.position.copy(pos);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(target);
+  }
+
+  /** Fortschritt des Übergangs 0..1 (geglättet) – hängt nur von der Zeit ab. */
+  progress(time: number): number {
+    if (this.transStart < 0) return 1;
+    return ease(Math.min(1, Math.max(0, (time - this.transStart) / this.transDur)));
   }
 
   /** Für die Sonne: aktueller Blickpunkt in Grad. */

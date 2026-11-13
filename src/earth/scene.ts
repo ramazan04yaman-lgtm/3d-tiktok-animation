@@ -185,10 +185,12 @@ export class EarthScene {
       c = this.director.update(time);
     }
     // Sonne: leicht seitlich hinter der Kamera -> schöne Tag/Nacht-Grenze im Bild
-    const so = (!this.director.free && SHOTS[this.director.shotName]?.sonne) || [18, 55];
-    // weicher Übergang des Sonnenstands zwischen Shots
-    this.sunOff[0] += (so[0] - this.sunOff[0]) * Math.min(1, dt * 1.5);
-    this.sunOff[1] += (so[1] - this.sunOff[1]) * Math.min(1, dt * 1.5);
+    // Sonnenstand: weicher Übergang zwischen den Shots – nur von der Zeit abhängig (reproduzierbar)
+    const std: [number, number] = [18, 55];
+    const so = (!this.director.free && SHOTS[this.director.shotName]?.sonne) || std;
+    const sp = (!this.director.free && SHOTS[this.director.prevShotName]?.sonne) || std;
+    const kk = this.director.free ? 1 : this.director.progress(time);
+    this.sunOff = [sp[0] + (so[0] - sp[0]) * kk, sp[1] + (so[1] - sp[1]) * kk];
     const sunDir = latLonToVec3(c.lat + this.sunOff[0], c.lon + this.sunOff[1]).normalize();
     u.uSunDir.value.copy(sunDir);
     this.clouds.material.uniforms.uSunDir.value.copy(sunDir);
