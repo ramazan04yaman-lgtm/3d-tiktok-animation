@@ -130,13 +130,25 @@ Ergebnis: `output/folge-01.mp4` (1080×1920, 30 fps) + `output/folge-01.srt` (Un
 Optionen: `--musik musik.mp3` (leise im Hintergrund), `--seit 2026-11-12` (für `{neue_follower}`),
 `--hoehe 1280 --fps 24` (kleiner/schneller), `--leicht` (schneller auf Rechnern ohne gute Grafikkarte), `--bis 5` (nur 5 Sekunden testen).
 
-### 🎙️ Stimme
-Standard ist eine **Computer-Teststimme** (espeak-ng, muss installiert sein: `sudo apt install espeak-ng mbrola mbrola-de6`).
-Sie klingt robotisch – für echte Videos besser:
-- **Deine eigene Stimme**: jeden Satz aufnehmen und im Drehbuch eintragen: `"audio": "aufnahmen/satz-01.mp3"`
-- oder eine **KI-Stimme** (z. B. aus CapCut oder ElevenLabs) als Datei pro Satz exportieren und genauso eintragen.
+### 🎙️ Deine eigene Stimme (empfohlen!)
+Die eingebaute Computerstimme ist nur zum Testen – sie klingt robotisch.
 
-Das Video passt sich automatisch an die Länge der Aufnahmen an, Untertitel laufen synchron mit.
+**So geht's:**
+1. Text anzeigen lassen: `npm run sprechertext -- --folge folge-01`
+2. Mit dem Handy (Sprachmemo) **alles am Stück** einsprechen.
+   **Nach jeder nummerierten Zeile ca. 1 Sekunde Pause machen** – daran erkennt das Programm die Sätze.
+3. Datei z. B. als `folgen/aufnahmen/folge-01.m4a` speichern und rendern:
+   ```bash
+   npm run video -- --folge folge-01 --aufnahme folgen/aufnahmen/folge-01.m4a
+   ```
+   oder dauerhaft im Drehbuch eintragen: `"stimme": { "typ": "aufnahme", "datei": "aufnahmen/folge-01.m4a" }`
+
+Das Programm schneidet die Aufnahme an den Pausen, gleicht die Lautstärke an, und das Video
+(Kamera, Sticker, Untertitel) passt sich automatisch an dein Sprechtempo an.
+Alternativ geht auch eine Datei pro Satz (`"audio": "aufnahmen/satz-03.mp3"` im jeweiligen Beat)
+oder eine KI-Stimme (z. B. CapCut/ElevenLabs), die du genauso als Datei einträgst.
+
+Die Computer-Teststimme braucht: `sudo apt install espeak-ng mbrola mbrola-de6`.
 
 ## 🧱 Projektstruktur
 
