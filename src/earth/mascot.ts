@@ -44,19 +44,20 @@ function stripeTexture(alongX = false): THREE.CanvasTexture {
 export class Mascot {
   readonly root = new THREE.Group();
   private ch: Character;
+  private mund!: THREE.Mesh;
   talking = false;
   waving = false;
   drinking = false;
 
   constructor() {
-    this.ch = createCharacter({ skin: '#ffd2b0', hair: '#3a2416', hairStyle: 0, shirt: '#1f4fbf', pants: '#1b2340', shoes: '#ffffff' });
+    this.ch = createCharacter({ skin: '#ffe0c4', hair: '#3a2416', hairStyle: 99, shirt: '#2f6be0', pants: '#1b2340', shoes: '#ffffff' });
     const head = this.ch.joints.head, body = this.ch.joints.body;
     const H = P.headY, R = P.headR;
     // Kapitänsmütze
-    const crown = part(new THREE.CylinderGeometry(R * 0.98, R * 0.9, 0.2, 40), '#ffffff', 0.02);
+    const crown = part(new THREE.CylinderGeometry(R * 1.05, R * 0.95, 0.24, 40), '#ffffff', 0.02);
     crown.position.set(0, H + R * 0.78, -0.02); crown.rotation.x = -0.12;
-    const top = part(new THREE.CylinderGeometry(R * 1.12, R * 0.98, 0.07, 40), '#ffffff', 0.02);
-    top.position.set(0, H + R * 0.78 + 0.12, -0.035); top.rotation.x = -0.12;
+    const top = part(new THREE.CylinderGeometry(R * 1.25, R * 1.05, 0.08, 40), '#ffffff', 0.02);
+    top.position.set(0, H + R * 0.78 + 0.14, -0.035); top.rotation.x = -0.12;
     const band = part(new THREE.CylinderGeometry(R * 0.92, R * 0.92, 0.07, 40), '#1b1f33', 0.01);
     band.position.set(0, H + R * 0.66, -0.01); band.rotation.x = -0.12;
     const visor = part(new THREE.CylinderGeometry(R * 0.8, R * 0.8, 0.03, 32, 1, false, -Math.PI / 2, Math.PI), '#1b1f33', 0.02);
@@ -64,17 +65,36 @@ export class Mascot {
     const emblem = part(new THREE.SphereGeometry(0.055, 16, 12), '#ffd23a', 0.03, { emissive: '#553b00' });
     emblem.scale.z = 0.4; emblem.position.set(0, H + R * 0.83, R * 0.92);
     // Sonnenbrille (über den großen Augen)
-    const lensGeo = new THREE.BoxGeometry(0.17, 0.11, 0.03, 2, 2, 1);
+    const lensGeo = new THREE.BoxGeometry(0.21, 0.14, 0.03, 2, 2, 1);
     for (const x of [-0.115, 0.115]) {
       const lens = part(lensGeo, '#0d0f1a', 0.04, { roughness: 0.15, metalness: 0.2 });
-      lens.position.set(x, H + 0.045, R * 0.96); lens.rotation.y = x * 0.9;
+      lens.position.set(x * 1.12, H + 0.045, R * 0.95); lens.rotation.y = x * 0.9;
       head.add(lens);
     }
+    for (const x of [-0.115, 0.115]) {
+      const glanz = new THREE.Mesh(new THREE.PlaneGeometry(0.06, 0.03), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+      glanz.position.set(x * 1.12 - 0.04, H + 0.075, R * 0.95 + 0.025); glanz.rotation.y = x * 0.9; head.add(glanz);
+    }
+    // roter, offener Mund (wie im Original) statt des einfachen Lächelns
+    this.mund = part(new THREE.SphereGeometry(0.075, 20, 12), '#8a1f2e', 0.03);
+    this.mund.scale.set(1.25, 0.45, 0.45); this.mund.position.set(0, H - 0.1, R * 0.9);
+    this.ch.mouth.visible = false;
+    head.add(this.mund);
+    // weißer Kragen + rote Krawatte
+    const kragen = part(new THREE.ConeGeometry(0.12, 0.16, 3), '#ffffff', 0.02);
+    kragen.rotation.set(Math.PI, 0, 0); kragen.scale.z = 0.45; kragen.position.set(0, 0.6, 0.15); body.add(kragen);
+    const kraw = part(new THREE.ConeGeometry(0.035, 0.16, 4), '#ff4f5e', 0.02);
+    kraw.rotation.x = Math.PI; kraw.scale.z = 0.5; kraw.position.set(0, 0.53, 0.19); body.add(kraw);
+    // rot-weiß gestreifter Strohhalm im Becher
+    const tex = stripeTexture();
+    const halm = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.3, 10), smooth('#ffffff', { map: tex }));
+    halm.position.set(P.shoulder.x + 0.05, P.shoulder.y - 0.16, 0.07); halm.rotation.z = -0.25;
+    this.ch.joints.armR.add(halm);
     const bridge = part(new THREE.BoxGeometry(0.07, 0.025, 0.025), '#0d0f1a', 0);
     bridge.position.set(0, H + 0.07, R * 1.0);
     head.add(crown, top, band, visor, emblem, bridge);
     // Uniform: goldene Knöpfe + Abzeichen mit Wassertropfen
-    for (const y of [0.52, 0.42, 0.34]) {
+    for (const y of [0.42, 0.34]) {
       const b = part(new THREE.SphereGeometry(0.025, 10, 8), '#ffd23a', 0.015, { emissive: '#553b00' });
       b.position.set(0, y, 0.19); body.add(b);
     }
@@ -86,7 +106,7 @@ export class Mascot {
 
   update(t: number): void {
     const talk = this.talking ? 0.6 + 0.9 * Math.max(0, Math.sin(t * 17) * Math.sin(t * 6.3 + 1)) : 0.6;
-    this.ch.mouth.scale.set(1, talk, 1);
+    this.mund.scale.set(1.25, 0.45 * talk / 0.6, 0.45);
     this.ch.setPose({
       legL: 0, legR: 0, armL: Math.sin(t * 2) * 0.05, armR: 0,
       liftL: this.waving ? 0.85 + Math.sin(t * 9) * 0.12 : 0.05,

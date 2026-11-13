@@ -74,8 +74,8 @@ export function partGeos(): PartGeos {
     sph(0.01, 8, 6).translate(-0.105, H + 0.02, R * 0.96), sph(0.01, 8, 6).translate(0.135, H + 0.02, R * 0.96),
   ])!;
   const cheeks = mergeGeometries([
-    new THREE.CircleGeometry(0.05, 20).translate(0, 0, 0).rotateY(-0.5).translate(-0.21, H - 0.06, R * 0.82),
-    new THREE.CircleGeometry(0.05, 20).rotateY(0.5).translate(0.21, H - 0.06, R * 0.82),
+    new THREE.CircleGeometry(0.068, 24).rotateY(-0.55).translate(-0.215, H - 0.07, R * 0.82),
+    new THREE.CircleGeometry(0.068, 24).rotateY(0.55).translate(0.215, H - 0.07, R * 0.82),
   ])!;
   // Lächeln (wird für "Sprechen" in y skaliert)
   const mouth = new THREE.TorusGeometry(0.062, 0.017, 8, 20, Math.PI).rotateZ(Math.PI).translate(0, H - 0.08, R * 0.93);
@@ -109,11 +109,20 @@ export function partGeos(): PartGeos {
 
 // ------------------------------------------------------------------ Materialien
 const matCache = new Map<string, THREE.Material>();
-export function smooth(color = '#ffffff', extra: THREE.MeshStandardMaterialParameters = {}): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.42, metalness: 0, ...extra });
+/** Drei klare Helligkeitsstufen – der flache Cartoon-Look aus dem Referenzbild (Kapitän Durst). */
+const STUFEN = (() => {
+  const t = new THREE.DataTexture(new Uint8Array([105, 185, 255]), 3, 1, THREE.RedFormat);
+  t.minFilter = t.magFilter = THREE.NearestFilter; t.needsUpdate = true; return t;
+})();
+/** Einheitliches Material für ALLE Figuren und Umgebungen: flache Cartoon-Schattierung (Toon). */
+export function smooth(color = '#ffffff', extra: THREE.MeshStandardMaterialParameters = {}): THREE.MeshToonMaterial {
+  const { roughness: _r, metalness: _m, ...rest } = extra;
+  void _r; void _m;
+  return new THREE.MeshToonMaterial({ color, gradientMap: STUFEN, ...(rest as THREE.MeshToonMaterialParameters) });
 }
 /** Kräftige schwarze Kontur: Rückseite der Form, entlang der Normalen aufgeblasen. */
 export function outlineMaterial(dicke = 0.022): THREE.MeshBasicMaterial {
+  dicke = Math.round(dicke * 0.6 * 10000) / 10000;   // dünne Konturen wie im Referenzbild
   const key = 'ol' + dicke;
   if (matCache.has(key)) return matCache.get(key) as THREE.MeshBasicMaterial;
   const m = new THREE.MeshBasicMaterial({ color: '#111322', side: THREE.BackSide });
@@ -273,7 +282,7 @@ export function createCharacter(look: Look, opts: { becher?: boolean } = {}): Ch
     const col = def.color(look);
     if (def.mat === 'color' && col === null) continue;
     const mat = partMaterial(def.mat);
-    if (col && mat instanceof THREE.MeshStandardMaterial) mat.color.set(col);
+    if (col && mat instanceof THREE.MeshToonMaterial) mat.color.set(col);
     const mesh = new THREE.Mesh(geoOf(def.geo), mat);
     mesh.castShadow = def.mat === 'color';
     if (def.outline > 0) mesh.add(new THREE.Mesh(geoOf(def.geo), outlineMaterial(def.outline)));
