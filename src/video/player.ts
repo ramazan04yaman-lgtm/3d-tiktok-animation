@@ -87,7 +87,13 @@ export class StoryPlayer {
     const c = this.timeline.captions.find((c) => t >= c.start && t < c.end);
     if (!c) { this.captionEl.innerHTML = ''; return; }
     const html = c.words.map((w) => `<span class="${w.farbe ?? ''}">${esc(w.text.toUpperCase())}</span>`).join(' ');
-    if (this.captionEl.dataset.key !== String(c.start)) { this.captionEl.innerHTML = html; this.captionEl.dataset.key = String(c.start); }
+    if (this.captionEl.dataset.key !== String(c.start)) {
+      this.captionEl.innerHTML = html; this.captionEl.dataset.key = String(c.start);
+      // Lange Wörter (z. B. "VIERHUNDERTFÜNFZIGTAUSEND") automatisch verkleinern -> nie abgeschnitten
+      const len = c.words.map((w) => w.text).join(' ').length;
+      const longest = Math.max(...c.words.map((w) => w.text.length));
+      this.captionEl.style.fontSize = `${Math.min(3.7, 64 / len, 52 / Math.max(1, longest))}cqh`;
+    }
     const s = easeOutBack(clamp01((t - c.start) / 0.14));
     this.captionEl.style.transform = `translateX(-50%) scale(${0.6 + 0.4 * s})`;
   }
@@ -105,7 +111,8 @@ export class StoryPlayer {
         <div class="pstats"><div><b data-k="follower-n">0</b><small>Follower</small></div></div>
         <div class="pbtn">Folgen</div><div class="prule">1 Follower = 1 Mensch 🌍</div></div>`;
       case 'statistik': return `<div class="st st-stats" ${id}>${statistikHTML()}</div>`;
-      case 'titel': return `<div class="st st-titel" ${id}>${s.zeilen.map((z, i) => `<div class="tz" data-z="${i}">${
+      case 'titel': return `<div class="st st-titel" ${id}>${s.zeilen.map((z, i) => `<div class="tz" data-z="${i}" style="font-size:${
+        Math.min(4.4, 70 / Math.max(1, parseWords(z).map((w) => w.text).join(' ').length))}cqh">${
         parseWords(z).map((w) => `<span class="${w.farbe ?? ''}">${esc(w.text.toUpperCase())}</span>`).join(' ')}</div>`).join('')}</div>`;
       case 'szenario': return `<div class="st st-szenario" ${id}><div class="sz-kopf">WAS WÄRE, WENN …</div>${
         (s.zeilen ?? []).map((z, i) => `<div class="sz-z sz-${i}">${esc(z)}</div>`).join('')}</div>`;
