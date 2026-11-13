@@ -49,8 +49,8 @@ export function KettleScene() {
 
         {/* Labels */}
         <Label position={[-1.21, 0.5, 0.08]} text="Ein/Aus-Schalter" sub="schließt den Stromkreis" visible={track.labels.switch} offset={[90, 230]} />
-        <Label position={[0.78, 1.2, 0.15]} text="Glaskörper" sub="hitzebeständiges Borosilikat" visible={track.labels.glass} offset={[-60, -330]} />
-        <Label position={[-1.3, 1.55, 0]} text="Dampfkanal" sub="im Griff" visible={track.labels.duct} offset={[-40, -260]} accent="#ffd36a" />
+        <Label position={[0.78, 1.2, 0.15]} text="Glaskörper" sub="hitzebeständiges Borosilikat" visible={track.labels.glass} offset={[-60, -230]} />
+        <Label position={[-1.3, 1.55, 0]} text="Dampfkanal" sub="im Griff" visible={track.labels.duct} offset={[60, 330]} accent="#ffd36a" />
         <Label position={[0.15, DIM.element.y - 0.02, 0.47]} text="Heizelement" sub="Rohrheizkörper ≈ 2000 W" visible={track.labels.element} offset={[150, 210]} accent="#ff7a3a" />
         <Label position={[-0.45, DIM.plateTop, 0.55]} text="Bodenplatte" sub="Edelstahl – leitet Wärme ins Wasser" visible={track.labels.plate} offset={[-40, -230]} accent="#ffb36a" />
         <Label position={[0, 0.17, 0.12]} text="Kontakt" sub="360°-Steckverbindung" visible={track.labels.contact} offset={[-170, 160]} />

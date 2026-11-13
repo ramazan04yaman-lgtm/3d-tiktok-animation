@@ -7,7 +7,7 @@
  *   4. FFmpeg assembles the numbered frames into an H.264 MP4 (1080×1920, 30 fps, yuv420p)
  *
  * Usage: node scripts/render.mjs [--project kettle] [--workers 4] [--from 0] [--to 1799]
- *        [--every 1] [--out out/kettle] [--format jpeg|png] [--no-build] [--no-video]
+ *        [--every 1] [--keep (patch a frame range into existing frames)] [--out out/kettle] [--format jpeg|png] [--no-build] [--no-video]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -55,8 +55,9 @@ try {
       const { page, problems: p } = await openRenderPage(browser, server.url, args.project);
       for (const f of chunk) {
         const buf = await captureFrame(page, f, { format: args.format, quality: args.quality });
-        // sequential numbering so ffmpeg sees a gap-free sequence even with --every
-        const idx = frames.indexOf(f);
+        // full renders keep the real frame number (so --from/--to --keep can patch ranges);
+        // --every N previews are numbered sequentially so ffmpeg sees a gap-free sequence
+        const idx = args.every > 1 ? frames.indexOf(f) : f;
         fs.writeFileSync(path.join(framesDir, `frame_${String(idx).padStart(5, '0')}.${ext}`), buf);
         done++;
         if (done % 30 === 0 || done === frames.length) {
@@ -81,6 +82,7 @@ try {
     await run('ffmpeg', [
       '-y', '-hide_banner', '-loglevel', 'error',
       '-framerate', String(outFps),
+      '-start_number', '0',
       '-i', path.join(framesDir, `frame_%05d.${ext}`),
       '-c:v', 'libx264', '-preset', 'slow', '-crf', String(args.crf), '-pix_fmt', 'yuv420p',
       '-r', String(outFps), '-movflags', '+faststart',
