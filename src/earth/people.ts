@@ -8,12 +8,14 @@
  * also zwischen zwei Videos nicht woanders hin.
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { Crowd, FarCrowd, type Look, type Pose, lookFor } from './characters.ts';
 import { type EarthAssets, sampleElevation } from './assets.ts';
 import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
 
 export const MAX_FIGURES = 4000;
+/** Höchstens so viele Figuren in voller Detailstufe gleichzeitig. */
+export const NAH_MAX = 400;
 
 interface Person {
   lat: number; lon: number; city: string;
@@ -27,18 +29,22 @@ function hash(i: number): number {
   return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
 }
 
-const SHIRTS = ['#ff4f6d', '#ffb238', '#3ec7ff', '#7bdc4a', '#b678ff', '#ff7a2f', '#2fd6b4', '#ffe14d', '#ff63c8', '#4d7cff'];
-const SKINS = ['#f5d0b0', '#e8b48f', '#c68a62', '#9a6440', '#6e4428', '#f1c7a5'];
-
 export class People {
   readonly group = new THREE.Group();
-  private bodies: THREE.InstancedMesh;
-  private heads: THREE.InstancedMesh;
-  private cups: THREE.InstancedMesh;
+  /** Alle Einwohner im einheitlichen Charakterstil (siehe characters.ts). */
+  private crowd = new Crowd(NAH_MAX);
+  /** Vereinfachte Figuren für die Fernsicht. */
+  private far = new FarCrowd(MAX_FIGURES);
+  private looks: Look[] = [];
+  /** Nahmodus: volle Detailstufe für die Figuren nahe der Kamera (wird von der Szene gesetzt). */
+  nah = false;
+  /** Kameraposition (für die Auswahl der nächsten Figuren im Nahmodus). */
+  kamera = new THREE.Vector3();
   private persons: Person[] = [];
   private cumWeights: number[] = [];
   private shown = 0;
-  private dummy = new THREE.Object3D();
+  /** Kopfposition der ersten Figuren (für Zeiger-Sticker). */
+  private headPos: THREE.Vector3[] = [];
   private assets: EarthAssets;
   /** Wie viele echte Menschen eine Figur darstellt. */
   perFigure = 1;
@@ -49,26 +55,8 @@ export class People {
 
   constructor(assets: EarthAssets) {
     this.assets = assets;
-    const body = new THREE.CapsuleGeometry(0.22, 0.42, 4, 10).translate(0, 0.45, 0);
-    const legs = new THREE.CylinderGeometry(0.16, 0.12, 0.25, 8).translate(0, 0.12, 0);
-    const bodyGeo = mergeGeometries([body, legs])!;
-    const headGeo = new THREE.SphereGeometry(0.24, 14, 10).translate(0, 1.05, 0);
-    const cupGeo = new THREE.CylinderGeometry(0.08, 0.06, 0.18, 8).translate(0.3, 0.75, 0.12);
-    const toon = (c?: string) => new THREE.MeshStandardMaterial({ color: c ?? '#ffffff', roughness: 0.55, metalness: 0 });
-    this.bodies = new THREE.InstancedMesh(bodyGeo, toon(), MAX_FIGURES);
-    this.heads = new THREE.InstancedMesh(headGeo, toon(), MAX_FIGURES);
-    this.cups = new THREE.InstancedMesh(cupGeo, new THREE.MeshStandardMaterial({ color: '#7fd8ff', roughness: 0.1, emissive: '#1b6fb0', emissiveIntensity: 0.4 }), MAX_FIGURES);
-    for (const m of [this.bodies, this.heads, this.cups]) {
-      m.count = 0;
-      m.frustumCulled = false;
-      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      this.group.add(m);
-    }
-    const c = new THREE.Color();
-    for (let i = 0; i < MAX_FIGURES; i++) {
-      this.bodies.setColorAt(i, c.set(SHIRTS[Math.floor(hash(i * 7 + 1) * SHIRTS.length)]));
-      this.heads.setColorAt(i, c.set(SKINS[Math.floor(hash(i * 7 + 2) * SKINS.length)]));
-    }
+    this.group.add(this.crowd.group, this.far.group);
+    for (let i = 0; i < MAX_FIGURES; i++) { this.looks[i] = lookFor(i, hash); this.far.setLook(i, this.looks[i]); }
     // Städte gewichten (Wurzel der Einwohnerzahl -> auch kleinere Städte bekommen Leute)
     let acc = 0;
     for (const city of assets.cities) { acc += Math.pow(city.pop, 0.8); this.cumWeights.push(acc); }
@@ -95,10 +83,8 @@ export class People {
 
   /** Aktuelle 3D-Position über dem Kopf einer Figur (für Zeiger-Sticker). */
   positionOf(i: number): THREE.Vector3 | null {
-    if (i >= this.shown) return null;
-    const m = new THREE.Matrix4();
-    this.heads.getMatrixAt(i, m);
-    return new THREE.Vector3(0, 1.45, 0).applyMatrix4(m);
+    if (i >= this.shown || !this.headPos[i]) return null;
+    return this.headPos[i].clone();
   }
 
   /** Stadt mit den meisten gezeigten Figuren (für Gruppen-Nahaufnahmen). */
@@ -127,36 +113,72 @@ export class People {
     this.perFigure = population > BigInt(MAX_FIGURES) ? Number((population + BigInt(MAX_FIGURES) - 1n) / BigInt(MAX_FIGURES)) : 1;
     while (this.persons.length < shown) this.persons.push(this.makePerson(this.persons.length));
     this.shown = shown;
-    this.bodies.count = this.heads.count = this.cups.count = shown;
+    this.far.setCount(shown);
   }
 
+  /**
+   * Bewegung: Jeder Mensch hat einen festen Tagesablauf aus Laufen, Stehenbleiben + Trinken,
+   * Winken und (bei Paaren) Anstoßen. Alles hängt nur von der Zeit ab -> jedes Bild ist reproduzierbar.
+   */
   update(time: number): void {
     const s = this.figureSize;
-    const d = this.dummy, tmp = new THREE.Vector3(), fwd = new THREE.Vector3(), m = new THREE.Matrix4();
-    for (let i = 0; i < this.shown; i++) {
+    const base = new THREE.Matrix4(), rot = new THREE.Matrix4(), tmp = new THREE.Vector3(), fwd = new THREE.Vector3();
+    const zero = new THREE.Vector3();
+    // Nahmodus: nur die (bis zu NAH_MAX) Figuren nahe der Kamera in voller Qualität
+    let liste: number[];
+    if (this.nah) {
+      const d = this.persons.slice(0, this.shown).map((p, i) => [p.base.distanceToSquared(this.kamera), i] as const);
+      d.sort((a, b) => a[0] - b[0]);
+      liste = d.slice(0, NAH_MAX).map((x) => x[1]);
+    } else liste = Array.from({ length: this.shown }, (_, i) => i);
+    this.crowd.setCount(this.nah ? liste.length : 0);
+    this.far.setCount(this.nah ? 0 : this.shown);
+    let slot = 0;
+    for (const i of liste) {
       const p = this.persons[i];
-      const a = p.angle + time * p.speed / p.radius;
-      const r = p.radius * Math.min(s, 0.0009) * (this.shown === 1 ? 0.6 : 2.2);
-      // Laufen im Kreis um einen Treffpunkt (Gruppen in der Stadt)
+      // Zyklus: 0–4 s laufen, 4–5.6 s stehen + trinken, 5.6–6.4 s winken (jeder mit eigener Verschiebung)
+      const cyc = 6.4 + p.drinkEvery * 0.3;
+      const tc = ((time + p.phase * 3) % cyc + cyc) % cyc;
+      const walking = tc < 4;
+      const walkT = Math.floor((time + p.phase * 3) / cyc) * 4 + Math.min(tc, 4);  // nur Laufzeit zählt für den Weg
+      const a = p.angle + walkT * p.speed / p.radius;
+      const r = p.radius * Math.min(s, 0.0009) * (this.shown === 1 ? (this.nah ? 0.08 : 0.6) : 2.2);
       tmp.copy(p.base);
       for (const pl of this.platforms) if (pl.active && p.up.dot(pl.up) > pl.cosR) tmp.copy(p.up).multiplyScalar(pl.r);
       tmp.addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
-      const bob = Math.abs(Math.sin(time * 9 + p.phase)) * 0.12 * s;
-      tmp.addScaledVector(p.up, bob);
+      const step = time * 7 + p.phase;
+      if (walking) tmp.addScaledVector(p.up, Math.abs(Math.sin(step)) * 0.06 * s);
       fwd.copy(p.east).multiplyScalar(-Math.sin(a) * Math.sign(p.speed)).addScaledVector(p.north, Math.cos(a) * Math.sign(p.speed));
-      // Trinken: alle paar Sekunden kurz nach hinten lehnen
-      const drink = Math.max(0, Math.sin((time + p.phase) * Math.PI * 2 / p.drinkEvery) - 0.85) / 0.15;
-      m.lookAt(new THREE.Vector3(), fwd, p.up);
-      d.position.copy(tmp);
-      d.quaternion.setFromRotationMatrix(m);
-      d.rotateX(-drink * 0.35);
-      d.rotateZ(Math.sin(time * 9 + p.phase) * 0.08);
-      d.scale.setScalar(s);
-      d.updateMatrix();
-      this.bodies.setMatrixAt(i, d.matrix);
-      this.heads.setMatrixAt(i, d.matrix);
-      this.cups.setMatrixAt(i, d.matrix);
+      // Solo-Auftritt (nur 1 Einwohner, Nahaufnahme): schaut zur Kamera
+      const solo = this.nah && this.shown === 1;
+      if (solo) {
+        fwd.copy(this.kamera).sub(tmp);
+        fwd.addScaledVector(p.up, -fwd.dot(p.up)).normalize();
+      }
+      // beim Trinken/Winken leicht zur Kamera-nahen Seite drehen (wirkt lebendiger)
+      rot.lookAt(fwd, zero, p.up);   // Gesicht (+z) zeigt in Blick-/Laufrichtung
+      base.compose(tmp, new THREE.Quaternion().setFromRotationMatrix(rot), new THREE.Vector3(s, s, s));
+      const pose: Pose = { legL: 0, legR: 0, armL: 0, armR: 0, liftL: 0, liftR: 0, drink: 0, headTilt: 0, bodyLean: 0 };
+      if (solo) {
+        // vor dem Haus: trinken, winken, kurz wippen
+        const z = ((time + 0.5) % 5.2 + 5.2) % 5.2;
+        if (z < 2.2) { const k = Math.sin((z / 2.2) * Math.PI); pose.drink = Math.min(1, k * 1.5); pose.headTilt = k * 0.35; }
+        else if (z < 3.6) { const k = Math.sin(((z - 2.2) / 1.4) * Math.PI); pose.liftL = k * 0.95; pose.armL = Math.sin(time * 14) * 0.25 * k; }
+        else { pose.bodyLean = Math.sin(time * 6) * 0.05; pose.armL = Math.sin(time * 6) * 0.1; pose.armR = -Math.sin(time * 6) * 0.1; }
+      } else if (walking) {
+        const sw = Math.sin(step) * 0.55;
+        pose.legL = sw; pose.legR = -sw; pose.armL = -sw * 0.8; pose.armR = sw * 0.8; pose.bodyLean = 0.05;
+      } else if (tc < 5.6) {
+        const k = Math.sin(Math.min(1, (tc - 4) / 1.6) * Math.PI);   // Becher hoch und wieder runter
+        pose.drink = Math.min(1, k * 1.4); pose.headTilt = k * 0.35;
+      } else {
+        const k = Math.sin(((tc - 5.6) / Math.max(0.1, cyc - 5.6)) * Math.PI);
+        pose.liftL = k * 0.9; pose.armL = Math.sin(time * 14 + p.phase) * 0.25 * k;
+      }
+      if (this.nah) { this.crowd.setLook(slot, this.looks[i]); this.crowd.setPose(slot, base, pose); slot++; }
+      else this.far.setPose(i, base);
+      if (i < 8) this.headPos[i] = new THREE.Vector3(0, 1.45, 0).applyMatrix4(base);
     }
-    this.bodies.instanceMatrix.needsUpdate = this.heads.instanceMatrix.needsUpdate = this.cups.instanceMatrix.needsUpdate = true;
+    if (this.nah) this.crowd.commit(); else this.far.commit();
   }
 }

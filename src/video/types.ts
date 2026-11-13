@@ -20,7 +20,7 @@ export type Sticker =
   | { typ: 'stufen' };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
 
 export type Musik = 'ruhig' | 'treibend' | 'drama';
-export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop';
+export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop' | 'welle' | 'fanfare';
 /** Was-wäre-wenn: so viele Menschen trinken so viele Tage lang (gerechnet mit den echten Regeln). */
 export interface Szenario { einwohner: number; tage: number }
 

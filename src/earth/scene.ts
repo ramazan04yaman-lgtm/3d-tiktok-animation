@@ -12,7 +12,7 @@ import { createEarthMaterial } from './earthMaterial.ts';
 import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
 import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
-import { createHomestead, createVillage } from './homestead.ts';
+import { type Diorama, createDiorama } from './diorama.ts';
 import { SHOTS } from './camera.ts';
 import { People } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
@@ -41,8 +41,10 @@ export class EarthScene {
   strawVisible = false;
   previewActive = false;
   private straw!: THREE.Object3D;
-  private homestead = createHomestead();
-  private village = createVillage();
+  /** Detaillierte Umgebungen für Nahaufnahmen (gleicher Stil wie die Figuren). */
+  private hof: Diorama = createDiorama('hof');
+  private dorf: Diorama = createDiorama('dorf');
+  private nahSonne = new THREE.DirectionalLight('#fff4e0', 2.4);
   private composer!: EffectComposer;
   private bloom!: UnrealBloomPass;
   /** Leuchteffekt (Bloom) an/aus. */
@@ -91,9 +93,18 @@ export class EarthScene {
     this.straw.position.copy(f.up);
     this.straw.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
     this.scene.add(this.straw);
-    this.homestead.visible = false;
-    this.village.visible = false;
-    this.scene.add(this.homestead, this.village);
+    this.hof.group.visible = false;
+    this.dorf.group.visible = false;
+    this.scene.add(this.hof.group, this.dorf.group);
+    // Schatten nur in den Nahaufnahmen (eigene Sonne, nur für die Umgebung)
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.nahSonne.castShadow = true;
+    this.nahSonne.shadow.mapSize.set(2048, 2048);
+    this.nahSonne.shadow.radius = 3;
+    this.nahSonne.shadow.bias = -0.0005;
+    this.nahSonne.visible = false;
+    this.scene.add(this.nahSonne, this.nahSonne.target);
     // Nachbearbeitung: sanftes Leuchten (Sonnenspiegelung, Atmosphäre, Stadtlichter)
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -109,39 +120,50 @@ export class EarthScene {
     this.controls.addEventListener('start', () => { this.director.free = true; });
   }
 
-  /** Kamera-Shot + Grundstück für Mensch Nr. 1 vorbereiten (nach setPopulation aufrufen). */
+  /** Maßstab der Nahaufnahmen: 1 Umgebungs-Einheit = 1 Figuren-Einheit (Szeneneinheiten). */
+  static HOF_K = 0.0006;
+  static DORF_K = 0.00042;
+
+  /** Umgebung auf die Erde setzen (über dem höchsten Gelände, damit nichts durchschaut). */
+  private place(d: Diorama, lat: number, lon: number, k: number, idx: number, personenRadiusGrad: number): number {
+    const f = tangentFrame(lat, lon);
+    const grad = (d.radius * k) * 180 / Math.PI;
+    const r = this.platformRadius(lat, lon, grad);
+    d.group.position.copy(f.up).multiplyScalar(r);
+    d.group.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
+    d.group.scale.setScalar(k);
+    this.people.platforms[idx] = { up: f.up.clone(), cosR: Math.cos(personenRadiusGrad * Math.PI / 180), r, active: true };
+    return r;
+  }
+
+  /** Kamera-Shot + Hof für Mensch Nr. 1 vorbereiten (nach setPopulation aufrufen). */
   updateFirstPerson(): void {
     const p = this.people.firstPerson();
-    SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: 1.034, tilt: 1.6, focus: 1, figur: EarthScene.CLOSEUP_SIZE, spin: 0.25 };
-    const f = tangentFrame(p.lat, p.lon);
-    const r = this.platformRadius(p.lat, p.lon, 1.6);
-    this.homestead.position.copy(f.up).multiplyScalar(r);
-    this.people.platforms[0] = { up: f.up.clone(), cosR: Math.cos(0.4 * Math.PI / 180), r, active: true };
-    this.homestead.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
-    this.homestead.scale.setScalar(EarthScene.CLOSEUP_SIZE * 1.35);
+    const k = EarthScene.HOF_K;
+    const r = this.place(this.hof, p.lat, p.lon, k, 0, 0.4);
+    // Kamera ca. 5 Einheiten hoch, 9 Einheiten südlich – Blick auf Mensch Nr. 1 vor seinem Haus
+    SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 2.3 * k, tilt: (4.6 * k) * 180 / Math.PI,
+      focus: r + 0.7 * k, figur: k, spin: 0.002 };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */
   private platformRadius(lat: number, lon: number, deg: number): number {
     let max = 0;
-    for (let i = -6; i <= 6; i++) for (let j = -6; j <= 6; j++) {
-      const la = lat + (i / 6) * deg, lo = lon + (j / 6) * deg / Math.max(0.2, Math.cos(lat * Math.PI / 180));
+    for (let i = -8; i <= 8; i++) for (let j = -8; j <= 8; j++) {
+      const la = lat + (i / 8) * deg, lo = lon + (j / 8) * deg / Math.max(0.2, Math.cos(lat * Math.PI / 180));
       max = Math.max(max, sampleElevation(this.assets, la, lo));
     }
-    return 1 + (max * RELIEF_EXAGGERATION) / EARTH_RADIUS_M + 0.00012;
+    return 1 + (Math.max(0, max) * RELIEF_EXAGGERATION) / EARTH_RADIUS_M + 0.00012;
   }
 
   /** Nahaufnahme der größten Menschengruppe vorbereiten (Shot "gruppe" + Dorf). */
   updateGroupShot(): void {
     const c = this.people.busiestCity();
     if (!c.count) return;
-    SHOTS.gruppe = { label: `👥 Menschengruppe (${c.city})`, lat: c.lat, lon: c.lon, dist: 1.0062, tilt: 0.62, focus: 1, figur: 0.00042, spin: 0.08 };
-    const f = tangentFrame(c.lat, c.lon);
-    const r = this.platformRadius(c.lat, c.lon, 0.5);
-    this.village.position.copy(f.up).multiplyScalar(r);
-    this.people.platforms[1] = { up: f.up.clone(), cosR: Math.cos(0.3 * Math.PI / 180), r, active: true };
-    this.village.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f.east, f.up, f.north.clone().negate()));
-    this.village.scale.setScalar(0.00042 * 1.4);
+    const k = EarthScene.DORF_K;
+    const r = this.place(this.dorf, c.lat, c.lon, k, 1, 0.3);
+    SHOTS.gruppe = { label: `👥 Menschengruppe (${c.city})`, lat: c.lat, lon: c.lon, dist: r + 7.5 * k, tilt: (15 * k) * 180 / Math.PI,
+      focus: r + 0.5 * k, figur: k, spin: 0.0015 };
   }
 
   setFreeCamera(on: boolean): void {
@@ -211,8 +233,39 @@ export class EarthScene {
     const altitude = Math.max(0.01, this.camera.position.length() - 1);
     const shot = this.director.free ? undefined : SHOTS[this.director.shotName];
     this.people.figureSize = shot?.figur ?? THREE.MathUtils.clamp(altitude * 0.0065, 0.0006, 0.009);
-    this.homestead.visible = !this.director.free && this.director.shotName === 'einwohner1';
-    this.village.visible = !this.director.free && this.director.shotName === 'gruppe';
+    // Umgebungen: sichtbar, wenn die Kamera in der Nähe ist (Himmel blendet beim Heranfliegen ein)
+    let nah = 0;
+    for (const [d, k] of [[this.hof, EarthScene.HOF_K], [this.dorf, EarthScene.DORF_K]] as const) {
+      const dist = this.camera.position.distanceTo(d.group.position) / k;
+      d.group.visible = d.group.position.lengthSq() > 0 && dist < d.radius * 4;
+      if (d.group.visible) {
+        d.update(time, dist);
+        nah = Math.max(nah, THREE.MathUtils.smoothstep(dist, d.radius * 2.6, d.radius * 1.15));
+        if (dist < d.radius * 2.6) {
+          // Schatten-Sonne für diese Umgebung
+          this.nahSonne.visible = true;
+          this.nahSonne.target.position.copy(d.group.position);
+          this.nahSonne.position.copy(d.group.position).addScaledVector(sunDir, 45 * k);
+          const sc = this.nahSonne.shadow.camera;
+          sc.left = sc.bottom = -26 * k; sc.right = sc.top = 26 * k; sc.near = 5 * k; sc.far = 100 * k;
+          sc.updateProjectionMatrix();
+          this.scene.fog = new THREE.Fog(new THREE.Color().setRGB(0.72, 0.86, 1.0, THREE.SRGBColorSpace), d.radius * 0.45 * k, d.radius * 0.97 * k);
+        }
+      }
+    }
+    if (nah === 0) { this.nahSonne.visible = false; this.scene.fog = null; }
+    // In der Umgebung: Weltall-Elemente ausblenden, Kamera-Nahgrenze anpassen (kein Flackern)
+    this.stars.visible = nah < 0.98;
+    this.atmo.visible = nah < 0.98;
+    if (nah > 0.98) this.clouds.visible = false;
+    const nearNeu = THREE.MathUtils.clamp(altitude * 0.02, 0.000003, 0.001);
+    const farNeu = nah > 0.98 ? 1 : 500;
+    if (Math.abs(this.camera.near - nearNeu) > 1e-9 || this.camera.far !== farNeu) {
+      this.camera.near = nearNeu; this.camera.far = farNeu; this.camera.updateProjectionMatrix();
+    }
+    // Volle Detailstufe, wenn die Figuren groß im Bild sind (Nahaufnahmen)
+    this.people.nah = altitude < 0.03 || !!shot?.figur;
+    this.people.kamera.copy(this.camera.position);
     this.people.update(time);
     this.mascot.root.visible = this.mascotVisible;
     if (this.mascotVisible) this.mascot.update(time);

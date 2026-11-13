@@ -249,6 +249,8 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }
       } else ev(at, 'pop');
     });
     if (b.szenario) { ev(t + 0.1, 'drop', 0.8); ev(t + 0.6, 'drop', 0.6); }
+    if (kamera === 'ozean' && (b.uebergang ?? 0) > 0) ev(t + 0.3, 'welle', 0.7);
+    if (sticker.some((s) => s.typ === 'stufen')) ev(t + 0.4, 'fanfare', 0.8);
     if (b.aktion === 'trinken' || kamera === 'einwohner1' || kamera === 'gruppe') ev(t + Math.min(1.2, dauer * 0.4), 'gulp', 0.7);
     for (const e of b.effekte ?? []) ev(t + e.t, e.typ);
     if (b.musik) musik.push({ start: t, typ: b.musik });

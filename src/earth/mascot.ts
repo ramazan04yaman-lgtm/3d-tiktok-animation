@@ -4,6 +4,7 @@
  * damit er wie eine 3D-Cartoonfigur aussieht.
  */
 import * as THREE from 'three';
+import { type Character, P, createCharacter, outlineMaterial, smooth } from './characters.ts';
 
 function toonGradient(): THREE.DataTexture {
   const d = new Uint8Array([90, 170, 255]);
@@ -15,13 +16,10 @@ function toonGradient(): THREE.DataTexture {
 const GRAD = toonGradient();
 const OUTLINE = new THREE.MeshBasicMaterial({ color: '#151826', side: THREE.BackSide });
 
-function part(geo: THREE.BufferGeometry, color: string, outline = 0.035, opts: Partial<THREE.MeshToonMaterialParameters> = {}): THREE.Mesh {
-  const m = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color, gradientMap: GRAD, ...opts }));
-  if (outline > 0) {
-    const o = new THREE.Mesh(geo, OUTLINE);
-    o.scale.setScalar(1 + outline);
-    m.add(o);
-  }
+function part(geo: THREE.BufferGeometry, color: string, outline = 0.035, opts: THREE.MeshStandardMaterialParameters = {}): THREE.Mesh {
+  const m = new THREE.Mesh(geo, smooth(color, opts));
+  m.castShadow = true;
+  if (outline > 0) m.add(new THREE.Mesh(geo, outlineMaterial(outline * 0.6)));
   return m;
 }
 
@@ -39,130 +37,64 @@ function stripeTexture(alongX = false): THREE.CanvasTexture {
   return t;
 }
 
+/**
+ * Kapitän Durst – gebaut aus der gemeinsamen Charakter-Bibliothek (gleicher Stil wie alle Einwohner),
+ * mit Kapitänsuniform, Mütze und Sonnenbrille.
+ */
 export class Mascot {
   readonly root = new THREE.Group();
-  private head = new THREE.Group();
-  private mouth: THREE.Mesh;
-  private armR = new THREE.Group();
-  private armL = new THREE.Group();
-  private body = new THREE.Group();
+  private ch: Character;
   talking = false;
   waving = false;
   drinking = false;
 
   constructor() {
-    const skin = '#f4c49c', jacket = '#1f4fbf', dark = '#1b1f33';
-    // Beine + Schuhe
-    for (const x of [-0.17, 0.17]) {
-      const leg = part(new THREE.CapsuleGeometry(0.12, 0.35, 4, 12), dark);
-      leg.position.set(x, 0.32, 0);
-      const shoe = part(new THREE.SphereGeometry(0.15, 16, 12), '#ffffff');
-      shoe.scale.set(1, 0.6, 1.5); shoe.position.set(x, 0.07, 0.06);
-      this.body.add(leg, shoe);
-    }
-    // Körper (Jacke)
-    const torso = part(new THREE.CapsuleGeometry(0.36, 0.42, 6, 20), jacket);
-    torso.position.y = 0.95;
-    const shirt = part(new THREE.ConeGeometry(0.17, 0.3, 3), '#ffffff', 0.03);
-    shirt.rotation.set(Math.PI, 0, 0); shirt.position.set(0, 1.22, 0.3); shirt.scale.z = 0.4;
-    const tie = part(new THREE.ConeGeometry(0.05, 0.22, 4), '#ff3b5c', 0.04);
-    tie.rotation.x = Math.PI; tie.position.set(0, 1.15, 0.36); tie.scale.z = 0.5;
-    this.body.add(tie);
-    const badge = part(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 20), '#ffd23a', 0.03, { emissive: '#553b00' });
-    badge.rotation.x = Math.PI / 2; badge.position.set(0, 0.9, 0.36);
-    const drop = part(new THREE.SphereGeometry(0.045, 12, 10), '#2fb4ff', 0);
-    drop.position.set(0, 0.9, 0.385);
-    for (const y of [0.78, 0.66]) {
-      const b = part(new THREE.SphereGeometry(0.035, 10, 8), '#ffd23a', 0);
-      b.position.set(0.16, y, 0.33); this.body.add(b);
-    }
-    this.body.add(torso, shirt, badge, drop);
-
-    // Arme (Gelenk an der Schulter)
-    const mkArm = (g: THREE.Group, side: number) => {
-      g.position.set(0.42 * side, 1.25, 0);
-      const arm = part(new THREE.CapsuleGeometry(0.1, 0.42, 4, 10), jacket);
-      arm.position.y = -0.3;
-      const hand = part(new THREE.SphereGeometry(0.12, 14, 10), skin);
-      hand.position.y = -0.6;
-      g.add(arm, hand);
-      this.body.add(g);
-    };
-    mkArm(this.armR, -1);
-    mkArm(this.armL, 1);
-    // Becher mit Strohhalm in der linken Hand
-    const cup = new THREE.Group();
-    const cupBody = part(new THREE.CylinderGeometry(0.16, 0.12, 0.38, 20), '#e8f7ff', 0.03, { transparent: true, opacity: 0.95 });
-    const water = part(new THREE.CylinderGeometry(0.145, 0.115, 0.3, 20), '#2fb4ff', 0);
-    water.position.y = -0.03;
-    const straw = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.55, 10), new THREE.MeshToonMaterial({ map: stripeTexture(), gradientMap: GRAD }));
-    straw.position.set(0.05, 0.3, 0); straw.rotation.z = -0.25;
-    cup.add(cupBody, water, straw);
-    cup.position.set(0, -0.72, 0.1);
-    this.armL.add(cup);
-
-    // Kopf
-    const headBall = part(new THREE.SphereGeometry(0.55, 32, 24), skin);
-    headBall.scale.set(1, 0.95, 0.92);
-    for (const x of [-0.55, 0.55]) {
-      const ear = part(new THREE.SphereGeometry(0.11, 12, 10), skin);
-      ear.position.set(x, -0.02, 0); this.head.add(ear);
-    }
-    // Sonnenbrille
-    const glassMat = { color: '#0d0f1a', specular: '#ffffff' };
-    for (const x of [-0.2, 0.2]) {
-      const lens = part(new THREE.BoxGeometry(0.32, 0.2, 0.06, 2, 2, 1), glassMat.color, 0.05);
-      lens.position.set(x, 0.06, 0.48);
-      lens.rotation.y = x * 0.4;
-      const shine = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.04), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
-      shine.position.set(-0.07, 0.04, 0.035); lens.add(shine);
-      this.head.add(lens);
-    }
-    const bridge = part(new THREE.BoxGeometry(0.12, 0.04, 0.04), '#0d0f1a', 0);
-    bridge.position.set(0, 0.1, 0.52);
-    // Bäckchen
-    for (const x of [-0.3, 0.3]) {
-      const cheek = new THREE.Mesh(new THREE.CircleGeometry(0.07, 16), new THREE.MeshBasicMaterial({ color: '#ff8fa3', transparent: true, opacity: 0.7 }));
-      cheek.position.set(x, -0.12, 0.47); cheek.rotation.y = x * 1.1; this.head.add(cheek);
-    }
-    // Mund (wird beim Sprechen bewegt)
-    this.mouth = part(new THREE.SphereGeometry(0.1, 20, 12), '#4a0f1c', 0.04);
-    this.mouth.scale.set(1.3, 0.35, 0.35);
-    this.mouth.position.set(0, -0.26, 0.47);
+    this.ch = createCharacter({ skin: '#ffd2b0', hair: '#3a2416', hairStyle: 0, shirt: '#1f4fbf', pants: '#1b2340', shoes: '#ffffff' });
+    const head = this.ch.joints.head, body = this.ch.joints.body;
+    const H = P.headY, R = P.headR;
     // Kapitänsmütze
-    const hat = new THREE.Group();
-    const crown = part(new THREE.CylinderGeometry(0.5, 0.46, 0.26, 32), '#ffffff');
-    crown.position.y = 0.52;
-    const top = part(new THREE.CylinderGeometry(0.58, 0.5, 0.08, 32), '#ffffff');
-    top.position.y = 0.68;
-    const band = part(new THREE.CylinderGeometry(0.47, 0.47, 0.1, 32), '#1b1f33', 0.02);
-    band.position.y = 0.43;
-    const visor = part(new THREE.CylinderGeometry(0.42, 0.42, 0.04, 32, 1, false, -Math.PI / 2, Math.PI), '#1b1f33');
-    visor.position.set(0, 0.38, 0.12); visor.rotation.x = 0.25;
-    const emblem = part(new THREE.SphereGeometry(0.08, 14, 10), '#ffd23a', 0.04, { emissive: '#553b00' });
-    emblem.scale.z = 0.4; emblem.position.set(0, 0.53, 0.49);
-    hat.add(crown, top, band, visor, emblem);
-    hat.rotation.z = 0.08;
-    this.head.add(headBall, bridge, this.mouth, hat);
-    this.head.position.y = 1.85;
-    this.body.add(this.head);
-    this.root.add(this.body);
+    const crown = part(new THREE.CylinderGeometry(R * 0.98, R * 0.9, 0.2, 40), '#ffffff', 0.02);
+    crown.position.set(0, H + R * 0.78, -0.02); crown.rotation.x = -0.12;
+    const top = part(new THREE.CylinderGeometry(R * 1.12, R * 0.98, 0.07, 40), '#ffffff', 0.02);
+    top.position.set(0, H + R * 0.78 + 0.12, -0.035); top.rotation.x = -0.12;
+    const band = part(new THREE.CylinderGeometry(R * 0.92, R * 0.92, 0.07, 40), '#1b1f33', 0.01);
+    band.position.set(0, H + R * 0.66, -0.01); band.rotation.x = -0.12;
+    const visor = part(new THREE.CylinderGeometry(R * 0.8, R * 0.8, 0.03, 32, 1, false, -Math.PI / 2, Math.PI), '#1b1f33', 0.02);
+    visor.position.set(0, H + R * 0.6, 0.12); visor.rotation.x = 0.2;
+    const emblem = part(new THREE.SphereGeometry(0.055, 16, 12), '#ffd23a', 0.03, { emissive: '#553b00' });
+    emblem.scale.z = 0.4; emblem.position.set(0, H + R * 0.83, R * 0.92);
+    // Sonnenbrille (über den großen Augen)
+    const lensGeo = new THREE.BoxGeometry(0.17, 0.11, 0.03, 2, 2, 1);
+    for (const x of [-0.115, 0.115]) {
+      const lens = part(lensGeo, '#0d0f1a', 0.04, { roughness: 0.15, metalness: 0.2 });
+      lens.position.set(x, H + 0.045, R * 0.96); lens.rotation.y = x * 0.9;
+      head.add(lens);
+    }
+    const bridge = part(new THREE.BoxGeometry(0.07, 0.025, 0.025), '#0d0f1a', 0);
+    bridge.position.set(0, H + 0.07, R * 1.0);
+    head.add(crown, top, band, visor, emblem, bridge);
+    // Uniform: goldene Knöpfe + Abzeichen mit Wassertropfen
+    for (const y of [0.52, 0.42, 0.34]) {
+      const b = part(new THREE.SphereGeometry(0.025, 10, 8), '#ffd23a', 0.015, { emissive: '#553b00' });
+      b.position.set(0, y, 0.19); body.add(b);
+    }
+    const badge = part(new THREE.CylinderGeometry(0.05, 0.05, 0.015, 20), '#2fb4ff', 0.02);
+    badge.rotation.x = Math.PI / 2; badge.position.set(-0.1, 0.55, 0.17); body.add(badge);
+    this.root.add(this.ch.root);
+    this.root.scale.setScalar(2.0);    // Moderator steht groß im Vordergrund
   }
 
   update(t: number): void {
-    this.body.position.y = Math.abs(Math.sin(t * 3)) * 0.04;
-    this.body.rotation.y = Math.sin(t * 0.8) * 0.12;
-    this.head.rotation.z = Math.sin(t * 1.7) * 0.06;
-    this.head.rotation.x = Math.sin(t * 2.3) * 0.04;
-    const open = this.talking ? 0.3 + 0.6 * Math.max(0, Math.sin(t * 17) * Math.sin(t * 6.3 + 1)) : 0.3;
-    this.mouth.scale.y = open;
-    this.armR.rotation.z = this.waving ? -2.5 + Math.sin(t * 9) * 0.35 : -0.15 + Math.sin(t * 2) * 0.05;
-    this.armR.rotation.x = 0;
-    if (this.drinking) {
-      this.armL.rotation.z = 2.3; this.armL.rotation.x = -0.6;
-    } else {
-      this.armL.rotation.z = 0.5 + Math.sin(t * 2.2) * 0.05; this.armL.rotation.x = -0.5;
-    }
+    const talk = this.talking ? 0.6 + 0.9 * Math.max(0, Math.sin(t * 17) * Math.sin(t * 6.3 + 1)) : 0.6;
+    this.ch.mouth.scale.set(1, talk, 1);
+    this.ch.setPose({
+      legL: 0, legR: 0, armL: Math.sin(t * 2) * 0.05, armR: 0,
+      liftL: this.waving ? 0.85 + Math.sin(t * 9) * 0.12 : 0.05,
+      liftR: 0.05, drink: this.drinking ? 0.85 + Math.sin(t * 3) * 0.1 : 0,
+      headTilt: (this.drinking ? 0.3 : 0) + Math.sin(t * 2.3) * 0.04, bodyLean: Math.sin(t * 1.7) * 0.03,
+    });
+    this.root.position.y = Math.abs(Math.sin(t * 3)) * 0.02;
+    this.root.rotation.y = Math.sin(t * 0.8) * 0.12;
   }
 }
 

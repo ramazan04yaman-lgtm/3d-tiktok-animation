@@ -1,0 +1,292 @@
+{
+  "titel": "Version 3 – Können wir das Wasser der Erde austrinken?",
+  "konto": "@wasserderErde",
+  "stimme": {
+    "typ": "aufnahme",
+    "datei": "aufnahmen/folge-03-felix.mp3"
+  },
+  "beats": [
+    {
+      "text": "Was würde passieren, wenn wir gemeinsam versuchen würden, das *gesamte Wasser* der Erde auszutrinken?",
+      "kamera": "intro",
+      "musik": "ruhig",
+      "untertitel": false,
+      "min": 5.2,
+      "sticker": [
+        {
+          "typ": "titel",
+          "zeilen": [
+            "WAS PASSIERT,",
+            "WENN WIR DAS",
+            "{blau:GANZE WASSER}",
+            "DER ERDE",
+            "{gelb:AUSTRINKEN?}"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Wir probieren es aus. Mit der *echten Erde*.",
+      "kamera": "zoom",
+      "uebergang": 1.8,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🌍 ECHTE ERDDATEN",
+          "farbe": "weiss",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Auf ihr gibt es rund {blau:1,386 Trilliarden Liter} Wasser.",
+      "sprache": "Auf ihr gibt es rund 1,386 Trilliarden Liter Wasser.",
+      "kamera": "ozean",
+      "uebergang": 2.2,
+      "min": 4,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "WASSER AUF DER ERDE",
+          "bis": "1,386 × 10²¹ L",
+          "farbe": "blau"
+        }
+      ]
+    },
+    {
+      "text": "Die Regel: Jeder neue Follower wird ein {gruen:Mensch} auf der Erde.",
+      "kamera": "europa",
+      "uebergang": 2,
+      "musik": "treibend",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "+1 FOLLOWER = 1 MENSCH 🌍",
+          "farbe": "gelb",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Und jeder Mensch trinkt {gruen:{liter_pro_mensch}} am Tag.",
+      "kamera": "einwohner1",
+      "uebergang": 2.4,
+      "min": 3.4,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 {liter_pro_mensch} PRO TAG",
+          "farbe": "gruen",
+          "y": 15,
+          "drehung": 3
+        }
+      ]
+    },
+    {
+      "text": "Heute lebt hier {gruen:{einwohner_text}}.",
+      "kamera": "einwohner1",
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "EINWOHNER",
+          "von": 0,
+          "bis": "{einwohner}",
+          "farbe": "gruen"
+        }
+      ]
+    },
+    {
+      "text": "Likes, Kommentare und Shares kosten *extra* Wasser.",
+      "kamera": "einwohner1",
+      "sticker": [
+        {
+          "typ": "info",
+          "y": 15,
+          "zeilen": [
+            "❤️ 1 LIKE = {like_ml}",
+            "💬 1 KOMMENTAR = {kommentar_menge}",
+            "🔁 1 SHARE = {share_menge}"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Aber Achtung: Mit jedem Meilenstein wächst der {rot:Durst}.",
+      "kamera": "orbit",
+      "uebergang": 2.2,
+      "min": 6.5,
+      "sticker": [
+        {
+          "typ": "stufen"
+        }
+      ]
+    },
+    {
+      "text": "Bis {blau:zehntausend} Follower verdoppelt sich die Trinkmenge alle tausend Follower – danach alle zehntausend.",
+      "kamera": "orbit",
+      "min": 5.2,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "×2 ALLE 1.000 FOLLOWER",
+          "farbe": "rot",
+          "y": 15,
+          "drehung": -4
+        },
+        {
+          "typ": "schild",
+          "text": "AB 10.000: ×2 ALLE 10.000",
+          "farbe": "gelb",
+          "y": 23,
+          "drehung": 3
+        }
+      ]
+    },
+    {
+      "text": "Stell dir vor, es wären {gruen:zweitausend}. Jeder trinkt dann {blau:{pro_kopf_bei_2000}}, zusammen {blau:{pro_tag_bei_2000} Liter} am Tag.",
+      "kamera": "gruppe",
+      "uebergang": 2.2,
+      "einwohner_vorschau": 2000,
+      "min": 6,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 {pro_tag_bei_2000} LITER PRO TAG",
+          "farbe": "blau",
+          "y": 30,
+          "drehung": 2
+        }
+      ]
+    },
+    {
+      "text": "Zurück zur Erde. So steht es {gelb:heute}.",
+      "kamera": "rueckflug",
+      "uebergang": 2.4,
+      "min": 6.5,
+      "sticker": [
+        {
+          "typ": "zahlen"
+        }
+      ]
+    },
+    {
+      "text": "Und was passiert, wenn mehr Menschen mittrinken?",
+      "kamera": "europa",
+      "uebergang": 2.2,
+      "musik": "drama",
+      "effekte": [
+        {
+          "t": 0.2,
+          "typ": "riser"
+        }
+      ]
+    },
+    {
+      "text": "{blau:Zehntausend} Menschen, ein Jahr lang.",
+      "kamera": "europa",
+      "szenario": {
+        "einwohner": 10000,
+        "tage": 365
+      },
+      "min": 4.2,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "{blau:Hunderttausend} Menschen: Jeder trinkt schon über {rot:fünf Millionen Liter} am Tag.",
+      "kamera": "space",
+      "uebergang": 2,
+      "szenario": {
+        "einwohner": 100000,
+        "tage": 365
+      },
+      "min": 4.8,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "{rot:Dreihunderttausend} Menschen, nur einen Monat!",
+      "kamera": "space",
+      "szenario": {
+        "einwohner": 300000,
+        "tage": 30
+      },
+      "min": 4.4,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ]
+    },
+    {
+      "text": "Und ab {rot:{leer_an_einem_tag} Followern} ist die Erde an einem einzigen Tag {rot:leergetrunken}.",
+      "kamera": "finale",
+      "uebergang": 2.4,
+      "strohhalm": true,
+      "szenario": {
+        "einwohner": 400000,
+        "tage": 1
+      },
+      "min": 5,
+      "effekte": [
+        {
+          "t": 0.05,
+          "typ": "impact"
+        }
+      ],
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "ERDE AN 1 TAG LEER AB",
+          "von": 0,
+          "bis": "{leer_an_einem_tag}",
+          "farbe": "rot"
+        }
+      ]
+    },
+    {
+      "text": "Schaffen wir {rot:{leer_an_einem_tag} Follower}?",
+      "kamera": "finale",
+      "strohhalm": true,
+      "untertitel": false,
+      "szenario": {
+        "einwohner": 400000,
+        "tage": 1
+      },
+      "min": 3.2,
+      "sticker": [
+        {
+          "typ": "titel",
+          "zeilen": [
+            "SCHAFFEN WIR",
+            "{rot:{leer_an_einem_tag}}",
+            "FOLLOWER?"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Folge uns und werde {gruen:Teil des Experiments!} Schreib in die {blau:Kommentare}, wie viele Follower wir schaffen!",
+      "kamera": "finale",
+      "strohhalm": true,
+      "min": 5,
+      "sticker": [
+        {
+          "typ": "profil"
+        }
+      ],
+      "szenario": {
+        "einwohner": 400000,
+        "tage": 1
+      }
+    }
+  ]
+}

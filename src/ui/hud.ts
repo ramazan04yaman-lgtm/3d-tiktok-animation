@@ -34,17 +34,24 @@ export class Hud {
   constructor(root: HTMLElement) {
     this.root = root;
     root.innerHTML = `
-      <div class="hud-bar">
-        <div class="tag-live"><i></i>EXPERIMENT</div>
-        <div class="hud-bar-text"><small>WASSER DER ERDE</small><span>👥 EINWOHNER <b data-k="pop">0</b></span></div>
-        <div class="hud-house">🏠</div>
+      <div class="h3">
+        <div class="h3-tiles">
+          <div class="h3-t"><small>👥 FOLLOWER = EINWOHNER</small><b data-k="pop">0</b></div>
+          <div class="h3-t"><small>🥤 PRO KOPF / TAG</small><b data-k="prokopf">10 L</b></div>
+          <div class="h3-t"><small>🚰 VERBRAUCH / TAG</small><b data-k="daily">0 L</b></div>
+        </div>
+        <div class="h3-wasser">
+          <div class="h3-w-l"><small>SCHON GETRUNKEN</small><b data-k="consumed">0 L</b></div>
+          <div class="h3-w-r"><small>NOCH ÜBRIG</small><b data-k="remaining">–</b></div>
+          <div class="bar"><i data-k="bar"></i></div>
+          <div class="h3-pct" data-k="pct">100 %</div>
+        </div>
+        <div class="h3-ziel"><span>⏫ NÄCHSTE VERDOPPLUNG: <b data-k="ziel">1.000</b> FOLLOWER</span><span class="hz-r">NOCH <b data-k="zielrest">–</b></span>
+          <div class="bar"><i data-k="zielbar"></i></div></div>
+        <div class="hud-foot" data-k="foot"></div>
       </div>
-      <div class="hud-water"><small>WASSER ÜBRIG</small><b data-k="pct">100 %</b><div class="bar"><i data-k="bar"></i></div></div>
-      <div class="hud-ziel"><span>🎯 NÄCHSTER MEILENSTEIN: <b data-k="ziel">100</b> FOLLOWER</span>
-        <span class="hz-r" data-k="zielrest"></span><div class="bar"><i data-k="zielbar"></i></div></div>
       <div class="hud-stats" data-k="stats">${statistikHTML()}</div>
-      <div class="hud-preview" data-k="preview">VORSCHAU – NICHT DER ECHTE STAND</div>
-      <div class="hud-foot" data-k="foot"></div>`;
+      <div class="hud-preview" data-k="preview">VORSCHAU – NICHT DER ECHTE STAND</div>`;
   }
 
   private setAll(k: string, v: string): void {
@@ -54,8 +61,9 @@ export class Hud {
   update(s: Snapshot, x: HudExtra): void {
     const total = B(s.totalWaterMl), rem = B(s.remainingMl);
     this.setAll('pop', groupDE(B(s.population)));
+    this.setAll('prokopf', formatMenge(B(s.stufe.trinkMl)));
     this.setAll('pop2', groupDE(B(s.population)));
-    this.setAll('pct', percentExact(rem, total, 13) + ' %');
+    this.setAll('pct', percentExact(rem, total, 13) + ' % des Wassers übrig · Start ≈ ' + sci(total / ML_PER_LITER) + ' L');
     this.setAll('total', sci(total / ML_PER_LITER) + ' L');
     this.setAll('remaining', formatLiters(rem));
     this.setAll('daily', formatLiters(B(s.dailyMl)));
@@ -63,16 +71,15 @@ export class Hud {
     this.setAll('likes', formatLiters(B(s.consumedMl.likes)));
     this.setAll('comments', formatLiters(B(s.consumedMl.comments)));
     this.setAll('shares', formatLiters(B(s.consumedMl.shares)));
-    const nxt = s.naechste?.[0];
-    if (nxt) {
-      const f = B(s.followers), z = B(nxt.follower);
-      // Fortschritt seit dem letzten Meilenstein dieser Regel-Schrittweite
-      const schritt = nxt.regel === 'like' ? 100n : nxt.regel === 'kommentar' ? 250n : nxt.regel === 'share' ? 500n : 1000n;
-      const start = z - schritt;
+    // Nächste Verdopplung der Trinkmenge (wichtigster Meilenstein)
+    const nv = s.naechste?.find((n) => n.regel === 'trinken');
+    if (nv) {
+      const f = B(s.followers), z = B(nv.follower);
+      const schritt = z <= 10_000n ? 1_000n : 10_000n;
       this.setAll('ziel', groupDE(z));
-      this.setAll('zielrest', `noch ${groupDE(z - f)} · dann ${formatMenge(B(nxt.neuMl))} ${nxt.regel === 'like' ? 'pro Like' : nxt.regel === 'kommentar' ? 'pro Kommentar' : nxt.regel === 'share' ? 'pro Share' : 'pro Kopf/Tag'}`);
+      this.setAll('zielrest', groupDE(z - f));
       const zb = this.root.querySelector<HTMLElement>('[data-k="zielbar"]');
-      if (zb) zb.style.width = `${Math.max(2, Number(((f - start) * 1000n) / schritt) / 10)}%`;
+      if (zb) zb.style.width = `${Math.max(2, Number(((f - (z - schritt)) * 1000n) / schritt) / 10)}%`;
     }
     this.setAll('eta', formatDuration(s.daysUntilEmpty === null ? null : B(s.daysUntilEmpty)));
     const bar = this.root.querySelector<HTMLElement>('[data-k="bar"]');

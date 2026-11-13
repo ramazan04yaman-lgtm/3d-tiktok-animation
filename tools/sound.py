@@ -149,6 +149,17 @@ def fx(typ):
         boom = np.sin(2 * np.pi * np.cumsum(40 + 60 * np.exp(-t * 6)) / SR) * np.exp(-t * 2.2)
         noise = lowpass(rng.standard_normal(len(t)), 900) * np.exp(-t * 6)
         return (boom + 0.6 * noise) * 0.9
+    if typ == 'welle':
+        # sanftes Meeresrauschen (3 Wellen)
+        d = 4.0; t = t_(d); x = lowpass(rng.standard_normal(len(t)), 900)
+        e = 0.35 + 0.65 * np.sin(np.pi * ((t * 0.75) % 1)) ** 2
+        return highpass(x, 120) * e * env(len(t), 0.6, 1.0) * 0.55
+    if typ == 'fanfare':
+        # kurze aufsteigende Fanfare (Meilenstein)
+        out = np.zeros(int(1.4 * SR))
+        for k, n in enumerate([72, 76, 79, 84]):
+            add(out, bell(n, 0.9) * 0.5 + pluck(n, 0.5) * 0.4, k * 0.11)
+        return out * 0.7
     if typ == 'riser':
         d = 2.0; t = t_(d); f = 150 + 900 * (t / d) ** 2
         x = 0.4 * np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.6 * highpass(rng.standard_normal(len(t)), 1500) * (t / d)

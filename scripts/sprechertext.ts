@@ -13,5 +13,6 @@ const folge = loadFolge(folgenPfad(name));
 const z = demo ? beispielZahlen() : echteZahlen();
 const p = platzhalter(z.snapshot, z.seit);
 console.log(`\n🎙️  ${folge.titel} – Text zum Vorlesen (${folge.beats.length} Sätze, zwischen den Sätzen ~1 s Pause):\n`);
-folge.beats.forEach((b, i) => console.log(`${String(i + 1).padStart(2)}. ${plain(ersetze(b.sprache ?? b.text, p))}`));
+folge.beats.forEach((b, i) => console.log(`${String(i + 1).padStart(2)}. ${plain(ersetze(b.sprache ?? b.text, p))
+  .replace(/(\d) L\b/g, '$1 Liter').replace(/(\d) ml\b/g, '$1 Milliliter')}`));
 console.log('');

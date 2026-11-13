@@ -40,7 +40,7 @@ const sec = (f: string) => Number(execFileSync('ffprobe', ['-v', 'error', '-show
 
 // ---------- 1. Stimme ----------
 console.log(`🎙️  Stimme für ${folge.beats.length} Sätze …`);
-const stimme = args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'piper' as const };
+const stimme = args['ohne-stimme'] ? { typ: 'keine' as const } : args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'piper' as const };
 const audioFiles: (string | undefined)[] = [];
 const dauer: (number | undefined)[] = [];
 /** Text für die Stimme: ohne Emojis/Markierungen, Tausenderpunkte weg. */

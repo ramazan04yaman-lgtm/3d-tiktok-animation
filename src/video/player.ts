@@ -102,9 +102,9 @@ export class StoryPlayer {
     const id = `data-i="${k}"`;
     switch (s.typ) {
       case 'tag': return `<div class="st st-tag" ${id}>TAG ${esc(this.dayLabel())}</div>`;
-      case 'schild': return `<div class="st st-schild ${s.farbe ?? 'weissrot'}" ${id} style="top:${s.y ?? 30}%" data-rot="${s.drehung ?? -4}">${esc(s.text)}</div>`;
+      case 'schild': return `<div class="st st-schild ${s.farbe ?? 'weissrot'}" ${id} style="top:${(s.y ?? 30) + 8}%" data-rot="${s.drehung ?? -4}">${esc(s.text)}</div>`;
       case 'zahl': return `<div class="st st-zahl ${s.farbe ?? 'gruen'}" ${id}><div class="lbl">${esc(s.label)}</div><div class="num" data-num="1">0</div></div>`;
-      case 'info': return `<div class="st st-info" ${id} style="top:${s.y ?? 30}%">${s.zeilen.map((z) => `<div>${esc(z)}</div>`).join('')}</div>`;
+      case 'info': return `<div class="st st-info" ${id} style="top:${(s.y ?? 30) + 8}%">${s.zeilen.map((z) => `<div>${esc(z)}</div>`).join('')}</div>`;
       case 'zeiger': return `<div class="st st-zeiger" ${id}><div class="box">${esc(s.text)}</div><div class="arrow"></div></div>`;
       case 'namensschild': return `<div class="st st-name" ${id}><div class="ico">💧</div><div><b>${esc(s.name)}</b><small>${esc(s.titel)}</small></div></div>`;
       case 'profil': return `<div class="st st-profil" ${id}><div class="ava">💧</div><div class="pname">${esc(this.timeline.konto)}</div>
@@ -136,7 +136,7 @@ export class StoryPlayer {
       <div class="sf-next"><small>🎯 NÄCHSTER MEILENSTEIN</small><b>${groupDE(B(n0.follower))} FOLLOWER</b>
         <span>noch ${groupDE(fehlt)} · dann ${esc(naechsteText(n0))}</span></div>
       <div class="sf-weg">${s.naechste.slice(1).map((n) => `<div>${groupDE(B(n.follower))} → ${esc(naechsteText(n))}</div>`).join('')}
-        <div class="sf-max">🥤 ×2 alle 10.000 Follower – für alle Einwohner</div></div>
+        <div class="sf-max">🥤 ×2 je 1.000 Follower bis 10.000, danach je 10.000</div></div>
     </div>`;
   }
 
