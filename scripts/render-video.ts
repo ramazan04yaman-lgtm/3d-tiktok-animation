@@ -115,7 +115,9 @@ fs.writeFileSync(out.replace(/\.mp4$/, '.srt'), timeline.captions.map((c, i) =>
 console.log(`🧾 Zeitleiste: ${timeline.dauer.toFixed(1)} s, ${timeline.captions.length} Untertitel, ${frames} Bilder`);
 
 // ---------- 3. Bilder rendern ----------
-const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), server: { port: 0, host: '127.0.0.1' }, logLevel: 'error' });
+// Kein automatisches Neuladen während des Renderns (sonst bricht die Aufnahme ab, wenn Dateien geändert werden)
+const server = await createServer({ root, configFile: path.join(root, 'vite.config.ts'), logLevel: 'error',
+  server: { port: 0, host: '127.0.0.1', hmr: false, watch: { ignored: ['**/*'] } } });
 await server.listen();
 const addr = server.httpServer!.address() as { port: number };
 const require = createRequire(import.meta.url);
