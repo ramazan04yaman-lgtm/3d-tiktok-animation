@@ -70,7 +70,8 @@ function useMaterials() {
 function Housing({ geometry, material, ghost, name }: { geometry: THREE.BufferGeometry; material: THREE.Material; ghost: THREE.Material; name: string }) {
   return (
     <group name={name}>
-      <mesh geometry={geometry} material={material} castShadow receiveShadow />
+      {/* drawn after the inner transparent parts (tank, water, tubes) so a fading housing really covers them */}
+      <mesh geometry={geometry} material={material} castShadow receiveShadow renderOrder={11} />
       <mesh geometry={geometry} material={ghost} renderOrder={12} />
     </group>
   );

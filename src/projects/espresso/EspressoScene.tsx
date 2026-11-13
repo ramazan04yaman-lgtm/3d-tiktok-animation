@@ -48,8 +48,8 @@ export function EspressoScene() {
       {curves.seep.map((c, i) => (
         <FlowParticles key={i} curve={c} intensity={(t) => track.puckFlow(t) * track.groupCut(t)} count={5} speed={0.12} size={0.012} color="#8a4a1e" glow={1.1} stretch={2} />
       ))}
-      <Drops origin={[-0.07, P.spoutY, P.group.z]} height={P.spoutY - 0.58} intensity={track.spoutDrips} count={6} size={0.016} color="#3a1d0c" />
-      <Drops origin={[0.07, P.spoutY, P.group.z]} height={P.spoutY - 0.58} intensity={track.spoutDrips} count={6} size={0.016} color="#3a1d0c" />
+      <Drops origin={[-0.07, P.spoutY, P.group.z]} height={P.spoutY - (P.cup.y - 0.41 + P.cupFullY)} intensity={track.spoutDrips} count={6} size={0.016} color="#3a1d0c" />
+      <Drops origin={[0.07, P.spoutY, P.group.z]} height={P.spoutY - (P.cup.y - 0.41 + P.cupFullY)} intensity={track.spoutDrips} count={6} size={0.016} color="#3a1d0c" />
       {[-0.07, 0.07].map((x, i) => (
         <LiquidStream
           key={x}
