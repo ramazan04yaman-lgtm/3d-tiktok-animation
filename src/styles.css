@@ -1,0 +1,38 @@
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; background: #030305; color: #e8edf3; font-family: Inter, system-ui, sans-serif; }
+body.mx-render, body.mx-render #root { width: 1080px; height: 1920px; overflow: hidden; }
+
+.mx-stage { position: relative; overflow: hidden; background: #06070a; transform-origin: 0 0; }
+.mx-stage canvas { display: block; }
+.mx-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
+
+.mx-player { display: flex; gap: 24px; padding: 20px; height: 100%; }
+.mx-stage-wrap { flex: none; position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 0 0 1px #222; }
+.mx-panel { width: 320px; display: flex; flex-direction: column; gap: 12px; }
+.mx-panel h1 { font-size: 18px; margin: 0; }
+.mx-time { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9fb0c2; }
+.mx-buttons { display: flex; gap: 8px; }
+.mx-panel button { background: #1b2230; color: #fff; border: 1px solid #2c3648; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.mx-panel input[type=range] { width: 100%; }
+.mx-scenes { padding-left: 18px; margin: 0; font-size: 14px; }
+.mx-scenes li { cursor: pointer; padding: 3px 0; color: #9fb0c2; }
+.mx-scenes li.active { color: #fff; font-weight: 600; }
+.mx-scenes span { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5d6b7c; margin-right: 6px; }
+.mx-hint { font-size: 12px; color: #6d7b8c; }
+
+/* 3D callout labels */
+.mx-label { position: relative; width: 0; height: 0; font-family: Inter, sans-serif; }
+.mx-label-dot { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 0 4px rgba(255,255,255,0.15); }
+.mx-label-line { position: absolute; left: 0; top: -1.5px; height: 3px; background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.85)); transform-origin: 0 50%; border-radius: 2px; }
+.mx-label-box { position: absolute; white-space: nowrap; padding: 14px 22px; background: rgba(8, 12, 18, 0.78); border: 2px solid var(--accent); border-radius: 14px; backdrop-filter: blur(6px); }
+.mx-label-title { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.mx-label-sub { font-size: 26px; font-weight: 600; color: #b9c8d8; margin-top: 2px; }
+
+/* Overlay building blocks (safe zone: top 160px, bottom 420px, right 140px are covered by TikTok UI) */
+.mx-caption { position: absolute; left: 60px; right: 140px; top: 1210px; text-align: left; }
+.mx-caption-text { display: inline-block; font: 800 66px/1.1 Inter, sans-serif; color: #fff; letter-spacing: -1px; text-shadow: 0 4px 30px rgba(0,0,0,0.8); }
+.mx-caption-sub { margin-top: 14px; font: 600 38px/1.25 Inter, sans-serif; color: #c6d4e2; text-shadow: 0 3px 20px rgba(0,0,0,0.8); }
+.mx-chip { position: absolute; top: 180px; left: 56px; padding: 14px 24px 18px; border-radius: 40px; background: rgba(8,12,18,0.7); border: 2px solid rgba(88,196,255,0.45); font: 700 32px Inter, sans-serif; color: #fff; overflow: hidden; }
+.mx-chip-num { font-family: 'JetBrains Mono', monospace; color: #58c4ff; margin-right: 14px; font-size: 28px; }
+.mx-chip-progress { position: absolute; left: 0; bottom: 0; height: 4px; background: #58c4ff; }
+.mx-disclaimer { position: absolute; left: 60px; top: 1500px; font: 500 22px Inter, sans-serif; color: rgba(200,212,226,0.55); }
