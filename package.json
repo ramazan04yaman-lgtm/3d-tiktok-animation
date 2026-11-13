@@ -13,7 +13,8 @@
     "render": "node scripts/render.mjs",
     "render:preview": "node scripts/render.mjs --every 15 --out out/preview",
     "qa": "node scripts/qa.mjs",
-    "export:glb": "node scripts/export-glb.mjs"
+    "export:glb": "node scripts/export-glb.mjs",
+    "audio": "node scripts/mux-audio.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "5.1.0",

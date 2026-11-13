@@ -13,6 +13,7 @@ npm test               # timeline, camera smoothness, physics
 npm run render         # full export → out/kettle/kettle.mp4 (+ out/kettle/frames/)
 npm run render:preview # quick check: every 15th frame
 npm run qa             # quality checks on the finished video
+npm run audio          # place voice-over segments → out/kettle/kettle_voice.mp4
 npm run export:glb     # procedural model → public/models/kettle.glb (Blender-importable)
 node scripts/still.mjs --times 0,22,54   # single stills → out/stills/
 ```
@@ -78,6 +79,15 @@ On a machine with a GPU set `MX_GPU=1 npm run render` to use hardware accelerati
 3. Build the model procedurally or load a Blender export with `<GLBModel url="/models/x.glb" onParts={…} />`
    (Blender object names are preserved; name parts e.g. `HeatingElement`, `Lid`).
 4. Register the project in `src/projects/registry.ts`, then `npm run render -- --project <machine>`.
+
+## Voice-over
+
+`audio/kettle-voice.json` lists the voice-over segments: where each one sits in the source
+file (found with `ffmpeg -af silencedetect`), when it starts in the video, and an optional
+`tempo`. `npm run audio` refuses overlapping segments, copies the video stream untouched,
+mixes the audio, loudness-normalises it for TikTok (≈ -14 LUFS) and writes AAC 48 kHz.
+The current voice is ElevenLabs "Felix Serenitas" — check that your ElevenLabs plan
+allows commercial use before monetising the video.
 
 ## Kettle demo — storyboard
 

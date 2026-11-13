@@ -1,0 +1,19 @@
+{
+  "source": "audio/voice_felix.mp3",
+  "video": "out/kettle/kettle.mp4",
+  "output": "out/kettle/kettle_voice.mp4",
+  "loudnessLUFS": -14,
+  "note": "src = [start, end] in the voice file (found via silencedetect), at = start in the video (s), tempo = speed factor (pitch preserved)",
+  "segments": [
+    { "text": "Was passiert eigentlich in deinem Wasserkocher …", "src": [0.0, 3.85], "at": 0.3 },
+    { "text": "Mit dem Schalter schließt du einen Stromkreis … Jetzt fließt Strom.", "src": [4.22, 9.9], "at": 5.15 },
+    { "text": "Schauen wir hinein … Dampfkanal.", "src": [10.4, 17.0], "at": 11.15 },
+    { "text": "Ganz unten liegt das Heizelement … in Wärme.", "src": [17.36, 26.15], "at": 18.15 },
+    { "text": "Die Bodenplatte aus Edelstahl … gleichmäßig heiß.", "src": [26.5, 36.2], "at": 27.25 },
+    { "text": "Erste Dampfblasen entstehen … Bei 100 Grad kocht das Wasser.", "src": [36.46, 44.47], "at": 37.2 },
+    { "text": "Jetzt entsteht Dampf … nach unten.", "src": [44.73, 49.75], "at": 45.26, "tempo": 1.1 },
+    { "text": "Dort sitzt eine Bimetallscheibe. Wird sie heiß, springt sie um …", "src": [50.06, 54.05], "at": 49.85, "tempo": 1.1 },
+    { "text": "Klick!", "src": [54.34, 54.76], "at": 53.5 },
+    { "text": "Der Strom ist unterbrochen. Dein Wasser ist fertig – ganz automatisch.", "src": [55.04, 59.716], "at": 54.6 }
+  ]
+}
