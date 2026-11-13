@@ -161,7 +161,7 @@ export function rechneSzenario(s: Snapshot, sz: Szenario) {
 }
 
 const kurzZahl = (n: number) => n >= 1e9 ? `${(n / 1e9).toLocaleString('de-DE')} MRD.` : n >= 1e6 ? `${(n / 1e6).toLocaleString('de-DE')} MIO.` : groupDE(n);
-const kurzDauer = (t: number) => t % 365 === 0 ? `${groupDE(t / 365)} ${t === 365 ? 'JAHR' : 'JAHRE'}` : `${groupDE(t)} TAGE`;
+const kurzDauer = (t: number) => t % 365 === 0 ? `${groupDE(t / 365)} ${t === 365 ? 'JAHR' : 'JAHRE'}` : `${groupDE(t)} ${t === 1 ? 'TAG' : 'TAGE'}`;
 
 export interface BuildInput {
   folge: Folge;

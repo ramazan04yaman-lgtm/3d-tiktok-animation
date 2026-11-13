@@ -109,7 +109,11 @@ const silent = path.join(work, 'bild.mp4');
 const SEG = FPS * 10;
 const segKey = JSON.stringify({ timeline, W, H, FPS, leicht: !!args.leicht });
 const keyFile = path.join(work, 'abschnitte.key');
-if (!fs.existsSync(keyFile) || fs.readFileSync(keyFile, 'utf8') !== segKey) {
+if (args['neu-abschnitte']) {
+  // Nur bestimmte Abschnitte neu rendern (z. B. nach einer kleinen Textkorrektur): --neu-abschnitte 6,7
+  for (const n of args['neu-abschnitte'].split(',')) fs.rmSync(path.join(work, `abschnitt-${String(Number(n) - 1).padStart(3, '0')}.ok`), { force: true });
+  fs.writeFileSync(keyFile, segKey);
+} else if (!fs.existsSync(keyFile) || fs.readFileSync(keyFile, 'utf8') !== segKey) {
   for (const f of fs.readdirSync(work)) if (/^abschnitt-\d+\.(mp4|ok)$/.test(f)) fs.unlinkSync(path.join(work, f));
   fs.writeFileSync(keyFile, segKey);
 }
