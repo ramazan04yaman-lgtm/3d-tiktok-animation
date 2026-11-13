@@ -1,0 +1,18 @@
+{
+  "source": "audio/voice_felix_espresso.mp3",
+  "video": "out/espresso/espresso.mp4",
+  "output": "out/espresso/espresso_voice.mp4",
+  "loudnessLUFS": -14,
+  "note": "src = [start, end] in the voice file (found via silencedetect), at = start in the video (s), tempo = speed factor (pitch preserved)",
+  "segments": [
+    { "text": "Was passiert eigentlich in einer Kaffeemaschine, bevor dein Espresso fertig ist?", "src": [0.0, 4.62], "at": 0.3 },
+    { "text": "Ein Knopfdruck – und das Heizsystem beginnt sofort, sich aufzuheizen.", "src": [5.14, 9.39], "at": 6.75 },
+    { "text": "Schauen wir durch das Gehäuse. Hier steckt die ganze Technik.", "src": [9.7, 13.5], "at": 11.4 },
+    { "text": "Alles beginnt im Wassertank. Die Pumpe saugt das kalte Wasser durch einen Schlauch an.", "src": [13.64, 19.21], "at": 17.3 },
+    { "text": "Sie arbeitet mit einem schnell schwingenden Kolben und baut bis zu 9 bar Druck auf.", "src": [19.39, 24.99], "at": 24.35 },
+    { "text": "Im Thermoblock fließt das Wasser durch eine Heizspirale und wird in Sekunden auf 93 Grad erhitzt.", "src": [25.4, 31.91], "at": 31.3 },
+    { "text": "Über das Duschsieb strömt es gleichmäßig auf das Kaffeepulver. Unter Druck löst es Aromen, Öle und Säuren.", "src": [32.12, 39.59], "at": 38.3 },
+    { "text": "Nach wenigen Sekunden läuft der Espresso aus dem Siebträger – in etwa 25 Sekunden ist die Tasse gefüllt.", "src": [39.88, 46.47], "at": 45.95 },
+    { "text": "Oben bildet sich die goldene Crema. Frisch gebrüht – genieß deinen Kaffee!", "src": [46.64, 52.506], "at": 53.8 }
+  ]
+}
