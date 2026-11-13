@@ -4,7 +4,10 @@ A reusable 3D system for **60-second TikTok explainer videos** about everyday ma
 built with React, TypeScript, Three.js, React Three Fiber and Drei.
 Output: **1080 × 1920 px, 9:16, 30 fps, exactly 60 s (1800 frames)**, H.264/yuv420p.
 
-First demo: **„Wie funktioniert ein Wasserkocher?“** (how an electric kettle works).
+Episodes (one shared series look — same studio, materials, x-ray/section style, HUD, typography):
+
+1. **„Wie funktioniert ein Wasserkocher?“** — `--project kettle`
+2. **„Wie funktioniert eine Kaffeemaschine?“** — `--project espresso`
 
 ```bash
 npm install
@@ -118,3 +121,22 @@ allows commercial use before monetising the video.
   The video states this on screen.
 * **Thermostat:** modelled after a typical steam-sensing bimetal control (steam duct
   in the handle → snap-action disc → contacts), geometrically simplified.
+
+## Episode 2 — Kaffeemaschine (espresso)
+
+| Time | Scene | What happens |
+|---|---|---|
+| 0–5 s | 01 Die Kaffeemaschine | complete machine on a stone countertop, title |
+| 5–11 s | 02 Kamerafahrt & Einschalten | dolly in, power button + LED, thermoblock pre-heats |
+| 11–17 s | 03 Transparentes Gehäuse | housing cross-fades to the x-ray look |
+| 17–24 s | 04 Wassertank & Zulauf | brew button, tank level drops, water flows to the pump |
+| 24–31 s | 05 Pumpe baut Druck auf | pump sectioned, (slowed) piston, manometer rises to 9 bar |
+| 31–38 s | 06 Das Heizsystem | thermoblock sectioned: water helix heats 20 → 93 °C (false colour) |
+| 38–46 s | 07 Durch das Kaffeepulver | group head & portafilter sectioned: shower screen, wetting front through the puck |
+| 46–54 s | 08 Kaffee läuft in die Tasse | first drips, two streams, cup fills, pump stops at 53.6 s |
+| 54–60 s | 09 Frisch gebrüht | housing solid again, close-up of the cup with crema and steam |
+
+Simplifications (also shown on screen / in `src/projects/espresso/index.ts`): procedural replacement
+model; pressure and temperature are scripted curves (≈ 9 bar, ≈ 93 °C), in reality pressure only builds
+against the coffee puck; the pump piston is shown ≈ 20× slower than its real 50 Hz stroke; water, coffee
+streams, drops and steam are deterministic visualisations, not fluid simulation.
