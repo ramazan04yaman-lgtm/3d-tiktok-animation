@@ -17,9 +17,9 @@ test('Startvorrat: 1,386 Mrd. km³ = 1,386 × 10²¹ Liter, exakt', () => {
   assert.equal(sci(DEFAULT_CONFIG.totalWaterMl / L), '1,386 × 10²¹');
 });
 
-test('Beispiele: Tagesverbrauch aller Menschen (Verdopplung je 10.000 Follower)', () => {
-  // 100 × 10 L | 1.000 × 10 L | 9.999 × 10 L | 10.000 × 20 L | 100.000 × 10 L × 2^10
-  for (const [people, liters] of [[100, 1_000n], [1_000, 10_000n], [9_999, 99_990n], [10_000, 200_000n], [100_000, 100_000n * 10_240n]] as const) {
+test('Beispiele: Tagesverbrauch aller Menschen (Verdopplung Phase 1 + 2)', () => {
+  // 100 × 10 L | 999 × 10 L | 1.000 × 20 L | 10.000 × 10.240 L | 100.000 × 5.242.880 L
+  for (const [people, liters] of [[100, 1_000n], [999, 9_990n], [1_000, 20_000n], [10_000, 102_400_000n], [100_000, 100_000n * 5_242_880n]] as const) {
     const s = replay('2026-01-01', [entry('2026-01-01', { followers: people })], '2026-01-01');
     assert.equal(s.population, BigInt(people));
     assert.equal(s.dailyMl, liters * L);

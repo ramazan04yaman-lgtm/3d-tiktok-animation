@@ -23,8 +23,10 @@ export interface SimConfig {
  *  - Like:      10 ml  + (Anzahl erreichter 100er-Meilensteine) × 100 ml
  *  - Kommentar: 0,5 L  + (Anzahl erreichter 250er-Meilensteine) × 1 L
  *  - Share:     2 L    + (Anzahl erreichter 500er-Meilensteine) × 4 L
- *  - Trinken:   10 L × 2 hoch (Anzahl erreichter 10.000er-Meilensteine) pro Einwohner und Tag
- *               (gilt für die GESAMTE Bevölkerung; keine Obergrenze)
+ *  - Trinken:   10 L × 2 hoch (Anzahl Verdopplungen) pro Einwohner und Tag, für die GESAMTE Bevölkerung
+ *      Phase 1 (0–10.000 Follower):  je 1.000er-Meilenstein eine Verdopplung (höchstens 10)
+ *      Phase 2 (ab 10.000 Followern): je weiterem 10.000er-Meilenstein eine Verdopplung
+ *      -> 1.000: 20 L · 9.000: 5.120 L · 10.000: 10.240 L · 20.000: 20.480 L · 100.000: 5.242.880 L
  */
 export interface MeilensteinRegeln {
   /** Ab diesem Tag gelten die Meilenstein-Regeln (vorher: feste Grundwerte). */
@@ -33,8 +35,10 @@ export interface MeilensteinRegeln {
   kommentarSchritt: bigint; kommentarPlusMl: bigint;
   shareSchritt: bigint;     sharePlusMl: bigint;
   trinkSchritt: bigint;     trinkFaktor: bigint;
-  /** Höchstens so viele Verdopplungen (null = unbegrenzt). */
+  /** Phase 1: höchstens so viele Verdopplungen im Schritt trinkSchritt (null = unbegrenzt). */
   trinkMaxStufen: bigint | null;
+  /** Phase 2: danach je so viele Follower eine weitere Verdopplung (null = keine Phase 2). */
+  trinkSchritt2: bigint | null;
 }
 
 export const DEFAULT_MEILENSTEINE: MeilensteinRegeln = {
@@ -42,7 +46,7 @@ export const DEFAULT_MEILENSTEINE: MeilensteinRegeln = {
   likeSchritt: 100n, likePlusMl: 100n,
   kommentarSchritt: 250n, kommentarPlusMl: 1000n,
   shareSchritt: 500n, sharePlusMl: 4000n,
-  trinkSchritt: 10_000n, trinkFaktor: 2n, trinkMaxStufen: null,
+  trinkSchritt: 1_000n, trinkFaktor: 2n, trinkMaxStufen: 10n, trinkSchritt2: 10_000n,
 };
 
 /** 1 km³ = 10^12 Liter = 10^15 ml */
@@ -116,5 +120,6 @@ function meilensteineFromJSON(m: Record<string, string | null> | undefined): Mei
     shareSchritt: b('shareSchritt', d.shareSchritt), sharePlusMl: b('sharePlusMl', d.sharePlusMl),
     trinkSchritt: b('trinkSchritt', d.trinkSchritt), trinkFaktor: b('trinkFaktor', d.trinkFaktor),
     trinkMaxStufen: 'trinkMaxStufen' in m ? (m.trinkMaxStufen === null ? null : BigInt(m.trinkMaxStufen)) : d.trinkMaxStufen,
+    trinkSchritt2: 'trinkSchritt2' in m ? (m.trinkSchritt2 === null ? null : BigInt(m.trinkSchritt2)) : d.trinkSchritt2,
   };
 }

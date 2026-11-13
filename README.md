@@ -70,15 +70,15 @@ Die Verbrauchswerte hängen von der **gesamten erreichten Followerzahl** ab und 
 | Like | 10 ml + (Anzahl 100er-Meilensteine) × 100 ml | 99 F.: 10 ml · 100 F.: 110 ml · 1.000 F.: 1.010 ml |
 | Kommentar | 0,5 L + (Anzahl 250er-Meilensteine) × 1 L | 250 F.: 1,5 L · 1.000 F.: 4,5 L |
 | Share | 2 L + (Anzahl 500er-Meilensteine) × 4 L | 500 F.: 6 L · 2.000 F.: 18 L |
-| Trinken pro Einwohner/Tag | 10 L × 2 hoch (Anzahl **10.000er**-Meilensteine), gilt für **alle** Einwohner | 10.000 F.: 20 L · 20.000 F.: 40 L · 30.000 F.: 80 L · 60.000 F.: 640 L |
+| Trinken pro Einwohner/Tag | 10 L × 2 hoch (Anzahl Verdopplungen), gilt für **alle** Einwohner. **Phase 1:** je 1.000 Follower (bis 10.000). **Phase 2:** je weitere 10.000 Follower | 1.000: 20 L · 9.000: 5.120 L · 10.000: 10.240 L · 20.000: 20.480 L · 100.000: 5.242.880 L |
 
 - Neue Meilensteine gelten **sofort** (auch für die Likes/Kommentare/Shares und neuen Menschen desselben Eintrags);
   alle Einwohner trinken ab dem nächsten Tag mit der neuen Menge.
 - **Bereits verbrauchtes Wasser wird nie nachträglich verändert** (Tage werden mit der Stufe verbucht, die an dem Tag galt).
 - Spielstände von vor dieser Regel werden automatisch umgestellt: Die Meilensteine gelten ab dem Tag nach dem letzten verbuchten Tag.
 - Rechnung mit BigInt → exakt auch bei riesigen Werten (z. B. 2 hoch 1.000).
-- Die Verdopplung wiederholt sich bei jedem weiteren 10.000er-Meilenstein (keine Obergrenze) und gilt für die gesamte Bevölkerung.
-- Spannend: Ab **490.000 Followern** würden die Einwohner das gesamte Wasser an **einem einzigen Tag** austrinken.
+- Bei genau 10.000 Followern gibt es nur EINE Verdopplung (Ende Phase 1 = Start Phase 2).
+- Die Verdopplung gilt immer für die gesamte Bevölkerung.
 
 **Festgelegte Details** (lassen sich ändern, falls du es anders willst):
 - Ein **Tag** ist ein Kalendertag in **Europe/Berlin** (Mitternacht deutscher Zeit).
@@ -220,7 +220,7 @@ public/assets/      fertige Erd-Daten (Höhen, Masken, Texturen, Städte)
 
 ## 🧪 Tests
 ```bash
-npm test          # 43 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
+npm test          # 44 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
 npm run typecheck
 ```
 
