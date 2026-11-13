@@ -35,17 +35,33 @@ test('Share-Regel: 2 L + 4 L je 500 Follower', () => {
   }
 });
 
-test('Trink-Regel: 10 L × 2 hoch (Anzahl 1.000er-Meilensteine)', () => {
-  for (const [f, l] of [[0, 10], [999, 10], [1000, 20], [1999, 20], [2000, 40], [3000, 80], [4000, 160], [5000, 320], [5999, 320]] as const) {
+test('Trink-Regel: 10 L × 2 hoch (Anzahl 1.000er-Meilensteine), höchstens 10.240 L', () => {
+  for (const [f, l] of [[0, 10], [999, 10], [1000, 20], [1999, 20], [2000, 40], [3000, 80], [4000, 160], [5000, 320], [5999, 320],
+    [9000, 5120], [9999, 5120], [10000, 10240], [10999, 10240], [11000, 10240], [20000, 10240], [50000, 10240], [1_000_000_000, 10240]] as const) {
     assert.equal(st(f).trinkMl, BigInt(l) * L, `${f} Follower`);
   }
+  assert.equal(st(10000).stufen.trinken, 10n);
+  assert.equal(st(1_000_000).stufen.trinken, 10n);
 });
 
-test('Große Zahlen exakt: 1 Mio. Follower -> 10 L × 2^1000', () => {
+test('Ab 10.000 Followern: jeder Einwohner trinkt 10.240 L, die Einwohnerzahl wächst weiter', () => {
+  for (const f of [10_000, 20_000, 50_000]) {
+    const s = replay('2026-01-01', [entry('2026-01-01', { followers: f })], '2026-01-01');
+    assert.equal(s.population, BigInt(f));
+    assert.equal(s.dailyMl, BigInt(f) * 10_240n * L, `${f} Follower`);
+  }
+  // Über mehrere Tage: 10.000 Menschen, dann +10.000 -> alle mit 10.240 L
+  const s = replay('2026-01-01', [entry('2026-01-01', { followers: 10_000 }), entry('2026-01-03', { followers: 10_000 })], '2026-01-04');
+  // 1.–3.1.: 10.000 × 10.240 L (3 Tage) | 3.1.: Neue 10.000 × 10.240 L | 4.1.: 20.000 × 10.240 L
+  assert.equal(s.consumed.drinking, (10_000n * 3n + 10_000n + 20_000n) * 10_240n * L);
+});
+
+test('Große Zahlen exakt (Likes/Kommentare wachsen weiter, Trinken gedeckelt)', () => {
   const s = st(1_000_000);
-  assert.equal(s.trinkMl, 10n * L * 2n ** 1000n);
+  assert.equal(s.trinkMl, 10_240n * L);
   assert.equal(s.likeMl, 10n + 10_000n * 100n);
-  assert.equal(s.stufen.trinken, 1000n);
+  assert.equal(s.kommentarMl, 500n + 4_000n * 1000n);
+  assert.equal(s.shareMl, 2000n + 2_000n * 4000n);
 });
 
 test('Nächste Meilensteine', () => {
@@ -56,6 +72,10 @@ test('Nächste Meilensteine', () => {
   assert.equal(n2[0].follower, 1000n);
   assert.ok(n2.some((x) => x.regel === 'trinken' && x.neuMl === 20n * L));
   assert.equal(naechsteMeilensteine(1000n, C).find((x) => x.regel === 'trinken')!.follower, 2000n);
+  // Letzte Verdopplung bei 10.000, danach kein Trink-Meilenstein mehr
+  assert.equal(naechsteMeilensteine(9500n, C).find((x) => x.regel === 'trinken')!.neuMl, 10_240n * L);
+  assert.equal(naechsteMeilensteine(10_000n, C).find((x) => x.regel === 'trinken'), undefined);
+  assert.equal(naechsteMeilensteine(10_000n, C)[0].follower, 10_100n);
 });
 
 test('Tagesverbrauch: Verdopplung gilt ab dem Meilenstein, frühere Tage bleiben unverändert', () => {
@@ -103,10 +123,11 @@ test('Summen bleiben konsistent, Idempotenz', () => {
   assert.equal(a.totalConsumedMl + a.remainingMl, a.totalWaterMl);
 });
 
-test('Wasser leer: exakter Tag auch mit Verdopplung', () => {
-  // 70.000 Follower: 10 L × 2^70 pro Person und Tag -> die Erde ist am ersten Tag leer
-  const s = replay('2026-01-01', [entry('2026-01-01', { followers: 70_000 })], '2026-01-05');
-  assert.equal(s.depletedOnDay, '2026-01-01');
+test('Wasser leer: exakter Tag auch mit Meilensteinen (Mini-Erde)', () => {
+  // Mini-Erde mit 1 Mrd. Litern; 20.000 Menschen × 10.240 L = 204,8 Mio. L pro Tag -> leer am 5. Tag
+  const cfg = { ...C, totalWaterMl: 1_000_000_000n * L };
+  const s = replay('2026-01-01', [entry('2026-01-01', { followers: 20_000 })], '2026-01-10', cfg);
+  assert.equal(s.depletedOnDay, '2026-01-05');
   assert.equal(s.remainingMl, 0n);
 });
 
@@ -135,4 +156,5 @@ test('Neue Dateien speichern die Regeln dauerhaft', () => {
   assert.equal(j.regelVersion, 2);
   assert.equal(j.meilensteine!.trinkSchritt, '1000');
   assert.equal(j.meilensteine!.likePlusMl, '100');
+  assert.equal(j.meilensteine!.trinkMaxStufen, '10');
 });

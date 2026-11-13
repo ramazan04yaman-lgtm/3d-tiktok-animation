@@ -55,6 +55,8 @@ export function platzhalter(s: Snapshot, seit?: Snapshot): Record<string, string
     fehlende_follower: groupDE(B(s.naechste[0].follower) - B(s.followers)),
     naechste_belohnung: naechsteText(s.naechste[0]),
     leer_an_einem_tag: groupDE(leerAnEinemTag(s)),
+    max_pro_kopf: formatMenge(stufeFuer(10n ** 12n, DEFAULT_CONFIG).trinkMl),
+    __rest: s.remainingMl,
   };
 }
 
@@ -79,6 +81,12 @@ export function ersetze(text: string, p: Record<string, string>): string {
       // Tagesverbrauch, wenn es n Einwohner (= Follower) gäbe – mit Meilenstein-Regeln
       const e = BigInt(n);
       return zahlWorte(e * stufeFuer(e, DEFAULT_CONFIG).trinkMl / ML_PER_LITER);
+    })
+    .replace(/\{reicht_bei_(\d+)\}/g, (_m, n: string) => {
+      // So lange reicht das restliche Wasser, wenn es n Einwohner (= Follower) gäbe
+      const e = BigInt(n), perDay = e * stufeFuer(e, DEFAULT_CONFIG).trinkMl;
+      const rest = BigInt(p.__rest ?? '0');
+      return perDay > 0n ? formatDuration((rest + perDay - 1n) / perDay) : '∞';
     })
     .replace(/\{pro_kopf_bei_(\d+)\}/g, (_m, n: string) => formatMenge(stufeFuer(BigInt(n), DEFAULT_CONFIG).trinkMl))
     .replace(/\{([a-z_]+)\}/g, (m, k: string) => (k in p ? p[k] : m));

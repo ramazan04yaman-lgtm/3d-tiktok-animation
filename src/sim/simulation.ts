@@ -13,7 +13,8 @@
  *  - Likes, Kommentare und Shares kosten einmalig Wasser.
  *  - MEILENSTEINE (siehe stufen.ts): Mit der gesamten Followerzahl steigen die Werte
  *    dauerhaft (Like +100 ml je 100 Follower, Kommentar +1 L je 250, Share +4 L je 500,
- *    Trinkmenge ×2 je 1.000 Follower; Grundwerte 10 ml / 0,5 L / 2 L / 10 L).
+ *    Trinkmenge ×2 je 1.000 Follower bis max. 10.240 L ab 10.000 Followern;
+ *    Grundwerte 10 ml / 0,5 L / 2 L / 10 L).
  *
  * Reihenfolge innerhalb eines Eintrags (festgelegt, damit alles eindeutig ist):
  *  1. Alle Tage bis einschließlich Eintragstag werden mit der BISHERIGEN Stufe verbucht

@@ -83,6 +83,7 @@ body.story .hud-foot { bottom: auto; top: 11.6cqh; }
 .sf-next small { display: block; font-size: 1.2cqh; color: #ffd23a; }
 .sf-next b { display: block; font-size: 3.2cqh; color: #63f23a; line-height: 1.1; }
 .sf-next span { display: block; font-size: 1.4cqh; color: #cfe3ff; }
+.sf-max { color: #ff7a2f; font-weight: 900; }
 .sf-weg { margin-top: .7cqh; font-size: 1.35cqh; color: #5a6380; text-align: center; line-height: 1.45; transform-origin: 50% 50%; }
 
 /* Statistik-Karte (HUD im Studio + Sticker im Video) */
@@ -102,7 +103,7 @@ body.story .hud-foot { bottom: auto; top: 11.6cqh; }
 .st { position: absolute; left: 50%; transform-origin: 50% 50%; font-family: 'Montserrat', sans-serif; font-weight: 900; white-space: nowrap; }
 .st-tag { top: 11cqh; left: 21%; background: #3fd04a; color: #fff; font-size: 4.6cqh; padding: .4cqh 2cqh; border-radius: 1.4cqh;
   border: .45cqh solid #fff; box-shadow: 0 0 0 .3cqh #14182a, 0 .6cqh 0 .3cqh rgba(0,0,0,.35); -webkit-text-stroke: .4cqh #14182a; paint-order: stroke fill; }
-.st-schild { font-size: 2.5cqh; padding: .6cqh 1.6cqh; border-radius: .9cqh; box-shadow: 0 .5cqh 0 rgba(0,0,0,.35); }
+.st-schild { text-transform: uppercase; font-size: 2.5cqh; padding: .6cqh 1.6cqh; border-radius: .9cqh; box-shadow: 0 .5cqh 0 rgba(0,0,0,.35); }
 .st-schild.weissrot { background: #fff; color: #ff2a4a; border: .35cqh solid #ff2a4a; }
 .st-schild.gelb { background: #ffd23a; color: #14182a; border: .35cqh solid #14182a; }
 .st-schild.gruen { background: #63f23a; color: #14182a; border: .35cqh solid #14182a; }

@@ -128,7 +128,8 @@ export class StoryPlayer {
       ${zeile('🔁', 'Pro Share', formatMenge(B(st.shareMl)), st.meilensteine.share)}
       <div class="sf-next"><small>🎯 NÄCHSTER MEILENSTEIN</small><b>${groupDE(B(n0.follower))} FOLLOWER</b>
         <span>noch ${groupDE(fehlt)} · dann ${esc(naechsteText(n0))}</span></div>
-      <div class="sf-weg">${s.naechste.slice(1).map((n) => `<div>${groupDE(B(n.follower))} → ${esc(naechsteText(n))}</div>`).join('')}</div>
+      <div class="sf-weg">${s.naechste.slice(1).map((n) => `<div>${groupDE(B(n.follower))} → ${esc(naechsteText(n))}</div>`).join('')}
+        <div class="sf-max">🥤 ×2 bis 10.000 Follower · max. 10.240 L/Tag</div></div>
     </div>`;
   }
 

@@ -23,7 +23,8 @@ export interface SimConfig {
  *  - Like:      10 ml  + (Anzahl erreichter 100er-Meilensteine) × 100 ml
  *  - Kommentar: 0,5 L  + (Anzahl erreichter 250er-Meilensteine) × 1 L
  *  - Share:     2 L    + (Anzahl erreichter 500er-Meilensteine) × 4 L
- *  - Trinken:   10 L × 2 hoch (Anzahl erreichter 1.000er-Meilensteine) pro Einwohner und Tag
+ *  - Trinken:   10 L × 2 hoch (Anzahl erreichter 1.000er-Meilensteine, höchstens 10) pro Einwohner und Tag
+ *               -> Maximum ab 10.000 Followern: 10.240 L pro Einwohner und Tag
  */
 export interface MeilensteinRegeln {
   /** Ab diesem Tag gelten die Meilenstein-Regeln (vorher: feste Grundwerte). */
@@ -32,6 +33,8 @@ export interface MeilensteinRegeln {
   kommentarSchritt: bigint; kommentarPlusMl: bigint;
   shareSchritt: bigint;     sharePlusMl: bigint;
   trinkSchritt: bigint;     trinkFaktor: bigint;
+  /** Höchstens so viele Verdopplungen (10 -> Maximum bei 10.000 Followern). */
+  trinkMaxStufen: bigint;
 }
 
 export const DEFAULT_MEILENSTEINE: MeilensteinRegeln = {
@@ -39,7 +42,7 @@ export const DEFAULT_MEILENSTEINE: MeilensteinRegeln = {
   likeSchritt: 100n, likePlusMl: 100n,
   kommentarSchritt: 250n, kommentarPlusMl: 1000n,
   shareSchritt: 500n, sharePlusMl: 4000n,
-  trinkSchritt: 1000n, trinkFaktor: 2n,
+  trinkSchritt: 1000n, trinkFaktor: 2n, trinkMaxStufen: 10n,
 };
 
 /** 1 km³ = 10^12 Liter = 10^15 ml */
@@ -112,5 +115,6 @@ function meilensteineFromJSON(m: Record<string, string | null> | undefined): Mei
     kommentarSchritt: b('kommentarSchritt', d.kommentarSchritt), kommentarPlusMl: b('kommentarPlusMl', d.kommentarPlusMl),
     shareSchritt: b('shareSchritt', d.shareSchritt), sharePlusMl: b('sharePlusMl', d.sharePlusMl),
     trinkSchritt: b('trinkSchritt', d.trinkSchritt), trinkFaktor: b('trinkFaktor', d.trinkFaktor),
+    trinkMaxStufen: b('trinkMaxStufen', d.trinkMaxStufen),
   };
 }

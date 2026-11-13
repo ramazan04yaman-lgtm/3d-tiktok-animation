@@ -70,14 +70,16 @@ Die Verbrauchswerte hängen von der **gesamten erreichten Followerzahl** ab und 
 | Like | 10 ml + (Anzahl 100er-Meilensteine) × 100 ml | 99 F.: 10 ml · 100 F.: 110 ml · 1.000 F.: 1.010 ml |
 | Kommentar | 0,5 L + (Anzahl 250er-Meilensteine) × 1 L | 250 F.: 1,5 L · 1.000 F.: 4,5 L |
 | Share | 2 L + (Anzahl 500er-Meilensteine) × 4 L | 500 F.: 6 L · 2.000 F.: 18 L |
-| Trinken pro Einwohner/Tag | 10 L × 2 hoch (Anzahl 1.000er-Meilensteine) | 1.000 F.: 20 L · 5.000 F.: 320 L |
+| Trinken pro Einwohner/Tag | 10 L × 2 hoch (Anzahl 1.000er-Meilensteine), **höchstens 10 Verdopplungen** | 1.000 F.: 20 L · 5.000 F.: 320 L · **ab 10.000 F.: 10.240 L (Maximum)** |
 
 - Neue Meilensteine gelten **sofort** (auch für die Likes/Kommentare/Shares und neuen Menschen desselben Eintrags);
   alle Einwohner trinken ab dem nächsten Tag mit der neuen Menge.
 - **Bereits verbrauchtes Wasser wird nie nachträglich verändert** (Tage werden mit der Stufe verbucht, die an dem Tag galt).
 - Spielstände von vor dieser Regel werden automatisch umgestellt: Die Meilensteine gelten ab dem Tag nach dem letzten verbuchten Tag.
 - Rechnung mit BigInt → exakt auch bei riesigen Werten (z. B. 2 hoch 1.000).
-- Spannend: Ab **52.000 Followern** würden die Einwohner das gesamte Wasser an **einem einzigen Tag** austrinken.
+- Ab 10.000 Followern gibt es keine weiteren Verdopplungen: Jeder (auch jeder neue) Einwohner trinkt 10.240 L pro Tag,
+  die Einwohnerzahl wächst aber unbegrenzt weiter.
+- Spannend: Selbst wenn alle 8 Milliarden Menschen folgen würden, reicht das Wasser noch rund **46.353 Jahre**.
 
 **Festgelegte Details** (lassen sich ändern, falls du es anders willst):
 - Ein **Tag** ist ein Kalendertag in **Europe/Berlin** (Mitternacht deutscher Zeit).
@@ -219,7 +221,7 @@ public/assets/      fertige Erd-Daten (Höhen, Masken, Texturen, Städte)
 
 ## 🧪 Tests
 ```bash
-npm test          # 41 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
+npm test          # 42 Tests: Regeln, mehrere Tage, Speicherung, Doppelzählung, große Zahlen …
 npm run typecheck
 ```
 

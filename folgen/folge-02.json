@@ -129,9 +129,9 @@
       ]
     },
     {
-      "text": "Alle tausend Follower {rot:verdoppelt} sich die Trinkmenge jedes Menschen!",
+      "text": "Alle tausend Follower {rot:verdoppelt} sich die Trinkmenge – bis auf {rot:{max_pro_kopf}} pro Kopf!",
       "kamera": "orbit",
-      "min": 3.2,
+      "min": 4.2,
       "sticker": [
         {
           "typ": "schild",
@@ -139,6 +139,13 @@
           "farbe": "rot",
           "y": 15,
           "drehung": -4
+        },
+        {
+          "typ": "schild",
+          "text": "MAXIMUM: 10.240 L PRO TAG",
+          "farbe": "gelb",
+          "y": 22,
+          "drehung": 3
         }
       ]
     },
@@ -196,12 +203,27 @@
       ]
     },
     {
-      "text": "{blau:Zwanzigtausend} Menschen, ein Jahr lang.",
+      "text": "{blau:Zehntausend} Menschen: Jeder trinkt jetzt {rot:10.240 Liter} am Tag.",
       "kamera": "space",
       "uebergang": 2,
       "szenario": {
-        "einwohner": 20000,
+        "einwohner": 10000,
         "tage": 365
+      },
+      "min": 4.6,
+      "sticker": [
+        {
+          "typ": "szenario"
+        }
+      ],
+      "sprache": "Zehntausend Menschen: Jeder trinkt jetzt zehntausendzweihundertvierzig Liter am Tag."
+    },
+    {
+      "text": "{blau:Eine Million} Menschen, zehn Jahre lang.",
+      "kamera": "space",
+      "szenario": {
+        "einwohner": 1000000,
+        "tage": 3650
       },
       "min": 4.2,
       "sticker": [
@@ -211,29 +233,15 @@
       ]
     },
     {
-      "text": "{rot:Achtundvierzigtausend} Menschen, nur einen Tag!",
-      "kamera": "space",
-      "szenario": {
-        "einwohner": 48000,
-        "tage": 1
-      },
-      "min": 4.6,
-      "sticker": [
-        {
-          "typ": "szenario"
-        }
-      ]
-    },
-    {
-      "text": "Und ab {rot:{leer_an_einem_tag} Followern} ist die Erde an einem einzigen Tag {rot:leergetrunken}.",
+      "text": "Und selbst wenn {rot:alle acht Milliarden} Menschen folgen würden …",
       "kamera": "finale",
       "uebergang": 2.4,
       "strohhalm": true,
       "szenario": {
-        "einwohner": 52000,
-        "tage": 1
+        "einwohner": 8000000000,
+        "tage": 365
       },
-      "min": 5,
+      "min": 4.2,
       "effekte": [
         {
           "t": 0.05,
@@ -243,37 +251,55 @@
       "sticker": [
         {
           "typ": "zahl",
-          "label": "ERDE AN 1 TAG LEER AB",
+          "label": "EINWOHNER",
           "von": 0,
-          "bis": "{leer_an_einem_tag}",
+          "bis": "8.000.000.000",
           "farbe": "rot"
         }
       ]
     },
     {
-      "text": "Schaffen wir das? Wie lange brauchen wir bis {rot:{leer_an_einem_tag} Follower}?",
+      "text": "… reicht das Wasser noch {rot:{reicht_bei_8000000000}}.",
       "kamera": "finale",
-      "uebergang": 0,
+      "strohhalm": true,
+      "szenario": {
+        "einwohner": 8000000000,
+        "tage": 365
+      },
+      "min": 3.6,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "⏳ NOCH {reicht_bei_8000000000}",
+          "farbe": "rot",
+          "y": 18,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Also: Wie weit kommen {gelb:wir}?",
+      "kamera": "finale",
       "strohhalm": true,
       "untertitel": false,
-      "min": 4.6,
+      "szenario": {
+        "einwohner": 8000000000,
+        "tage": 365
+      },
+      "min": 2.8,
       "sticker": [
         {
           "typ": "titel",
           "zeilen": [
-            "SCHAFFEN WIR",
-            "{rot:{leer_an_einem_tag}}",
-            "FOLLOWER?"
+            "WIE WEIT",
+            "KOMMEN",
+            "{gelb:WIR?}"
           ]
         }
-      ],
-      "szenario": {
-        "einwohner": 52000,
-        "tage": 1
-      }
+      ]
     },
     {
-      "text": "Folge uns und werde {gruen:Teil des Experiments!} Schreib deine Schätzung in die {blau:Kommentare!}",
+      "text": "Folge uns und werde {gruen:Teil des Experiments!} Schreib in die {blau:Kommentare}, wie viele Follower wir schaffen!",
       "kamera": "finale",
       "strohhalm": true,
       "min": 5,
@@ -283,8 +309,8 @@
         }
       ],
       "szenario": {
-        "einwohner": 52000,
-        "tage": 1
+        "einwohner": 8000000000,
+        "tage": 365
       }
     }
   ]
