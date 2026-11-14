@@ -9,6 +9,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 1. **„Wie funktioniert ein Wasserkocher?“** — `--project kettle`
 2. **„Wie funktioniert eine Kaffeemaschine?“** — `--project espresso`
 3. **„Wie funktioniert eine Mikrowelle?“** — `--project microwave`
+4. **„Wie funktioniert das menschliche Herz?“** — `--project heart`
 
 ```bash
 npm install
@@ -160,3 +161,30 @@ dipoles only partly align and lag behind the field — no free "propeller" rotat
 slowed down by many orders of magnitude. The cavity field is a plausible superposition of two modes, not a
 Maxwell solution; the soup heat map is |E|² sampled along the rotating bowl plus diffusion, scaled to the
 scripted mean temperature. Procedural replacement model.
+
+## Episode 4 — Das menschliche Herz (heart)
+
+| Time | Scene | What happens |
+|---|---|---|
+| 0–5 s | 01 Das Herz | anatomical torso (bust) on a plinth, slow approach to the chest, title |
+| 5–13 s | 02 Das Herz sichtbar machen | skin → x-ray, ribcage fades, beating heart; four-chamber section opens; great vessels, both atria, both ventricles and the valves labelled |
+| 13–25 s | 03 Blut kommt zum Herzen | blue: venae cavae → right atrium → tricuspid valve (opens in diastole) → right ventricle |
+| 25–37 s | 04 Blut zur Lunge | pulmonary valve opens in systole → pulmonary trunk → lungs; magnifier: alveolus + capillary, CO₂ out, O₂ in, red blood cells turn blue → red |
+| 37–48 s | 05 Sauerstoffreiches Blut | red: pulmonary veins → left atrium → mitral valve → left ventricle |
+| 48–56 s | 06 Das Herz pumpt | close-up of the thick left-ventricular wall, aortic valve, aorta; arteries of the trunk light up |
+| 56–60 s | 07 Abschluss | section closes, beating heart in the transparent torso |
+
+How it is built: the heart, lungs and torso are signed-distance models meshed with
+`src/engine/geometry/surfaceNets.ts` (smooth gradient normals, narrow-band evaluation). The heart is modelled in its
+own frame so that one plane is a true four-chamber section (RA, RV, LA, LV, both AV valves, ascending aorta); in the
+chest it is rotated so the apex points left, down and forward. The vessels outside the heart follow the body axes
+(cavae and descending aorta vertical, pulmonary vessels to the hila). The beat is a vertex-shader deformation (AV-plane
+descent, radial squeeze with wall thickening, atrial contraction) — the same function exists in TypeScript for the
+valves and chordae. Cardiac cycle in real time, 60 /min: atrial kick → AV valves close → ejection with semilunar valves
+open → relaxation → AV valves open, filling. Blood particles move only while the corresponding valve is open
+(cumulative flow integrals), so the flow is pulsatile and always in the correct direction.
+
+Simplifications: procedural replacement model, not a licensed medical scan; anatomy simplified (no pericardium,
+no conduction system, coronary vessels only main branches, lung vessel trees procedural). Blue/red is the usual
+colour code for oxygen-poor/-rich blood — real blood is dark to bright red. The gas exchange is strongly magnified and
+slowed down. LV volume in the HUD: typical values (EDV ≈ 120 ml, ESV ≈ 50 ml, stroke volume ≈ 70 ml).
