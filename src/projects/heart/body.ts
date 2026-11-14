@@ -16,7 +16,8 @@ const v3 = (p: readonly number[]) => new THREE.Vector3(p[0], p[1], p[2]);
 
 // ---------------------------------------------------------------------------------------------
 // Torso (anatomical bust: no head, arms cut above the elbow)
-export function sdTorso(x: number, y: number, z: number) {
+/** `full` = no flat cuts at hips/neck/arms (used by the full-figure gut episode). */
+export function sdTorso(x: number, y: number, z: number, full = false) {
   const ax = Math.abs(x);
   let d = sdEllipsoid(x, y, z, [0, 4.15, 0.02], [1.5, 1.45, 1.0]);
   d = smin(d, sdEllipsoid(x, y, z, [0, 2.35, 0.0], [1.22, 1.7, 0.84]), 0.6);
@@ -25,7 +26,7 @@ export function sdTorso(x: number, y: number, z: number) {
   d = smin(d, segDist(ax, y, z, [0.2, 5.05, -0.12], [1.55, 5.1, -0.1]) - 0.5, 0.45);
   d = smin(d, sdEllipsoid(ax, y, z, [1.9, 4.85, -0.05], [0.55, 0.62, 0.55]), 0.3);
   let arm = segDist(ax, y, z, [2.0, 4.6, -0.06], [2.22, 3.2, -0.12]) - 0.46;
-  arm = smax(arm, 3.45 - y, 0.04);
+  if (!full) arm = smax(arm, 3.45 - y, 0.04);
   d = smin(d, arm, 0.18);
   // neck
   d = smin(d, segDist(x, y, z, [0, 5.0, -0.12], [0, 6.4, -0.02]) - 0.5, 0.35);
@@ -41,6 +42,7 @@ export function sdTorso(x: number, y: number, z: number) {
   d += 0.004 * noise3(x * 3, y * 3, z * 3);
   // navel
   d = smax(d, -(len3(x, y - 2.05, z - 0.86) - 0.045), 0.05);
+  if (full) return d;
   // flat cuts: hips & neck
   d = smax(d, 0.02 - y, 0.03);
   d = smax(d, y - 6.3, 0.03);
@@ -75,9 +77,9 @@ export const lungGeometry = () => (_lungs ??= surfaceNets(sdLungs, { min: [-1.55
 // ---------------------------------------------------------------------------------------------
 // Skeleton: ribs, costal cartilage, sternum, clavicles, spine
 /** pull a point towards the body axis until it lies at least `margin` beneath the skin */
-function underSkin(p: THREE.Vector3, margin: number) {
+function underSkin(p: THREE.Vector3, margin: number, full = false) {
   for (let i = 0; i < 60; i++) {
-    const d = sdTorso(p.x, p.y, p.z);
+    const d = sdTorso(p.x, p.y, p.z, full);
     if (d <= -margin) break;
     const dx = p.x,
       dz = p.z + 0.1;
@@ -89,7 +91,8 @@ function underSkin(p: THREE.Vector3, margin: number) {
   return p;
 }
 
-export function skeletonGeometry() {
+/** `spineFrom` skips the lowest vertebrae (replaced by a sacrum in the full figure). */
+export function skeletonGeometry(spineFrom = 0, full = false) {
   const bone: THREE.BufferGeometry[] = [];
   const cart: THREE.BufferGeometry[] = [];
   for (let i = 0; i < 10; i++) {
@@ -106,12 +109,12 @@ export function skeletonGeometry() {
         const u = (k / 24) * tEnd;
         const th = 0.04 + u * Math.PI;
         const y = yBack + 0.05 * Math.sin(u * 4) - drop * u * u;
-        pts.push(underSkin(new THREE.Vector3(side * a * Math.sin(th), y, -b * Math.cos(th) - 0.08), 0.12));
+        pts.push(underSkin(new THREE.Vector3(side * a * Math.sin(th), y, -b * Math.cos(th) - 0.08), 0.12, full));
       }
       if (i < 7) {
         const p0 = pts[pts.length - 1];
-        const ster = underSkin(new THREE.Vector3(side * 0.13, 5.0 - i * 0.2, 0.8), 0.1);
-        cpts.push(p0, underSkin(p0.clone().lerp(ster, 0.5).add(new THREE.Vector3(0, -0.05, 0.05)), 0.1), ster);
+        const ster = underSkin(new THREE.Vector3(side * 0.13, 5.0 - i * 0.2, 0.8), 0.1, full);
+        cpts.push(p0, underSkin(p0.clone().lerp(ster, 0.5).add(new THREE.Vector3(0, -0.05, 0.05)), 0.1, full), ster);
         cart.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(cpts), 12, 0.034, 6));
       }
       bone.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.045 - i * 0.0015, 7));
@@ -125,11 +128,11 @@ export function skeletonGeometry() {
   bone.push(st);
   // clavicles
   for (const side of [-1, 1]) {
-    const c = new THREE.CatmullRomCurve3([[side * 0.16, 5.1, 0.62], [side * 0.6, 5.18, 0.5], [side * 1.1, 5.26, 0.24], [side * 1.45, 5.3, -0.02]].map((q) => underSkin(v3(q), 0.08)), false, 'centripetal');
+    const c = new THREE.CatmullRomCurve3([[side * 0.16, 5.1, 0.62], [side * 0.6, 5.18, 0.5], [side * 1.1, 5.26, 0.24], [side * 1.45, 5.3, -0.02]].map((q) => underSkin(v3(q), 0.08, full)), false, 'centripetal');
     bone.push(new THREE.TubeGeometry(c, 24, 0.055, 7));
   }
   // spine: vertebral bodies + spinous processes
-  for (let i = 0; i < 26; i++) {
+  for (let i = spineFrom; i < 26; i++) {
     const y = 0.35 + i * 0.235;
     const zc = -0.62 - 0.12 * Math.sin(((y - 0.3) / 6) * Math.PI);
     const body = new THREE.CylinderGeometry(0.16, 0.17, 0.17, 12);
