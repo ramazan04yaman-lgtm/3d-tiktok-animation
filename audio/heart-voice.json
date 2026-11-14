@@ -3,15 +3,14 @@
   "video": "out/heart/heart.mp4",
   "output": "out/heart/heart_voice.mp4",
   "loudnessLUFS": -14,
-  "note": "Take is 50.5 s for a 60 s video: sentences are placed per scene; the long scene-2 line and the right-heart lines are sped up slightly (≤ 8 %) so the narration stays in step with the picture.",
+  "note": "Second take (53.4 s, text written for the 60 s cut). Paragraphs placed per scene at natural speed; pauses inside paragraphs kept.",
   "segments": [
-    { "text": "Dein Herz schlägt … wie es eigentlich funktioniert?", "src": [0.0, 7.6], "at": 0.15 },
-    { "text": "Schauen wir hinein: … nur in eine Richtung lassen.", "src": [7.9, 18.15], "at": 7.85, "tempo": 1.08 },
-    { "text": "Sauerstoffarmes Blut … rechte Seite deines Herzens.", "src": [18.4, 24.6], "at": 17.4, "tempo": 1.05 },
-    { "text": "Durch die Trikuspidalklappe … rechte Herzkammer.", "src": [24.75, 29.15], "at": 23.4, "tempo": 1.05 },
-    { "text": "Von dort … neuen Sauerstoff auf.", "src": [29.35, 36.65], "at": 27.7 },
-    { "text": "Das sauerstoffreiche Blut … linken Seite deines Herzens.", "src": [36.88, 41.22], "at": 37.3 },
-    { "text": "Die linke Herzkammer pumpt … gesamten Körper.", "src": [41.36, 46.25], "at": 47.0 },
-    { "text": "Und genau dieser Kreislauf … am Leben.", "src": [46.4, 50.52], "at": 55.4 }
+    { "text": "Dein Herz schlägt … wie es eigentlich funktioniert?", "src": [0.0, 7.95], "at": 0.15 },
+    { "text": "Dein Herz hat vier Kammern – und vier Klappen …", "src": [8.13, 13.33], "at": 8.2 },
+    { "text": "Sauerstoffarmes Blut … rechte Herzkammer.", "src": [13.44, 23.86], "at": 13.5 },
+    { "text": "Von dort … neuen Sauerstoff auf.", "src": [23.98, 32.69], "at": 25.8 },
+    { "text": "Das sauerstoffreiche Blut … linke Herzkammer.", "src": [32.84, 41.06], "at": 36.6 },
+    { "text": "Die linke Herzkammer pumpt … jede Zelle.", "src": [41.25, 49.13], "at": 47.0 },
+    { "text": "Und genau dieser Kreislauf … am Leben.", "src": [49.25, 53.394], "at": 55.4 }
   ]
 }
