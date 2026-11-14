@@ -10,6 +10,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 2. **„Wie funktioniert eine Kaffeemaschine?“** — `--project espresso`
 3. **„Wie funktioniert eine Mikrowelle?“** — `--project microwave`
 4. **„Wie funktioniert das menschliche Herz?“** — `--project heart`
+5. **„Warum und wie furzen Menschen?“** — `--project gut`
 
 ```bash
 npm install
