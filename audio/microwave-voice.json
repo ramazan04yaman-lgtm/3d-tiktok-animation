@@ -1,0 +1,17 @@
+{
+  "source": "audio/voice_felix_microwave.mp3",
+  "video": "out/microwave/microwave.mp4",
+  "output": "out/microwave/microwave_voice.mp4",
+  "loudnessLUFS": -14,
+  "note": "src = [start, end] in the voice file (found via silencedetect), at = start in the video (s), tempo = speed factor (pitch preserved). Scene 2 (5–12 s) has no voice by design.",
+  "segments": [
+    { "text": "Hast du dich jemals gefragt, wie eine Mikrowelle dein Essen in wenigen Sekunden erhitzen kann?", "src": [0.0, 5.2], "at": 0.15, "tempo": 1.04 },
+    { "text": "Im Inneren erzeugt ein Bauteil namens Magnetron elektromagnetische Wellen.", "src": [5.6, 10.5], "at": 12.35 },
+    { "text": "Diese gelangen in den Garraum der Mikrowelle.", "src": [10.8, 13.32], "at": 17.6 },
+    { "text": "Diese Wellen bringen vor allem Wassermoleküle im Lebensmittel dazu, auf das wechselnde elektrische Feld zu reagieren.", "src": [13.65, 20.26], "at": 23.0 },
+    { "text": "Dabei wird Energie aufgenommen und in Wärme umgewandelt.", "src": [20.52, 23.9], "at": 30.2 },
+    { "text": "Der Drehteller sorgt dafür, dass verschiedene Bereiche des Essens den unterschiedlichen Feldstärken ausgesetzt werden.", "src": [24.2, 30.6], "at": 38.3 },
+    { "text": "So wird dein Essen in kurzer Zeit erhitzt, ohne dass ein Herd die Oberfläche direkt berühren muss.", "src": [30.82, 36.45], "at": 48.7 },
+    { "text": "Und das alles passiert mithilfe unsichtbarer elektromagnetischer Wellen.", "src": [36.65, 41.09], "at": 55.6, "tempo": 1.06 }
+  ]
+}
