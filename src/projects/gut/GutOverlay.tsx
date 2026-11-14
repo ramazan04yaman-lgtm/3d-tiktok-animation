@@ -41,10 +41,10 @@ function Meter() {
 export function GutOverlay() {
   return (
     <>
-      <SceneChip timeline={gutTimeline} hideBefore={5} />
+      <SceneChip timeline={gutTimeline} hideBefore={6.2} />
       <IntroTitle title="Darmgase" />
       <Meter />
-      <Captions timeline={gutTimeline} skip={(t) => t < 5} />
+      <Captions timeline={gutTimeline} />
       <Disclaimer text="Vereinfachte 3D-Darstellung · Bakterien, Moleküle & Gasblasen stark vergrößert" />
     </>
   );

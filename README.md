@@ -188,3 +188,21 @@ Simplifications: procedural replacement model, not a licensed medical scan; anat
 no conduction system, coronary vessels only main branches, lung vessel trees procedural). Blue/red is the usual
 colour code for oxygen-poor/-rich blood — real blood is dark to bright red. The gas exchange is strongly magnified and
 slowed down. LV volume in the HUD: typical values (EDV ≈ 120 ml, ESV ≈ 50 ml, stroke volume ≈ 70 ml).
+
+## Episode 5 — Darmgase (gut)
+
+"Warum und wie furzen Menschen?" — 60 s, timed to the narration (`audio/gut-voice.json`, Felix take shortened pauses + 1.12× so the voice fills the full 60 s).
+
+| Zeit | Szene |
+|---|---|
+| 0–6 s | Hook: Oberkörper, Kamera fährt auf den Bauch |
+| 6–12 s | Bauchdecke wird transparent: Magen, Dünndarm, Dickdarm (Haustren, Tänien), Enddarm |
+| 12–24 s | Längsschnitt; verschluckte Luft (Speiseröhre → Magenblase → Dünndarm); Lupe: Bakterien zersetzen Ballaststoffe |
+| 24–39.6 s | Gase H₂ · CO₂ · CH₄ (Kugel-Stab-Moleküle), Schwefelverbindungen < 1 % (H₂S), Peristaltik sammelt Bläschen zu Gasblasen |
+| 39.6–50.5 s | Gasblase wandert ins Rektum; Sagittalschnitt: innerer Schließmuskel öffnet kurz (Abtastreflex), Nerven prüfen, äußerer Schließmuskel entspannt |
+| 50.5–55.6 s | Austritt, Schwingung des Gewebes am Ausgang, Schallwellen |
+| 55.6–60 s | Rückfahrt zur ganzen (transparenten) Figur |
+
+Construction: full-figure mannequin (heart-episode torso + legs, arms, head via Surface Nets), organ tubes with parallel-transport frames (`tube.ts`) and a tissue shader with peristaltic contraction rings, longitudinal section and mucosa back faces (`materials.ts`); gas pockets, bubbles and contents are pure functions of time (`gas.ts`, `Contents.tsx`).
+
+Simplifications: procedural model (no medical scan); small intestine strongly shortened; motility hugely accelerated; bacteria, molecules and bubbles magnified; neutral mannequin without sex characteristics.

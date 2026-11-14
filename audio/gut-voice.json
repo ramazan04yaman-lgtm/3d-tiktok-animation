@@ -1,0 +1,180 @@
+{
+ "source": "audio/voice_felix_gut.mp3",
+ "video": "out/gut/gut.mp4",
+ "output": "out/gut/gut_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take is 70.7 s: pauses shortened (sentence ≈ 0.13 s, paragraph ≈ 0.2 s incl. natural tails) and played at 1.12x so the narration fills the 60 s video.",
+ "segments": [
+  {
+   "text": "Du furzt bis zu 20 Mal am Tag –",
+   "src": [
+    0,
+    2.653
+   ],
+   "at": 0.12,
+   "tempo": 1.12
+  },
+  {
+   "text": "und jedes Mal prüft dein Körper vorher:",
+   "src": [
+    2.94,
+    5.412
+   ],
+   "at": 2.529,
+   "tempo": 1.12
+  },
+  {
+   "text": "Ist das wirklich nur Gas?",
+   "src": [
+    5.587,
+    7.161
+   ],
+   "at": 4.776,
+   "tempo": 1.12
+  },
+  {
+   "text": "Schauen wir in deinen Bauch:",
+   "src": [
+    7.534,
+    9.091
+   ],
+   "at": 6.281,
+   "tempo": 1.12
+  },
+  {
+   "text": "Magen, Dünndarm, Dickdarm und Enddarm …",
+   "src": [
+    9.548,
+    14.191
+   ],
+   "at": 7.711,
+   "tempo": 1.12
+  },
+  {
+   "text": "Ein Teil des Gases ist verschluckte Luft –",
+   "src": [
+    14.435,
+    17.17
+   ],
+   "at": 11.957,
+   "tempo": 1.12
+  },
+  {
+   "text": "beim Essen, Trinken oder Sprechen.",
+   "src": [
+    17.345,
+    19.416
+   ],
+   "at": 14.439,
+   "tempo": 1.12
+  },
+  {
+   "text": "Der größte Teil entsteht aber im Dickdarm.",
+   "src": [
+    19.7,
+    22.609
+   ],
+   "at": 16.328,
+   "tempo": 1.12
+  },
+  {
+   "text": "Dort zersetzen Billionen Bakterien Ballaststoffe …",
+   "src": [
+    22.9,
+    28.548
+   ],
+   "at": 18.965,
+   "tempo": 1.12
+  },
+  {
+   "text": "und produzieren dabei Wasserstoff, CO2 und manchmal Methan.",
+   "src": [
+    28.701,
+    33.711
+   ],
+   "at": 24.048,
+   "tempo": 1.12
+  },
+  {
+   "text": "Die meisten Gase riechen übrigens gar nicht.",
+   "src": [
+    34.164,
+    36.802
+   ],
+   "at": 28.621,
+   "tempo": 1.12
+  },
+  {
+   "text": "Den Geruch machen … schwefelhaltiger Verbindungen.",
+   "src": [
+    36.999,
+    40.742
+   ],
+   "at": 31.017,
+   "tempo": 1.12
+  },
+  {
+   "text": "Wellenartige Darmbewegungen … größeren Blasen.",
+   "src": [
+    41.151,
+    46.995
+   ],
+   "at": 34.399,
+   "tempo": 1.12
+  },
+  {
+   "text": "So erreicht das Gas den Enddarm.",
+   "src": [
+    47.277,
+    49.655
+   ],
+   "at": 39.717,
+   "tempo": 1.12
+  },
+  {
+   "text": "Der innere Schließmuskel öffnet sich kurz, und feine Nerven prüfen:",
+   "src": [
+    49.945,
+    54.37
+   ],
+   "at": 41.88,
+   "tempo": 1.12
+  },
+  {
+   "text": "Gas oder Stuhl?",
+   "src": [
+    54.774,
+    56.123
+   ],
+   "at": 45.871,
+   "tempo": 1.12
+  },
+  {
+   "text": "Entspannst du den äußeren Schließmuskel, entweicht das Gas.",
+   "src": [
+    56.517,
+    60.26
+   ],
+   "at": 47.115,
+   "tempo": 1.12
+  },
+  {
+   "text": "Das Geräusch entsteht … zum Schwingen bringt.",
+   "src": [
+    60.507,
+    66.137
+   ],
+   "at": 50.557,
+   "tempo": 1.12
+  },
+  {
+   "text": "Und genau so befreit sich dein Körper …",
+   "src": [
+    66.351,
+    70.6
+   ],
+   "at": 55.684,
+   "tempo": 1.12
+  }
+ ]
+}
