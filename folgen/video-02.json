@@ -47,7 +47,7 @@
       "effekte": [{ "t": 0.05, "typ": "impact" }],
       "sticker": [{ "typ": "titel", "zeilen": ["WIR BRAUCHEN", "{gruen:MEHR}", "{gruen:EINWOHNER!}"] }] },
     { "text": "Folge uns und werde {gruen:Teil des Experiments!}", "kamera": "hof", "uebergang": 2.4, "min": 3.4,
-      "sticker": [{ "typ": "profil" }] },
+      "sticker": [{ "typ": "profil" }, { "typ": "info", "y": 44, "zeilen": ["💬 SCHREIB IN DIE KOMMENTARE:", "WIE VIELE SIND WIR IN VIDEO 3?"] }] },
     { "text": "Jeder neue Follower bringt einen {gruen:Menschen} auf die Erde!", "kamera": "hof", "min": 4.8,
       "sticker": [{ "typ": "profil" }, { "typ": "info", "y": 44, "zeilen": ["💬 SCHREIB IN DIE KOMMENTARE:", "WIE VIELE SIND WIR IN VIDEO 3?"] }] }
   ]
