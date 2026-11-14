@@ -81,7 +81,8 @@ function Countertop({ size = [30, 22], z = 2 }: { size?: [number, number]; z?: n
   }, []);
   return (
     <mesh position={[0, -0.3, z]} receiveShadow material={mats}>
-      <boxGeometry args={[size[0], 0.6, size[1]]} />
+      {/* subdivided: huge triangles reaching behind the camera get mis-clipped by software WebGL (SwiftShader) */}
+      <boxGeometry args={[size[0], 0.6, size[1], 24, 1, 18]} />
     </mesh>
   );
 }

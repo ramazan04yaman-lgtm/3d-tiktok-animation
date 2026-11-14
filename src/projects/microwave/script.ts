@@ -123,5 +123,4 @@ export const labels = {
   molecules: (t: number) => envelope(t, 26.0, 26.4, 29.2, 29.6),
   field: (t: number) => envelope(t, 29.7, 30.1, 33.0, 33.4),
   hotspots: (t: number) => envelope(t, 34.8, 35.2, 37.6, 38.0),
-  turntable2: (t: number) => envelope(t, 38.6, 39.0, 41.8, 42.2),
 };

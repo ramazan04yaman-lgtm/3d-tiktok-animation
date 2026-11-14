@@ -91,7 +91,6 @@ export function MicrowaveScene() {
       <Label position={[-0.85, 0.95, 0.3]} text="Wassermoleküle" sub="Dipole – vergrößert dargestellt" visible={track.labels.molecules} offset={[40, 160]} accent="#e5484d" />
       <Label position={[-0.85, 0.95, 0.3]} text="Wechselfeld" sub="polt sich 2,45 Mrd.-mal/s um (verlangsamt)" visible={track.labels.field} offset={[40, 160]} />
       <Label position={[-0.35, M.soupY, 0.3]} text="Heiße & kühle Stellen" sub="stehende Wellen, Abstand ≈ 6 cm" visible={track.labels.hotspots} offset={[-80, -300]} accent="#ff7a3a" />
-      <Label position={[-0.6 + 0.9, 0.3, 0.6]} text="Drehteller" sub="≈ 6 Umdrehungen pro Minute" visible={track.labels.turntable2} offset={[-160, 240]} />
     </>
   );
 }
