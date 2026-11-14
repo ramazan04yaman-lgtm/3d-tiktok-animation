@@ -14,9 +14,13 @@ export interface StudioProps {
   surface?: 'floor' | 'counter';
   /** half-extent of the key light's shadow frustum */
   shadowExtent?: [left: number, right: number, top: number, bottom: number];
+  /** fog start/end — larger appliances need the camera further away */
+  fog?: [near: number, far: number];
+  /** countertop size [width, depth] and z centre */
+  counter?: { size: [number, number]; z: number };
 }
 
-export function Studio({ background = '#06070a', floorColor = '#0d0f13', surface = 'floor', shadowExtent = [-3, 3, 4, -2] }: StudioProps) {
+export function Studio({ background = '#06070a', floorColor = '#0d0f13', surface = 'floor', shadowExtent = [-3, 3, 4, -2], fog = [14, 30], counter }: StudioProps) {
   const floorMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -31,7 +35,7 @@ export function Studio({ background = '#06070a', floorColor = '#0d0f13', surface
   return (
     <>
       <color attach="background" args={[background]} />
-      <fog attach="fog" args={[background, 14, 30]} />
+      <fog attach="fog" args={[background, fog[0], fog[1]]} />
       <Environment resolution={256} frames={1}>
         <Lightformer form="rect" intensity={3} position={[0, 6, 2]} rotation-x={Math.PI / 2} scale={[8, 3, 1]} />
         <Lightformer form="rect" intensity={2.2} position={[-6, 2, 1]} rotation-y={Math.PI / 2} scale={[4, 6, 1]} />
@@ -61,14 +65,14 @@ export function Studio({ background = '#06070a', floorColor = '#0d0f13', surface
           <circleGeometry args={[9, 96]} />
         </mesh>
       ) : (
-        <Countertop />
+        <Countertop {...counter} />
       )}
     </>
   );
 }
 
 /** Dark speckled stone worktop (procedural texture), front edge visible, fades into the dark studio. */
-function Countertop() {
+function Countertop({ size = [30, 22], z = 2 }: { size?: [number, number]; z?: number }) {
   const mats = useMemo(() => {
     const map = getStoneTexture();
     const top = new THREE.MeshPhysicalMaterial({ color: '#2a2c31', map, roughness: 0.32, clearcoat: 0.5, clearcoatRoughness: 0.25, metalness: 0.05 });
@@ -76,8 +80,8 @@ function Countertop() {
     return [edge, edge, top, edge, edge, edge];
   }, []);
   return (
-    <mesh position={[0, -0.3, 2]} receiveShadow material={mats}>
-      <boxGeometry args={[30, 0.6, 22]} />
+    <mesh position={[0, -0.3, z]} receiveShadow material={mats}>
+      <boxGeometry args={[size[0], 0.6, size[1]]} />
     </mesh>
   );
 }
