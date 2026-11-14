@@ -12,6 +12,8 @@ export interface Snapshot {
   likes: string;
   comments: string;
   shares: string;
+  /** Speicherungen (kein Wasserverbrauch). */
+  saves: string;
   totalWaterMl: string;
   remainingMl: string;
   totalConsumedMl: string;
@@ -39,6 +41,7 @@ export function toSnapshot(s: SimState, processedAt: Date = new Date()): Snapsho
     likes: s.likes.toString(),
     comments: s.comments.toString(),
     shares: s.shares.toString(),
+    saves: s.saves.toString(),
     totalWaterMl: s.totalWaterMl.toString(),
     remainingMl: s.remainingMl.toString(),
     totalConsumedMl: s.totalConsumedMl.toString(),

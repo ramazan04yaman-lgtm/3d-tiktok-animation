@@ -34,6 +34,7 @@ export class Panel {
         <label>❤️ Likes <input name="likes" inputmode="numeric" placeholder="0"></label>
         <label>💬 Kommentare <input name="comments" inputmode="numeric" placeholder="0"></label>
         <label>🔁 Shares <input name="shares" inputmode="numeric" placeholder="0"></label>
+        <label>🔖 Speicherungen <input name="saves" inputmode="numeric" placeholder="0"></label>
         <label>📅 Datum <input name="day" type="date"></label>
         <label>🏷️ Referenz (optional) <input name="ref" placeholder="z. B. video-07"></label>
         <button type="submit">Eintragen & speichern</button>
@@ -117,10 +118,10 @@ export class Panel {
     try {
       const mode = (this.root.querySelector<HTMLInputElement>('input[name=mode]:checked')!.value) as EntryForm['mode'];
       const f: EntryForm = {
-        mode, followers: num('followers'), likes: num('likes'), comments: num('comments'), shares: num('shares'),
+        mode, followers: num('followers'), likes: num('likes'), comments: num('comments'), shares: num('shares'), saves: num('saves'),
         day: String(fd.get('day') || '') || undefined, ref: String(fd.get('ref') || '') || undefined,
       };
-      if ([f.followers, f.likes, f.comments, f.shares].every((v) => v === undefined)) throw new Error('Bitte mindestens eine Zahl eingeben.');
+      if ([f.followers, f.likes, f.comments, f.shares, f.saves].every((v) => v === undefined)) throw new Error('Bitte mindestens eine Zahl eingeben.');
       await this.run(() => api.add(f), '✅ Gespeichert.');
       form.reset();
     } catch (e) {
@@ -143,7 +144,7 @@ export class Panel {
     if (!day.value) day.placeholder = s.today;
     const log = this.root.querySelector<HTMLElement>('#log')!;
     const rows = [...s.entries].reverse().map((e) => `<div class="entry"><span>${e.day}${e.ref ? ' · ' + e.ref : ''}</span>
-      <span>+${groupDE(e.followers)} 👥 +${groupDE(e.likes)} ❤️ +${groupDE(e.comments)} 💬 +${groupDE(e.shares)} 🔁</span>
+      <span>+${groupDE(e.followers)} 👥 +${groupDE(e.likes)} ❤️ +${groupDE(e.comments)} 💬 +${groupDE(e.shares)} 🔁 +${groupDE(e.saves ?? 0)} 🔖</span>
       <button data-del="${e.id}" title="Löschen">✕</button></div>`);
     log.innerHTML = rows.length ? rows.join('') : '<p class="hint">Noch keine Einträge. Start der Simulation: ' + s.startDay + '</p>';
   }

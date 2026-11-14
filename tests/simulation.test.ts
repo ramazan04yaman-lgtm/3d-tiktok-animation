@@ -100,7 +100,7 @@ test('Ungültige Eingaben werden abgelehnt', () => {
 test('Gesamtstand-Modus: nur echte Zuwächse zählen, Rückgänge nicht doppelt', () => {
   let s = replay('2026-01-01', [], '2026-01-01');
   let r = deltasFromTotals(s, { followers: 500, likes: 1000 });
-  assert.deepEqual(r.deltas, { followers: 500, likes: 1000, comments: 0, shares: 0 });
+  assert.deepEqual(r.deltas, { followers: 500, likes: 1000, comments: 0, shares: 0, saves: 0 });
   const e1 = entry('2026-01-01', { ...r.deltas, reportedTotals: { followers: 500, likes: 1000 } });
   s = replay('2026-01-01', [e1], '2026-01-02');
   r = deltasFromTotals(s, { followers: 480 }); // 20 entfolgt

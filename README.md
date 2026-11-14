@@ -31,10 +31,10 @@ Im Bedienfeld (oder im Terminal):
 npm run sim -- init --start 2026-11-12
 
 # Variante A: NEUE Zahlen seit der letzten Eingabe
-npm run sim -- add --followers 120 --likes 3400 --comments 56 --shares 12 --ref video-01
+npm run sim -- add --followers 120 --likes 3400 --comments 56 --shares 12 --saves 9 --ref video-01
 
 # Variante B: GESAMTSTAND aus der TikTok-App abschreiben (das Programm rechnet die Differenz aus)
-npm run sim -- totals --followers 1520 --likes 48000 --comments 900 --shares 300 --ref video-02
+npm run sim -- totals --followers 1520 --likes 48000 --comments 900 --shares 300 --saves 40 --ref video-02
 
 npm run sim -- status   # aktuellen Stand anzeigen (verbucht alle Tage bis heute)
 npm run sim -- undo     # letzten Eintrag löschen
@@ -44,6 +44,16 @@ npm run sim -- undo     # letzten Eintrag löschen
 > `--ref` (z. B. `video-07`) verhindert, dass dasselbe Video zweimal eingetragen wird.
 
 > ⚠️ Es gibt **keine** Live-Verbindung zu TikTok. Alle Zahlen gibst du selbst ein.
+
+> 🔖 **Speicherungen** (`--saves`) werden gezählt und im Video angezeigt, kosten aber **kein Wasser**.
+
+#### 📒 Echter Verlauf unserer Serie
+| Eintrag | Datum | Follower | Likes | Kommentare | Shares | Speicherungen | Wasser dadurch |
+|---|---|---|---|---|---|---|---|
+| `video-01` | 14.11.2026 | +4 | 4 | 2 | 0 | 2 | 40 ml + 1 L = **1,04 L** (dazu 4 × 10 L Trinken am Ankunftstag) |
+
+Für das nächste Video nur die **neuen** Zahlen eintragen (`add … --ref video-02`) – oder den Gesamtstand aus der App
+(`totals … --ref video-02`): Das Programm zieht die schon gezählten Werte selbst ab.
 
 ### 💾 Dein Spielstand
 Alles steht in **`data/simulation.json`** (wird beim ersten Start angelegt).
@@ -130,9 +140,13 @@ Jede Folge ist eine Datei in **`folgen/`** (Beispiel: `folgen/folge-01.json`). P
 - **Hervorheben:** `*Wort*` = gelb, `{gruen:Wort}`, `{rot:Wort}`, `{blau:Wort}`
 - **Echte Zahlen** (werden automatisch eingesetzt): `{tag}` `{einwohner}` `{follower}` `{neue_follower}` `{pro_tag}`
   `{pro_tag_zahl}` `{verbraucht}` `{verbraucht_zahl}` `{likes}` `{kommentare}` `{shares}` `{reicht}` `{reicht_kurz}`
+  `{speicherungen}` `{neue_likes}` `{neue_kommentare}` `{neue_shares}` `{neue_speicherungen}` `{neue_likes_menge}`
+  `{neue_kommentare_menge}` `{extra_verbrauch}` (Likes+Kommentare+Shares seit dem letzten Video) `{verbraucht_genau}` `{pro_tag_genau}`
 - **Kamera:** `kapitaen` (Moderator im Bild), `space`, `orbit`, `europe`, `africa`, `asia`, `americas`, `australia`,
   `northsea`, `sunda`, `pacific`, `flyover`, `bering`
-- **Sticker:** `tag`, `schild`, `zahl`, `info`, `zeiger` (zeigt auf einen Ort), `namensschild`, `profil`, `statistik`
+- **Sticker:** `tag`, `schild`, `zahl`, `info`, `zeiger` (zeigt auf einen Ort), `namensschild`, `profil`, `statistik`,
+  `zahlen`, `stufen`, `szenario`, `ergebnis` (Ergebnis-Karte: was seit dem letzten Video dazukam)
+- **Kamera `hof`:** die ersten Einwohner (bis 12) zusammen vor ihrem Haus
 - **Weitere Felder:** `"strohhalm": true`, `"aktion": "winken" | "trinken"`, `"wasser": { "von": "jetzt", "bis": 0.5 }`
   (Vorschau, wird als VORSCHAU gekennzeichnet), `"min": 2.5` (Mindestdauer), `"audio": "aufnahmen/satz-03.mp3"`
 
@@ -145,7 +159,8 @@ npm run video -- --folge folge-01            # echte Zahlen
 npm run video -- --folge folge-01 --demo     # Probevideo mit Beispielzahlen
 ```
 Ergebnis: `output/folge-01.mp4` (1080×1920, 30 fps) + `output/folge-01.srt` (Untertitel).
-Optionen: `--musik musik.mp3` (leise im Hintergrund), `--seit 2026-11-12` (für `{neue_follower}`),
+Optionen: `--musik musik.mp3` (leise im Hintergrund), `--seit 2026-11-12` oder `--seit video-01` (Vergleichsstand für `{neue_…}` –
+steht meist schon als `"seit"` im Drehbuch), `--ki-stimme` (Ersatz-Stimme `stimme_ki`, z. B. für eine Vorschau),
 `--hoehe 1280 --fps 24` (kleiner/schneller), `--leicht` (schneller auf Rechnern ohne gute Grafikkarte), `--bis 5` (nur 5 Sekunden testen).
 
 ### 🎙️ Stimme

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type Snapshot, toSnapshot } from '../src/sim/snapshot.ts';
 import type { Folge } from '../src/video/types.ts';
+import { sortEntries } from '../src/sim/simulation.ts';
 import { DEFAULT_PATH, addEntry, computeState, loadOrCreate, newFile, today } from './store.ts';
 
 export const FOLGEN_DIR = path.resolve(import.meta.dirname, '..', 'folgen');
@@ -25,14 +26,28 @@ export function loadFolge(p: string): Folge {
   return f;
 }
 
-/** Echter Stand heute (+ Stand an einem früheren Tag, z. B. letztes Video). */
-export function echteZahlen(file = DEFAULT_PATH, seitTag?: string): { snapshot: Snapshot; seit?: Snapshot } {
+/**
+ * Echter Stand heute (+ Vergleichsstand "seit").
+ * seit = Datum (JJJJ-MM-TT): Stand an diesem Tag.
+ * seit = Referenz eines Eintrags (z. B. "video-01"): Stand direkt VOR diesem Eintrag
+ *        -> so zeigt ein Video genau die Ergebnisse, die mit diesem Eintrag dazukamen.
+ */
+export function echteZahlen(file = DEFAULT_PATH, seit?: string, stichtag?: string): { snapshot: Snapshot; seit?: Snapshot } {
   const f = loadOrCreate(file);
-  const t = today(f);
+  // Stichtag: Stand an einem festen Tag (damit Text, Aufnahme und Zahlen zusammenpassen, egal wann gerendert wird)
+  const t = stichtag ?? today(f);
+  const spaetester = f.entries.reduce((m, e) => (e.day > m ? e.day : m), f.startDay);
+  if (t < spaetester) throw new Error(`Stichtag ${t} liegt vor dem letzten Eintrag (${spaetester}).`);
   const snapshot = toSnapshot(computeState(f, t));
-  if (!seitTag) return { snapshot };
-  const entries = f.entries.filter((e) => e.day <= seitTag);
-  return { snapshot, seit: toSnapshot(computeState({ ...f, entries }, seitTag)) };
+  if (!seit) return { snapshot };
+  const ref = f.entries.find((e) => e.ref === seit);
+  if (ref) {
+    const vorher = sortEntries(f.entries);
+    const entries = vorher.slice(0, vorher.indexOf(ref));
+    return { snapshot, seit: toSnapshot(computeState({ ...f, entries }, ref.day)) };
+  }
+  const entries = f.entries.filter((e) => e.day <= seit);
+  return { snapshot, seit: toSnapshot(computeState({ ...f, entries }, seit)) };
 }
 
 /** BEISPIELZAHLEN für Probevideos: Tag 1 – genau 1 Einwohner (wie beim echten Start). */

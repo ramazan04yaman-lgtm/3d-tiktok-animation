@@ -23,13 +23,25 @@ export function mlToLitersExact(ml: bigint): string {
 /** Wissenschaftliche Schreibweise: 1386000000000000000000 -> "1,386 × 10²¹" */
 export function sci(n: bigint, digits = 4): string {
   if (n === 0n) return '0';
-  const s = (n < 0n ? -n : n).toString();
-  const exp = s.length - 1;
+  let s = (n < 0n ? -n : n).toString();
+  let exp = s.length - 1;
+  // kaufmännisch runden (sonst würde 1,38599… als "1,385" erscheinen, obwohl erst 41 L fehlen)
+  if (s.length > digits) {
+    const kopf = BigInt(s.slice(0, digits)) + (Number(s[digits]) >= 5 ? 1n : 0n);
+    const k = kopf.toString();
+    if (k.length > digits) exp += 1;
+    s = k.slice(0, digits);
+  }
   let mant = s[0];
   const rest = s.slice(1, digits).replace(/0+$/, '');
   if (rest) mant += ',' + rest;
   const e = String(exp).split('').map((c) => SUP[c]).join('');
   return (n < 0n ? '-' : '') + `${mant} × 10${e}`;
+}
+
+/** Ganze Liter exakt mit Tausenderpunkten (auch riesige Zahlen), z. B. für "noch übrig". */
+export function litersExactLong(ml: bigint): string {
+  return mlToLitersExact(ml) + ' L';
 }
 
 /** Liter-Anzeige: bis 1 Billion ausgeschrieben, darüber wissenschaftlich. */
@@ -41,6 +53,7 @@ export function formatLiters(ml: bigint): string {
 
 /** Kleine Mengen: 110 ml / 1,5 L / 20 L; große Mengen wie formatLiters. */
 export function formatMenge(ml: bigint): string {
+  if (ml === 0n) return '0 L';
   if (ml < ML_PER_LITER) return `${ml} ml`;
   return formatLiters(ml);
 }

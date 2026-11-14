@@ -4,7 +4,7 @@
  * Läuft im Browser (Vorschau) und in Node (Video-Renderer).
  */
 import { ML_PER_LITER } from '../sim/config.ts';
-import { formatDuration, groupDE } from '../sim/format.ts';
+import { formatDuration, formatLiters, groupDE } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
 import { DEFAULT_CONFIG } from '../sim/config.ts';
 import { formatMenge, percentExact } from '../sim/format.ts';
@@ -56,7 +56,44 @@ export function platzhalter(s: Snapshot, seit?: Snapshot): Record<string, string
     naechste_belohnung: naechsteText(s.naechste[0]),
     leer_an_einem_tag: groupDE(leerAnEinemTag(s)),
     max_pro_kopf: formatMenge(stufeFuer(10n ** 12n, DEFAULT_CONFIG).trinkMl),
+    // Neu seit dem letzten Video (Vergleichsstand "seit")
+    neue_likes: groupDE(B(s.likes) - B(seit?.likes ?? '0')),
+    neue_kommentare: groupDE(B(s.comments) - B(seit?.comments ?? '0')),
+    neue_shares: groupDE(B(s.shares) - B(seit?.shares ?? '0')),
+    neue_speicherungen: groupDE(B(s.saves ?? '0') - B(seit?.saves ?? '0')),
+    speicherungen: groupDE(B(s.saves ?? '0')),
+    /** Zusätzlicher Verbrauch durch Likes, Kommentare und Shares seit dem letzten Video (exakt). */
+    extra_verbrauch: formatMenge(extraSeit(s, seit)),
+    /** Zusätzlicher Verbrauch durch Likes, Kommentare und Shares insgesamt (exakt). */
+    extra_gesamt: formatMenge(extraSeit(s)),
+    neue_likes_menge: formatMenge(B(s.consumedMl.likes) - B(seit?.consumedMl.likes ?? '0')),
+    neue_kommentare_menge: formatMenge(B(s.consumedMl.comments) - B(seit?.consumedMl.comments ?? '0')),
+    neue_shares_menge: formatMenge(B(s.consumedMl.shares) - B(seit?.consumedMl.shares ?? '0')),
+    verbraucht_genau: formatLiters(B(s.totalConsumedMl)),
+    pro_tag_genau: formatLiters(B(s.dailyMl)),
     __rest: s.remainingMl,
+  };
+}
+
+/** Wasser durch Likes + Kommentare + Shares (ml) seit dem Vergleichsstand. */
+export function extraSeit(s: Snapshot, seit?: Snapshot): bigint {
+  const sum = (x?: Snapshot) => x ? B(x.consumedMl.likes) + B(x.consumedMl.comments) + B(x.consumedMl.shares) : 0n;
+  return sum(s) - sum(seit);
+}
+
+/** Zeilen der Ergebnis-Karte: was seit dem letzten Video dazukam (alles exakt aus dem Logbuch). */
+export function ergebnisDaten(s: Snapshot, seit?: Snapshot): { zeilen: { ico: string; label: string; anzahl: string; menge: string; leise?: boolean }[]; summe: string } {
+  const d = (k: 'followers' | 'likes' | 'comments' | 'shares' | 'saves') => B(s[k] ?? '0') - B(seit?.[k] ?? '0');
+  const ml = (k: 'likes' | 'comments' | 'shares') => B(s.consumedMl[k]) - B(seit?.consumedMl[k] ?? '0');
+  return {
+    zeilen: [
+      { ico: '👥', label: 'NEUE FOLLOWER', anzahl: '+' + groupDE(d('followers')), menge: `= +${groupDE(d('followers'))} 🧍` },
+      { ico: '❤️', label: 'LIKES', anzahl: groupDE(d('likes')), menge: formatMenge(ml('likes')) },
+      { ico: '💬', label: 'KOMMENTARE', anzahl: groupDE(d('comments')), menge: formatMenge(ml('comments')) },
+      { ico: '🔁', label: 'SHARES', anzahl: groupDE(d('shares')), menge: formatMenge(ml('shares')) },
+      { ico: '🔖', label: 'SPEICHERUNGEN', anzahl: groupDE(d('saves')), menge: 'KEIN WASSER', leise: true },
+    ],
+    summe: formatMenge(extraSeit(s, seit)),
   };
 }
 
@@ -223,6 +260,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }
     const von = conv(b.wasser?.von, b.szenario ? prevDrain : bis);
     const sticker: Sticker[] = (b.sticker ?? []).map((s) => {
       const f = fillSticker(s, p);
+      if (f.typ === 'ergebnis') return { ...f, ...ergebnisDaten(snapshot, seit) };
       if (f.typ === 'szenario' && b.szenario && sz) {
         return { typ: 'szenario', zeilen: [
           `${kurzZahl(b.szenario.einwohner)} MENSCHEN · ${kurzDauer(b.szenario.tage)}`,
@@ -244,14 +282,14 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }
       if (s.typ === 'zahl' && typeof s.bis !== 'string' || s.typ === 'zahl' && /^[\d.]+$/.test(String(s.bis))) {
         for (let q = 0; q < 14; q++) ev(at + 0.2 + q * 0.09, 'tick', 0.6);
         ev(at + 1.5, 'ding');
-      } else if (s.typ === 'zahlen') {
+      } else if (s.typ === 'zahlen' || s.typ === 'ergebnis') {
         ev(at, 'whoosh', 0.6); for (let q = 0; q < 7; q++) ev(at + 0.15 + q * 0.12, 'pop', 0.6);
       } else ev(at, 'pop');
     });
     if (b.szenario) { ev(t + 0.1, 'drop', 0.8); ev(t + 0.6, 'drop', 0.6); }
     if (kamera === 'ozean' && (b.uebergang ?? 0) > 0) ev(t + 0.3, 'welle', 0.7);
     if (sticker.some((s) => s.typ === 'stufen')) ev(t + 0.4, 'fanfare', 0.8);
-    if (b.aktion === 'trinken' || kamera === 'einwohner1' || kamera === 'gruppe') ev(t + Math.min(1.2, dauer * 0.4), 'gulp', 0.7);
+    if (b.aktion === 'trinken' || kamera === 'einwohner1' || kamera === 'hof' || kamera === 'gruppe') ev(t + Math.min(1.2, dauer * 0.4), 'gulp', 0.7);
     for (const e of b.effekte ?? []) ev(t + e.t, e.typ);
     if (b.musik) musik.push({ start: t, typ: b.musik });
     beats.push({

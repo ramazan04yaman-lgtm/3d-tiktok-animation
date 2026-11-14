@@ -14,7 +14,7 @@ import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
 import { type Diorama, createDiorama } from './diorama.ts';
 import { SHOTS } from './camera.ts';
-import { People } from './people.ts';
+import { HOF_EINHEIT, People } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
 export class EarthScene {
@@ -121,7 +121,7 @@ export class EarthScene {
   }
 
   /** Maßstab der Nahaufnahmen: 1 Umgebungs-Einheit = 1 Figuren-Einheit (Szeneneinheiten). */
-  static HOF_K = 0.0006;
+  static HOF_K = HOF_EINHEIT;
   static DORF_K = 0.00042;
 
   /** Umgebung auf die Erde setzen (über dem höchsten Gelände, damit nichts durchschaut). */
@@ -144,6 +144,9 @@ export class EarthScene {
     // Kamera ca. 5 Einheiten hoch, 9 Einheiten südlich – Blick auf Mensch Nr. 1 vor seinem Haus
     SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 2.3 * k, tilt: (4.6 * k) * 180 / Math.PI,
       focus: r + 0.7 * k, figur: k, spin: 0.002 };
+    // Etwas weiter weg: die ersten Einwohner (Gründer) zusammen vor dem Haus
+    SHOTS.hof = { label: `🏠 Die ersten Einwohner (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 5.2 * k, tilt: (9.6 * k) * 180 / Math.PI,
+      focus: r + 0.75 * k, figur: k };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */

@@ -1,0 +1,101 @@
+{
+  "format": "erde-austrinken/v1",
+  "config": {
+    "totalWaterMl": "1386000000000000000000000",
+    "mlPerPersonPerDay": "10000",
+    "mlPerLike": "10",
+    "mlPerComment": "500",
+    "mlPerShare": "2000",
+    "timeZone": "Europe/Berlin",
+    "regelVersion": 2,
+    "meilensteine": {
+      "abTag": null,
+      "likeSchritt": "100",
+      "likePlusMl": "100",
+      "kommentarSchritt": "250",
+      "kommentarPlusMl": "1000",
+      "shareSchritt": "500",
+      "sharePlusMl": "4000",
+      "trinkSchritt": "1000",
+      "trinkFaktor": "2",
+      "trinkMaxStufen": "10",
+      "trinkSchritt2": "10000"
+    }
+  },
+  "startDay": "2026-11-14",
+  "entries": [
+    {
+      "id": "22b1802a-a3a9-4779-ae07-916f5d7bee94",
+      "day": "2026-11-14",
+      "createdAt": "2026-11-14T12:20:21.019Z",
+      "followers": 4,
+      "likes": 4,
+      "comments": 2,
+      "shares": 0,
+      "saves": 2,
+      "ref": "video-01",
+      "note": "Ergebnisse Video 1 (erstes veröffentlichtes TikTok)"
+    }
+  ],
+  "lastProcessedDay": "2026-11-14",
+  "lastProcessedAt": "2026-11-14T12:20:21.030Z",
+  "snapshot": {
+    "startDay": "2026-11-14",
+    "lastProcessedDay": "2026-11-14",
+    "lastProcessedAt": "2026-11-14T12:20:21.030Z",
+    "daysProcessed": 1,
+    "followers": "4",
+    "population": "4",
+    "likes": "4",
+    "comments": "2",
+    "shares": "0",
+    "saves": "2",
+    "totalWaterMl": "1386000000000000000000000",
+    "remainingMl": "1385999999999999999958960",
+    "totalConsumedMl": "41040",
+    "dailyMl": "40000",
+    "consumedMl": {
+      "drinking": "40000",
+      "likes": "40",
+      "comments": "1000",
+      "shares": "0"
+    },
+    "daysUntilEmpty": "34649999999999999999",
+    "depletedOnDay": null,
+    "entryCount": 1,
+    "stufe": {
+      "likeMl": "10",
+      "kommentarMl": "500",
+      "shareMl": "2000",
+      "trinkMl": "10000",
+      "meilensteine": {
+        "like": "0",
+        "kommentar": "0",
+        "share": "0",
+        "trinken": "0"
+      }
+    },
+    "naechste": [
+      {
+        "regel": "like",
+        "follower": "100",
+        "neuMl": "110"
+      },
+      {
+        "regel": "kommentar",
+        "follower": "250",
+        "neuMl": "1500"
+      },
+      {
+        "regel": "share",
+        "follower": "500",
+        "neuMl": "6000"
+      },
+      {
+        "regel": "trinken",
+        "follower": "1000",
+        "neuMl": "20000"
+      }
+    ]
+  }
+}

@@ -16,6 +16,23 @@ import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
 export const MAX_FIGURES = 4000;
 /** Höchstens so viele Figuren in voller Detailstufe gleichzeitig. */
 export const NAH_MAX = 400;
+/** Maßstab des Hofs (1 Umgebungs-Einheit in Szeneneinheiten) – gleicher Wert wie EarthScene.HOF_K. */
+export const HOF_EINHEIT = 0.0006;
+/**
+ * Die ersten Einwohner ("Gründer") wohnen zusammen auf dem Hof von Mensch Nr. 1.
+ * Solange es höchstens GRUENDER Menschen gibt, stehen alle nebeneinander vor dem Haus
+ * (Reihen zu je 4, mittig um den Hof). Erst danach verteilen sich die Menschen auf die Städte der Welt.
+ */
+export const GRUENDER = 12;
+/** Platz in Hof-Einheiten (x = Osten, z = Süden/zur Kamera) für Gründer i von n. */
+export function gruenderPlatz(i: number, n: number): [number, number] {
+  if (n === 1) return [0, 0];
+  // Hochformat: schmale Reihen (2 bzw. 3 Personen), hintere Reihe enger -> alle Gesichter sichtbar
+  const proReihe = n <= 4 ? 2 : 3, reihe = Math.floor(i / proReihe), reihen = Math.ceil(n / proReihe);
+  const inReihe = Math.min(proReihe, n - reihe * proReihe), j = i % proReihe;
+  const abstand = reihen === 1 ? 1.4 : 1.2 + (reihe / (reihen - 1)) * 1.3;   // vordere Reihe breiter
+  return [(j - (inReihe - 1) / 2) * abstand + 0.15, (reihe - (reihen - 1) / 2) * 1.35];
+}
 
 interface Person {
   lat: number; lon: number; city: string;
@@ -63,6 +80,11 @@ export class People {
   }
 
   private makePerson(i: number): Person {
+    if (i > 0 && i < GRUENDER) {
+      // Gründer: neben Mensch Nr. 1 auf dem Hof
+      const p0 = this.persons[0] ?? this.makePerson(0);
+      return { ...p0, base: p0.base.clone(), phase: hash(i * 19) * 10, drinkEvery: 3 + hash(i * 23) * 5 };
+    }
     const r = hash(i * 7 + 3) * this.cumWeights[this.cumWeights.length - 1];
     let lo = 0, hi = this.cumWeights.length - 1;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (this.cumWeights[mid] < r) lo = mid + 1; else hi = mid; }
@@ -142,15 +164,21 @@ export class People {
       const walking = tc < 4;
       const walkT = Math.floor((time + p.phase * 3) / cyc) * 4 + Math.min(tc, 4);  // nur Laufzeit zählt für den Weg
       const a = p.angle + walkT * p.speed / p.radius;
-      const r = p.radius * Math.min(s, 0.0009) * (this.shown === 1 ? (this.nah ? 0.08 : 0.6) : 2.2);
+      const r = p.radius * Math.min(s, 0.0009) * (this.shown <= GRUENDER ? (this.nah ? 0.08 : 0.6) : 2.2);
       tmp.copy(p.base);
-      for (const pl of this.platforms) if (pl.active && p.up.dot(pl.up) > pl.cosR) tmp.copy(p.up).multiplyScalar(pl.r);
+      if (this.shown <= GRUENDER && i < GRUENDER) {
+        // Gründer nebeneinander vor dem Haus
+        const [x, z] = gruenderPlatz(i, this.shown);
+        tmp.addScaledVector(p.east, x * HOF_EINHEIT).addScaledVector(p.north, -z * HOF_EINHEIT);
+      }
+      // auf einer Plattform: gleiche Richtung, aber auf deren Höhe (Gründer behalten so ihren Platz nebeneinander)
+      for (const pl of this.platforms) if (pl.active && p.up.dot(pl.up) > pl.cosR) tmp.setLength(pl.r);
       tmp.addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
       const step = time * 7 + p.phase;
       if (walking) tmp.addScaledVector(p.up, Math.abs(Math.sin(step)) * 0.06 * s);
       fwd.copy(p.east).multiplyScalar(-Math.sin(a) * Math.sign(p.speed)).addScaledVector(p.north, Math.cos(a) * Math.sign(p.speed));
-      // Solo-Auftritt (nur 1 Einwohner, Nahaufnahme): schaut zur Kamera
-      const solo = this.nah && this.shown === 1;
+      // Solo-/Gründer-Auftritt (nur wenige Einwohner auf dem Hof, Nahaufnahme): schauen zur Kamera
+      const solo = this.nah && this.shown <= GRUENDER;
       if (solo) {
         fwd.copy(this.kamera).sub(tmp);
         fwd.addScaledVector(p.up, -fwd.dot(p.up)).normalize();
@@ -161,7 +189,7 @@ export class People {
       const pose: Pose = { legL: 0, legR: 0, armL: 0, armR: 0, liftL: 0, liftR: 0, drink: 0, headTilt: 0, bodyLean: 0 };
       if (solo) {
         // vor dem Haus: trinken, winken, kurz wippen
-        const z = ((time + 0.5) % 5.2 + 5.2) % 5.2;
+        const z = ((time + 0.5 + i * 1.7) % 5.2 + 5.2) % 5.2;   // jeder mit eigenem Rhythmus
         if (z < 2.2) { const k = Math.sin((z / 2.2) * Math.PI); pose.drink = Math.min(1, k * 1.5); pose.headTilt = k * 0.35; }
         else if (z < 3.6) { const k = Math.sin(((z - 2.2) / 1.4) * Math.PI); pose.liftL = k * 0.95; pose.armL = Math.sin(time * 14) * 0.25 * k; }
         else { pose.bodyLean = Math.sin(time * 6) * 0.05; pose.armL = Math.sin(time * 6) * 0.1; pose.armR = -Math.sin(time * 6) * 0.1; }

@@ -2,7 +2,7 @@
  * Kommandozeilen-Werkzeug für die Simulation.
  *
  *   npm run sim -- status
- *   npm run sim -- add --followers 120 --likes 3400 --comments 56 --shares 12 [--day 2026-11-12] [--ref video-01]
+ *   npm run sim -- add --followers 120 --likes 3400 --comments 56 --shares 12 --saves 5 [--day 2026-11-12] [--ref video-01]
  *   npm run sim -- totals --followers 1520 --likes 48000 --comments 900 --shares 300   (Gesamtstand aus TikTok)
  *   npm run sim -- sync         (alle Tage bis heute verbuchen und speichern)
  *   npm run sim -- undo         (letzten Eintrag löschen)
@@ -47,6 +47,7 @@ function printStatus(): void {
   line('  davon Likes', `${formatLiters(s.consumed.likes)}  (${groupDE(s.likes)} Likes)`);
   line('  davon Kommentare', `${formatLiters(s.consumed.comments)}  (${groupDE(s.comments)} Kommentare)`);
   line('  davon Shares', `${formatLiters(s.consumed.shares)}  (${groupDE(s.shares)} Shares)`);
+  line('Speicherungen', `${groupDE(s.saves)}  (kein Wasserverbrauch)`);
   line('Follower gesamt', groupDE(s.followers));
   line('Einwohner gesamt', groupDE(s.population));
   line('Täglicher Trinkverbrauch', formatLiters(s.dailyMl) + ' / Tag');
@@ -79,13 +80,13 @@ try {
       const f = loadOrCreate(file);
       const r = addEntry(f, {
         mode: cmd === 'add' ? 'new' : 'totals',
-        followers: num('followers'), likes: num('likes'), comments: num('comments'), shares: num('shares'),
+        followers: num('followers'), likes: num('likes'), comments: num('comments'), shares: num('shares'), saves: num('saves'),
         day: opts.day, ref: opts.ref, note: opts.note,
       });
       saveFile(r.file, file);
       const e = r.entry;
       console.log(`✅ Eingetragen für ${e.day}: +${groupDE(e.followers)} Follower, +${groupDE(e.likes)} Likes, ` +
-        `+${groupDE(e.comments)} Kommentare, +${groupDE(e.shares)} Shares`);
+        `+${groupDE(e.comments)} Kommentare, +${groupDE(e.shares)} Shares, +${groupDE(e.saves ?? 0)} Speicherungen`);
       r.warnings.forEach((w) => console.log('⚠️  ' + w));
       printStatus(); break;
     }

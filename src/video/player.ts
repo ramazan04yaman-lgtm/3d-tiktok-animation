@@ -6,8 +6,7 @@
 import * as THREE from 'three';
 import type { EarthScene } from '../earth/scene.ts';
 import { latLonToVec3 } from '../earth/geo.ts';
-import { ML_PER_LITER } from '../sim/config.ts';
-import { formatLiters, formatMenge, groupDE, percentExact, sci } from '../sim/format.ts';
+import { formatLiters, formatMenge, groupDE, mlToLitersExact, percentExact } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
 import { naechsteText, parseWords } from './script.ts';
 import { statistikHTML } from '../ui/hud.ts';
@@ -27,6 +26,9 @@ function parseNum(v: string | number | undefined): number {
 
 export class StoryPlayer {
   private beatIndex = -1;
+  /** Gleiche Sticker in aufeinanderfolgenden Sätzen bleiben einfach stehen (kein erneutes Einblenden). */
+  private stickerKey = '';
+  private stickerStart = 0;
   private layer: HTMLElement;
   private captionEl: HTMLElement;
   private stickerEl: HTMLElement;
@@ -64,7 +66,11 @@ export class StoryPlayer {
       if (shot === 'gruppe') this.scene.updateGroupShot();
       this.scene.setFreeCamera(false);
       this.scene.director.setShot(shot, beat.start, beat.uebergang > 0 ? beat.uebergang : 0.0001);
-      this.stickerEl.innerHTML = beat.sticker.map((s, k) => this.stickerHTML(s, k)).join('');
+      const key = JSON.stringify(beat.sticker);
+      if (key !== this.stickerKey || !beat.sticker.length) {
+        this.stickerKey = key; this.stickerStart = beat.start;
+        this.stickerEl.innerHTML = beat.sticker.map((s, k) => this.stickerHTML(s, k)).join('');
+      }
     }
     const local = t - beat.start;
     // Wasserstand
@@ -79,7 +85,7 @@ export class StoryPlayer {
     this.scene.mascot.waving = beat.aktion === 'winken';
     this.scene.mascot.drinking = beat.aktion === 'trinken';
     this.scene.strawVisible = beat.strohhalm;
-    this.animateStickers(beat, local);
+    this.animateStickers(beat, t - this.stickerStart);
     this.updateCaption(t);
   }
 
@@ -118,6 +124,9 @@ export class StoryPlayer {
         (s.zeilen ?? []).map((z, i) => `<div class="sz-z sz-${i}">${esc(z)}</div>`).join('')}</div>`;
       case 'zahlen': return this.zahlenHTML(id);
       case 'stufen': return this.stufenHTML(id);
+      case 'ergebnis': return `<div class="st st-ergebnis" ${id}><div class="eg-kopf">${esc(s.titel ?? '📊 ERGEBNIS AUS VIDEO 1')}</div>${
+        (s.zeilen ?? []).map((z) => `<div class="eg-z${z.leise ? ' leise' : ''}"><span class="eg-i">${z.ico}</span><span class="eg-l">${esc(z.label)}</span><b class="eg-n">${esc(z.anzahl)}</b><span class="eg-m">${esc(z.menge)}</span></div>`).join('')}
+        <div class="eg-sum"><span>💧 EXTRA-VERBRAUCH</span><b>${esc(s.summe ?? '')}</b></div></div>`;
     }
   }
 
@@ -145,15 +154,16 @@ export class StoryPlayer {
     const kachel = (ico: string, lbl: string, val: string, cls = '', anim?: string) =>
       `<div class="zk ${cls}"><small>${ico} ${lbl}</small><b ${anim ? `data-count="${anim}"` : ''}>${esc(val)}</b></div>`;
     return `<div class="st st-zahlen" ${id}>
-      <div class="zk-kopf">💧 DER STAND HEUTE</div>
+      <div class="zk-kopf">💧 STAND ${esc(s.lastProcessedDay.split('-').reverse().join('.'))}</div>
       ${kachel('👥', 'EINWOHNER', groupDE(B(s.population)), 'gross gruen', s.population)}
       ${kachel('🥤', 'VERBRAUCH PRO TAG', formatLiters(B(s.dailyMl)), 'gross blau')}
       ${kachel('🚰', 'SCHON AUSGETRUNKEN', formatLiters(B(s.totalConsumedMl)), 'breit')}
-      ${kachel('🌊', 'NOCH ÜBRIG', sci(B(s.remainingMl) / ML_PER_LITER) + ' L', 'breit')}
+      ${kachel('🌊', 'NOCH ÜBRIG (EXAKT)', mlToLitersExact(B(s.remainingMl)) + ' L', 'breit lang')}
       <div class="zk-pct">${percentExact(B(s.remainingMl), B(s.totalWaterMl), 14)} % übrig</div>
-      ${kachel('❤️', 'LIKES', formatLiters(B(s.consumedMl.likes)), 'klein')}
-      ${kachel('💬', 'KOMMENTARE', formatLiters(B(s.consumedMl.comments)), 'klein')}
-      ${kachel('🔁', 'SHARES', formatLiters(B(s.consumedMl.shares)), 'klein')}
+      ${kachel('❤️', `${groupDE(B(s.likes))} LIKES`, formatMenge(B(s.consumedMl.likes)), 'klein')}
+      ${kachel('💬', `${groupDE(B(s.comments))} KOMM.`, formatMenge(B(s.consumedMl.comments)), 'klein')}
+      ${kachel('🔁', `${groupDE(B(s.shares))} SHARES`, formatMenge(B(s.consumedMl.shares)), 'klein')}
+      ${kachel('🔖', `${groupDE(B(s.saves ?? '0'))} GESPEICH.`, '0 L', 'klein')}
     </div>`;
   }
 
@@ -193,9 +203,9 @@ export class StoryPlayer {
         }
         if (n.textContent !== txt) n.textContent = txt;
       }
-      if (s.typ === 'titel' || s.typ === 'zahlen' || s.typ === 'szenario' || s.typ === 'stufen') {
+      if (s.typ === 'titel' || s.typ === 'zahlen' || s.typ === 'szenario' || s.typ === 'stufen' || s.typ === 'ergebnis') {
         // Zeilen/Kacheln nacheinander einblenden
-        el.querySelectorAll<HTMLElement>('.tz, .zk, .zk-pct, .sz-z, .sf-z, .sf-next, .sf-weg').forEach((z, j) => {
+        el.querySelectorAll<HTMLElement>('.tz, .zk, .zk-pct, .sz-z, .sf-z, .sf-next, .sf-weg, .eg-z, .eg-sum').forEach((z, j) => {
           const q = easeOutBack(clamp01((local - delay - 0.12 - j * 0.13) / 0.32));
           z.style.transform = `scale(${q})`; z.style.opacity = q > 0.02 ? '1' : '0';
         });

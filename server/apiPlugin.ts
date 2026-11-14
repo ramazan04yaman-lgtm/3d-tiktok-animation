@@ -53,7 +53,7 @@ export function simulationApi(file = DEFAULT_PATH): Plugin {
             if (req.method === 'GET' && url.startsWith('/timeline')) {
               const q = new URL(url, 'http://x').searchParams;
               const folge = loadFolge(folgenPfad(q.get('folge') ?? ''));
-              const z = echteZahlen(file, q.get('seit') ?? undefined);
+              const z = echteZahlen(file, q.get('seit') ?? folge.seit, folge.stichtag);
               return send(res, 200, { timeline: buildTimeline({ folge, ...z }), snapshot: z.snapshot });
             }
             if (req.method === 'POST' && url === '/entries') {

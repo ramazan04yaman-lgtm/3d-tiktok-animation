@@ -13,7 +13,7 @@ export interface ApiState {
 
 export interface EntryForm {
   mode: 'new' | 'totals';
-  followers?: number; likes?: number; comments?: number; shares?: number;
+  followers?: number; likes?: number; comments?: number; shares?: number; saves?: number;
   day?: string; ref?: string; note?: string;
 }
 

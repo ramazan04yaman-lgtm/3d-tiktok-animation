@@ -4,6 +4,7 @@
  *   npm run video -- --folge folge-01                 (echte Zahlen aus data/simulation.json)
  *   npm run video -- --folge folge-01 --demo          (Probevideo mit Beispielzahlen)
  *   npm run video -- --folge folge-01 --aufnahme meine-stimme.m4a   (DEINE Stimme am Stück)
+ *   --ki-stimme: Ersatz-Stimme aus "stimme_ki" (z. B. für eine Vorschau, solange die Aufnahme fehlt)
  *   Optionen: --leicht (schneller, für Rechner ohne Grafikkarte) --hoehe 1920 --fps 30 --seit 2026-11-12 --musik pfad.mp3 --bis 5 (nur die ersten 5 s)
  *
  * Ablauf: 1) Stimme je Satz erzeugen (oder eigene Aufnahme)  2) Zeitleiste berechnen
@@ -34,13 +35,13 @@ const out = path.resolve(args.out ?? path.join(outDir, `${name}${args.demo ? '-p
 
 const folgePfad = folgenPfad(name);
 const folge = loadFolge(folgePfad);
-const zahlen = args.demo ? beispielZahlen(new Date(), Number(args.demo) || 1) : echteZahlen(undefined, args.seit);
+const zahlen = args.demo ? beispielZahlen(new Date(), Number(args.demo) || 1) : echteZahlen(undefined, args.seit ?? folge.seit, args.stichtag ?? folge.stichtag);
 const p = platzhalter(zahlen.snapshot, zahlen.seit);
 const sec = (f: string) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString());
 
 // ---------- 1. Stimme ----------
 console.log(`🎙️  Stimme für ${folge.beats.length} Sätze …`);
-const stimme = args['ohne-stimme'] ? { typ: 'keine' as const } : args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'piper' as const };
+const stimme = args['ohne-stimme'] ? { typ: 'keine' as const } : args['ki-stimme'] && folge.stimme_ki ? folge.stimme_ki : args.aufnahme ? { typ: 'aufnahme' as const, datei: args.aufnahme } : folge.stimme ?? { typ: 'piper' as const };
 const audioFiles: (string | undefined)[] = [];
 const dauer: (number | undefined)[] = [];
 /** Text für die Stimme: ohne Emojis/Markierungen, Tausenderpunkte weg. */

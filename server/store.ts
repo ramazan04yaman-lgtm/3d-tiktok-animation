@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type SimConfigJSON, configFromJSON, configToJSON, DEFAULT_CONFIG } from '../src/sim/config.ts';
 import { type Day, addDays, assertDay, todayIn } from '../src/sim/days.ts';
-import { type Counts, type Entry, type SimState, deltasFromTotals, replay } from '../src/sim/simulation.ts';
+import { type Counts, type Entry, KEYS, type SimState, deltasFromTotals, replay } from '../src/sim/simulation.ts';
 import { type Snapshot, toSnapshot } from '../src/sim/snapshot.ts';
 
 export const FORMAT = 'erde-austrinken/v1';
@@ -112,6 +112,8 @@ export interface EntryInput {
   likes?: number;
   comments?: number;
   shares?: number;
+  /** Speicherungen (kein Wasserverbrauch). */
+  saves?: number;
   day?: Day;
   ref?: string;
   note?: string;
@@ -128,7 +130,7 @@ export function addEntry(file: SimFile, input: EntryInput, now = new Date()): { 
   }
   const counts: Counts = {
     followers: input.followers ?? 0, likes: input.likes ?? 0,
-    comments: input.comments ?? 0, shares: input.shares ?? 0,
+    comments: input.comments ?? 0, shares: input.shares ?? 0, saves: input.saves ?? 0,
   };
   let warnings: string[] = [];
   let deltas = counts;
@@ -136,7 +138,7 @@ export function addEntry(file: SimFile, input: EntryInput, now = new Date()): { 
   if (input.mode === 'totals') {
     const current = computeState(file, t);
     reportedTotals = {};
-    for (const k of ['followers', 'likes', 'comments', 'shares'] as const) {
+    for (const k of KEYS) {
       if (input[k] !== undefined) reportedTotals[k] = input[k];
     }
     ({ deltas, warnings } = deltasFromTotals(current, reportedTotals));

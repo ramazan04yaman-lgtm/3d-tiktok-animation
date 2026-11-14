@@ -11,6 +11,7 @@
  *  - Jeder Mensch trinkt an JEDEM Kalendertag – auch an seinem Ankunftstag
  *    und auch an Tagen ohne neues Video.
  *  - Likes, Kommentare und Shares kosten einmalig Wasser.
+ *  - Speicherungen werden nur gezählt und angezeigt (kein Wasserverbrauch).
  *  - MEILENSTEINE (siehe stufen.ts): Mit der gesamten Followerzahl steigen die Werte
  *    dauerhaft (Like +100 ml je 100 Follower, Kommentar +1 L je 250, Share +4 L je 500,
  *    Trinkmenge ×2 je 10.000 Follower für alle Einwohner;
@@ -41,6 +42,8 @@ export interface Entry {
   likes: number;
   comments: number;
   shares: number;
+  /** NEUE Speicherungen (optional, ältere Einträge haben keine). Kosten kein Wasser. */
+  saves?: number;
   /** Optional: eindeutige Referenz, z. B. "video-07". Verhindert Doppeleingaben. */
   ref?: string;
   /** Optional: vom Nutzer gemeldete Gesamtstände (Modus "Gesamtstand"). */
@@ -53,6 +56,7 @@ export interface Counts {
   likes: number;
   comments: number;
   shares: number;
+  saves?: number;
 }
 
 export interface SimState {
@@ -66,6 +70,8 @@ export interface SimState {
   likes: bigint;
   comments: bigint;
   shares: bigint;
+  /** Speicherungen (werden nur gezählt, kein Wasserverbrauch). */
+  saves: bigint;
   consumed: {
     drinking: bigint;
     likes: bigint;
@@ -89,6 +95,8 @@ export interface SimState {
 }
 
 const ZERO = 0n;
+/** Alle gezählten Aktivitäten (für den Gesamtstand-Modus). */
+export const KEYS = ['followers', 'likes', 'comments', 'shares', 'saves'] as const;
 
 function checkCount(n: unknown, what: string): number {
   if (typeof n !== 'number' || !Number.isSafeInteger(n) || n < 0) {
@@ -104,6 +112,7 @@ export function validateEntry(e: Entry): void {
   checkCount(e.likes, 'Likes');
   checkCount(e.comments, 'Kommentare');
   checkCount(e.shares, 'Shares');
+  if (e.saves !== undefined) checkCount(e.saves, 'Speicherungen');
 }
 
 /** Sortierung: nach Tag, dann Eingabezeitpunkt, dann ID (vollständig eindeutig). */
@@ -144,13 +153,13 @@ export function replay(
     startDay,
     lastProcessedDay: addDays(startDay, -1), // noch kein Tag verbucht
     daysProcessed: 0,
-    followers: ZERO, population: ZERO, likes: ZERO, comments: ZERO, shares: ZERO,
+    followers: ZERO, population: ZERO, likes: ZERO, comments: ZERO, shares: ZERO, saves: ZERO,
     consumed: { drinking: ZERO, likes: ZERO, comments: ZERO, shares: ZERO },
     totalConsumedMl: ZERO,
     remainingMl: config.totalWaterMl,
     totalWaterMl: config.totalWaterMl,
     dailyMl: ZERO,
-    reportedHighWater: { followers: 0, likes: 0, comments: 0, shares: 0 },
+    reportedHighWater: { followers: 0, likes: 0, comments: 0, shares: 0, saves: 0 },
     depletedOnDay: null,
     entryCount: entries.length,
     stufe: stufeFuer(0n, config),
@@ -204,13 +213,14 @@ export function replay(
     s.likes += BigInt(e.likes);
     s.comments += BigInt(e.comments);
     s.shares += BigInt(e.shares);
+    s.saves += BigInt(e.saves ?? 0);           // nur zählen – kein Wasser
     s.consumed.likes += BigInt(e.likes) * st.likeMl;
     s.consumed.comments += BigInt(e.comments) * st.kommentarMl;
     s.consumed.shares += BigInt(e.shares) * st.shareMl;
     if (e.reportedTotals) {
-      for (const k of ['followers', 'likes', 'comments', 'shares'] as const) {
+      for (const k of KEYS) {
         const v = e.reportedTotals[k];
-        if (typeof v === 'number' && v > s.reportedHighWater[k]) s.reportedHighWater[k] = v;
+        if (typeof v === 'number' && v > (s.reportedHighWater[k] ?? 0)) s.reportedHighWater[k] = v;
       }
     }
     checkDepletion(e.day);
@@ -232,16 +242,16 @@ export function replay(
  * so wird nach einem Rückgang (z. B. Entfolgen) nichts doppelt gezählt.
  */
 export function deltasFromTotals(state: SimState, totals: Partial<Counts>): { deltas: Counts; warnings: string[] } {
-  const deltas: Counts = { followers: 0, likes: 0, comments: 0, shares: 0 };
+  const deltas: Counts = { followers: 0, likes: 0, comments: 0, shares: 0, saves: 0 };
   const warnings: string[] = [];
-  for (const k of ['followers', 'likes', 'comments', 'shares'] as const) {
+  for (const k of KEYS) {
     const v = totals[k];
     if (v === undefined) continue;
     checkCount(v, k);
     // Basis = das, was bereits gezählt wurde (auch aus "Neu"-Einträgen),
     // bzw. der höchste je gemeldete Gesamtstand – der größere Wert gewinnt.
     const counted = Number(state[k]);
-    const prev = Math.max(state.reportedHighWater[k], counted);
+    const prev = Math.max(state.reportedHighWater[k] ?? 0, counted);
     if (v < prev) warnings.push(`${k}: neuer Gesamtstand ${v} ist kleiner als bisher (${prev}) – es wird nichts abgezogen.`);
     deltas[k] = Math.max(0, v - prev);
   }

@@ -17,7 +17,9 @@ export type Sticker =
   | { typ: 'zahlen' }                                                   // große Zahlenkacheln mit allen Werten
   | { typ: 'titel'; zeilen: string[] }                                  // große Überschrift (mit Hervorhebungen)
   | { typ: 'szenario'; zeilen?: string[] }
-  | { typ: 'stufen' };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
+  | { typ: 'stufen' }
+  /** Ergebnisse seit dem letzten Video (wird aus den echten Zahlen berechnet). */
+  | { typ: 'ergebnis'; titel?: string; zeilen?: { ico: string; label: string; anzahl: string; menge: string; leise?: boolean }[]; summe?: string };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
 
 export type Musik = 'ruhig' | 'treibend' | 'drama';
 export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop' | 'welle' | 'fanfare';
@@ -71,6 +73,10 @@ export interface Folge {
         /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
         beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  /** Vergleichsstand für "neu seit dem letzten Video": Datum oder Referenz eines Eintrags (z. B. "video-01"). */
+  seit?: string;
+  /** Fester Stichtag (JJJJ-MM-TT) für die Zahlen dieses Videos. Ohne Angabe: heute. */
+  stichtag?: string;
   /** Ersatz-Stimme (Notiz, wird nicht automatisch benutzt). */
   stimme_ki?: Folge['stimme'];
   beats: Beat[];
