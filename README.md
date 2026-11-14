@@ -8,6 +8,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 
 1. **„Wie funktioniert ein Wasserkocher?“** — `--project kettle`
 2. **„Wie funktioniert eine Kaffeemaschine?“** — `--project espresso`
+3. **„Wie funktioniert eine Mikrowelle?“** — `--project microwave`
 
 ```bash
 npm install
@@ -140,3 +141,22 @@ Simplifications (also shown on screen / in `src/projects/espresso/index.ts`): pr
 model; pressure and temperature are scripted curves (≈ 9 bar, ≈ 93 °C), in reality pressure only builds
 against the coffee puck; the pump piston is shown ≈ 20× slower than its real 50 Hz stroke; water, coffee
 streams, drops and steam are deterministic visualisations, not fluid simulation.
+
+## Episode 3 — Mikrowelle (microwave)
+
+| Time | Scene | What happens |
+|---|---|---|
+| 0–5 s | 01 Die Mikrowelle | microwave on the countertop, slow approach, title |
+| 5–12 s | 02 Das Innenleben | housing + door to x-ray; door mesh, cavity, turntable, magnetron, HV parts, waveguide labelled |
+| 12–22 s | 03 Entstehung der Mikrowellen | start (display counts down), magnetron sectioned: glowing cathode, rotating electron spokes; wave travels through the waveguide, fronts spread inside the metal cavity |
+| 22–37 s | 04 Das Essen wird warm | standing-wave field slice; magnified water dipoles partially follow the alternating field with a lag + thermal jiggling; thermal map of the soup |
+| 37–48 s | 05 Der Drehteller | close-ups of the rotating plate; fixed hot-spot pattern vs. moving food |
+| 48–56 s | 06 Die fertige Mahlzeit | "End", camera pulls out, housing solid again, door opens, steam |
+| 56–60 s | 07 Abschluss | close-up of the steaming soup |
+
+Physics notes / simplifications: 2.45 GHz, λ ≈ 12.2 cm (the waveguide ribbon and the spacing of the
+expanding fronts use this wavelength; hot spots ≈ λ/2 ≈ 6 cm apart). Heating is shown as dielectric loss:
+dipoles only partly align and lag behind the field — no free "propeller" rotation. Everything oscillating is
+slowed down by many orders of magnitude. The cavity field is a plausible superposition of two modes, not a
+Maxwell solution; the soup heat map is |E|² sampled along the rotating bowl plus diffusion, scaled to the
+scripted mean temperature. Procedural replacement model.
