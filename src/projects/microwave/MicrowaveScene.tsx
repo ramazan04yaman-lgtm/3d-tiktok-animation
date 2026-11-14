@@ -86,7 +86,7 @@ export function MicrowaveScene() {
       <Label position={[M.magnetron.x, M.magnetron.y + 0.3, 0.1]} text="Magnetron" sub="erzeugt die Mikrowellen" visible={track.labels.magnetron} offset={[-160, -330]} accent="#58c4ff" />
       <Label position={[M.transformer.x, M.transformer.y + 0.2, M.transformer.z + 0.3]} text="Hochspannung" sub="Trafo, Kondensator, Diode ≈ 4 000 V" visible={track.labels.transformer} offset={[-260, 200]} accent="#ff9a4a" />
       <Label position={[1.0, 1.8, 0.4]} text="Wellenleiter" sub="führt die Wellen zum Garraum" visible={track.labels.waveguide} offset={[110, -260]} />
-      <Label position={[M.magnetron.x - 0.05, M.magnetron.y, 0]} text="Elektronen kreisen" sub="Magnetfeld + Hochspannung (verlangsamt)" visible={track.labels.cathode} offset={[60, 250]} accent="#7fe0ff" />
+      <Label position={[M.magnetron.x - 0.05, M.magnetron.y, 0]} text="Elektronen kreisen" sub="Magnetfeld + Hochspannung (verlangsamt)" visible={track.labels.cathode} offset={[-50, 250]} accent="#7fe0ff" />
       <Label position={[0.86, 1.96, 0]} text="2,45 GHz" sub="Wellenlänge ≈ 12 cm" visible={track.labels.freq} offset={[-220, 230]} />
       <Label position={[-0.85, 0.95, 0.3]} text="Wassermoleküle" sub="Dipole – vergrößert dargestellt" visible={track.labels.molecules} offset={[40, 160]} accent="#e5484d" />
       <Label position={[-0.85, 0.95, 0.3]} text="Wechselfeld" sub="polt sich 2,45 Mrd.-mal/s um (verlangsamt)" visible={track.labels.field} offset={[40, 160]} />
