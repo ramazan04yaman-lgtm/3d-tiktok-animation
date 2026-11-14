@@ -1,0 +1,17 @@
+{
+  "source": "audio/voice_felix_heart.mp3",
+  "video": "out/heart/heart.mp4",
+  "output": "out/heart/heart_voice.mp4",
+  "loudnessLUFS": -14,
+  "note": "Take is 50.5 s for a 60 s video: sentences are placed per scene; the long scene-2 line and the right-heart lines are sped up slightly (≤ 8 %) so the narration stays in step with the picture.",
+  "segments": [
+    { "text": "Dein Herz schlägt … wie es eigentlich funktioniert?", "src": [0.0, 7.6], "at": 0.15 },
+    { "text": "Schauen wir hinein: … nur in eine Richtung lassen.", "src": [7.9, 18.15], "at": 7.85, "tempo": 1.08 },
+    { "text": "Sauerstoffarmes Blut … rechte Seite deines Herzens.", "src": [18.4, 24.6], "at": 17.4, "tempo": 1.05 },
+    { "text": "Durch die Trikuspidalklappe … rechte Herzkammer.", "src": [24.75, 29.15], "at": 23.4, "tempo": 1.05 },
+    { "text": "Von dort … neuen Sauerstoff auf.", "src": [29.35, 36.65], "at": 27.7 },
+    { "text": "Das sauerstoffreiche Blut … linken Seite deines Herzens.", "src": [36.88, 41.22], "at": 37.3 },
+    { "text": "Die linke Herzkammer pumpt … gesamten Körper.", "src": [41.36, 46.25], "at": 47.0 },
+    { "text": "Und genau dieser Kreislauf … am Leben.", "src": [46.4, 50.52], "at": 55.4 }
+  ]
+}
