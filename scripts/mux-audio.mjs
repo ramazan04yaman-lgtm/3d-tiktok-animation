@@ -9,6 +9,8 @@ import path from 'node:path';
 import { ROOT, ffprobe, parseArgs, run } from './lib.mjs';
 
 const args = parseArgs(process.argv.slice(2), { config: 'audio/kettle-voice.json' });
+/** voice-coverage rule for new episodes: speech from ≤ 0.5 s to ≥ duration − 1 s, no gap > maxGap s */
+const MAX_GAP = Number(args.maxGap ?? 0.8);
 const cfg = JSON.parse(fs.readFileSync(path.resolve(ROOT, args.config), 'utf8'));
 const video = path.resolve(ROOT, cfg.video);
 const out = path.resolve(ROOT, cfg.output);
@@ -43,3 +45,14 @@ await run('ffmpeg', [
 ]);
 const p = await ffprobe(out);
 console.log(`✔ ${path.relative(ROOT, out)} — ${Number(p.format.duration).toFixed(3)} s`);
+
+// narration coverage check (series rule: continuous voice for the whole video)
+const sd = await run('ffmpeg', ['-hide_banner', '-i', out, '-vn', '-af', `silencedetect=n=-40dB:d=${MAX_GAP}`, '-f', 'null', '-'], { quiet: true }).catch((e) => ({ stderr: String(e) }));
+const log = String(sd.stderr);
+const starts = [...log.matchAll(/silence_start: ([\d.]+)/g)].map((m) => Number(m[1]));
+const ends = [...log.matchAll(/silence_end: ([\d.]+)/g)].map((m) => Number(m[1]));
+const gaps = starts.map((a, i) => [a, ends[i] ?? duration]).filter(([a, b]) => !(a > duration - 1.0) && !(a < 0.01 && b < 0.5));
+if (gaps.length) {
+  for (const [a, b] of gaps) console.log(`✖ silence ${a.toFixed(2)}–${b.toFixed(2)} s (> ${MAX_GAP} s)`);
+  if (!args.allowGaps) process.exitCode = 1;
+} else console.log(`✔ narration covers the whole video (no silence > ${MAX_GAP} s)`);
