@@ -1,5 +1,6 @@
 import { Label } from '../../engine/components/Label';
 import { Studio } from '../../engine/components/Studio';
+import { Absorption, MOUTH } from './Absorption';
 import { ANAL, S, W } from './anatomy';
 import { GutContents } from './Contents';
 import { Ferment } from './Ferment';
@@ -7,7 +8,7 @@ import { GutModel } from './GutModel';
 import * as track from './script';
 
 /** magnifier in front of the caecum (world space) */
-export const MAGNIFIER: [number, number, number] = [-0.06, 4.6, 0.72];
+export const MAGNIFIER = track.MAG;
 const MR = 0.3;
 const A = (k: number) => W(ANAL.top.clone().addScaledVector(ANAL.dir, k).toArray());
 
@@ -19,6 +20,7 @@ export function GutScene() {
       <GutModel />
       <group scale={S}>
         <GutContents />
+        <Absorption />
       </group>
       <Ferment center={MAGNIFIER} radius={MR} />
 
@@ -41,6 +43,8 @@ export function GutScene() {
       <Label position={A(0.12)} text="Feine Nerven" sub="prüfen: Gas oder Stuhl?" visible={L.nerves} offset={[60, -320]} accent="#ffe27a" />
       <Label position={A(0.32)} text="Äußerer Schließmuskel" sub="wird bewusst entspannt" visible={L.externalSph} offset={[-100, 240]} accent="#ff7a6a" />
       <Label position={A(0.42)} text="Gewebe schwingt" sub="so entsteht das Geräusch" visible={L.vibration} offset={[60, 250]} accent="#ffc65c" />
+      <Label position={W([-0.2, 11.6, -0.05])} text="H₂ im Blut" sub="durch die Darmwand ins Blut" visible={L.blood} offset={[-120, 220]} accent="#7fe8ff" />
+      <Label position={W(MOUTH.toArray())} text="Ausgeatmet" sub="über die Lunge" visible={L.exhale} offset={[80, -220]} accent="#7fe8ff" />
     </>
   );
 }

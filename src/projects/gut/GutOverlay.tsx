@@ -41,7 +41,7 @@ function Meter() {
 export function GutOverlay() {
   return (
     <>
-      <SceneChip timeline={gutTimeline} hideBefore={6.2} />
+      <SceneChip timeline={gutTimeline} hideBefore={7.5} />
       <IntroTitle title="Darmgase" />
       <Meter />
       <Captions timeline={gutTimeline} />

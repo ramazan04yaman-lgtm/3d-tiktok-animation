@@ -3,178 +3,159 @@
  "video": "out/gut/gut.mp4",
  "output": "out/gut/gut_voice.mp4",
  "loudnessLUFS": -14,
- "note": "Take is 70.7 s: pauses shortened (sentence ≈ 0.13 s, paragraph ≈ 0.2 s incl. natural tails) and played at 1.12x so the narration fills the 60 s video.",
+ "note": "Second gut take (60.9 s, 130 words) at natural speed; pauses tightened slightly (sentence ≈ 0.27 s, paragraph ≈ 0.47 s).",
  "segments": [
   {
    "text": "Du furzt bis zu 20 Mal am Tag –",
    "src": [
     0,
-    2.653
+    2.686
    ],
-   "at": 0.12,
-   "tempo": 1.12
+   "at": 0.1
   },
   {
    "text": "und jedes Mal prüft dein Körper vorher:",
    "src": [
-    2.94,
-    5.412
+    3.015,
+    5.664
    ],
-   "at": 2.529,
-   "tempo": 1.12
+   "at": 2.966
   },
   {
    "text": "Ist das wirklich nur Gas?",
    "src": [
-    5.587,
-    7.161
+    5.859,
+    7.404
    ],
-   "at": 4.776,
-   "tempo": 1.12
+   "at": 5.794
   },
   {
    "text": "Schauen wir in deinen Bauch:",
    "src": [
-    7.534,
-    9.091
+    7.959,
+    9.395
    ],
-   "at": 6.281,
-   "tempo": 1.12
+   "at": 7.72
   },
   {
-   "text": "Magen, Dünndarm, Dickdarm und Enddarm …",
+   "text": "Magen, Dünndarm, Dickdarm, Enddarm.",
    "src": [
-    9.548,
-    14.191
+    9.714,
+    12.617
    ],
-   "at": 7.711,
-   "tempo": 1.12
+   "at": 9.336
   },
   {
-   "text": "Ein Teil des Gases ist verschluckte Luft –",
+   "text": "Ein Teil des Gases ist verschluckte Luft.",
    "src": [
-    14.435,
-    17.17
+    13.107,
+    15.464
    ],
-   "at": 11.957,
-   "tempo": 1.12
+   "at": 12.619
   },
   {
-   "text": "beim Essen, Trinken oder Sprechen.",
+   "text": "Der Großteil entsteht aber im Dickdarm:",
    "src": [
-    17.345,
-    19.416
+    15.732,
+    17.95
    ],
-   "at": 14.439,
-   "tempo": 1.12
+   "at": 15.156
   },
   {
-   "text": "Der größte Teil entsteht aber im Dickdarm.",
+   "text": "Billionen Bakterien zersetzen Ballaststoffe …",
    "src": [
-    19.7,
-    22.609
+    18.396,
+    22.779
    ],
-   "at": 16.328,
-   "tempo": 1.12
+   "at": 17.554
   },
   {
-   "text": "Dort zersetzen Billionen Bakterien Ballaststoffe …",
+   "text": "dabei entstehen Wasserstoff, Kohlendioxid und manchmal Methan.",
    "src": [
-    22.9,
-    28.548
+    23.092,
+    27.413
    ],
-   "at": 18.965,
-   "tempo": 1.12
+   "at": 22.116
   },
   {
-   "text": "und produzieren dabei Wasserstoff, CO2 und manchmal Methan.",
+   "text": "Fast alle diese Gase sind geruchlos.",
    "src": [
-    28.701,
-    33.711
+    27.802,
+    30.181
    ],
-   "at": 24.048,
-   "tempo": 1.12
+   "at": 26.818
   },
   {
-   "text": "Die meisten Gase riechen übrigens gar nicht.",
+   "text": "Den Geruch machen winzige Mengen Schwefelverbindungen.",
    "src": [
-    34.164,
-    36.802
+    30.449,
+    33.451
    ],
-   "at": 28.621,
-   "tempo": 1.12
+   "at": 29.376
   },
   {
-   "text": "Den Geruch machen … schwefelhaltiger Verbindungen.",
+   "text": "Wellenartige Darmbewegungen schieben die Bläschen zum Enddarm.",
    "src": [
-    36.999,
-    40.742
+    33.788,
+    37.464
    ],
-   "at": 31.017,
-   "tempo": 1.12
+   "at": 32.558
   },
   {
-   "text": "Wellenartige Darmbewegungen … größeren Blasen.",
+   "text": "Dort öffnet sich kurz der innere Schließmuskel, und feine Nerven prüfen:",
    "src": [
-    41.151,
-    46.995
+    37.765,
+    42.355
    ],
-   "at": 34.399,
-   "tempo": 1.12
-  },
-  {
-   "text": "So erreicht das Gas den Enddarm.",
-   "src": [
-    47.277,
-    49.655
-   ],
-   "at": 39.717,
-   "tempo": 1.12
-  },
-  {
-   "text": "Der innere Schließmuskel öffnet sich kurz, und feine Nerven prüfen:",
-   "src": [
-    49.945,
-    54.37
-   ],
-   "at": 41.88,
-   "tempo": 1.12
+   "at": 36.614
   },
   {
    "text": "Gas oder Stuhl?",
    "src": [
-    54.774,
-    56.123
+    42.559,
+    43.9
    ],
-   "at": 45.871,
-   "tempo": 1.12
+   "at": 41.384
   },
   {
-   "text": "Entspannst du den äußeren Schließmuskel, entweicht das Gas.",
+   "text": "Entspannst du den äußeren Schließmuskel … macht das Geräusch.",
    "src": [
-    56.517,
-    60.26
+    44.258,
+    51.012
    ],
-   "at": 47.115,
-   "tempo": 1.12
+   "at": 42.905
   },
   {
-   "text": "Das Geräusch entsteht … zum Schwingen bringt.",
+   "text": "Und das Verrückteste:",
    "src": [
-    60.507,
-    66.137
+    51.284,
+    52.439
    ],
-   "at": 50.557,
-   "tempo": 1.12
+   "at": 50.04
   },
   {
-   "text": "Und genau so befreit sich dein Körper …",
+   "text": "Ein Teil des Darmgases gelangt ins Blut –",
    "src": [
-    66.351,
-    70.6
+    52.716,
+    55.198
    ],
-   "at": 55.684,
-   "tempo": 1.12
+   "at": 51.375
+  },
+  {
+   "text": "und du atmest es einfach aus.",
+   "src": [
+    55.474,
+    57.535
+   ],
+   "at": 54.037
+  },
+  {
+   "text": "So befreit sich dein Körper von überschüssigem Gas.",
+   "src": [
+    57.807,
+    60.75
+   ],
+   "at": 56.478
   }
  ]
 }

@@ -82,7 +82,7 @@ export function pocketS(k: number, t: number) {
 }
 /** pocket radius (dm), limited by the lumen */
 export function pocketR(k: number, t: number) {
-  const grow = ease(18.5, k === 0 ? 39 : 37, t);
+  const grow = ease(16.5, k === 0 ? 35 : 33, t);
   const base = (k === 0 ? 0.13 : 0.075 + 0.015 * k) * Math.cbrt(Math.max(0.02, grow));
   const r = grow < 0.01 ? 0 : base;
   const out = k === 0 ? Math.cbrt(Math.max(0, 1 - track.release(t))) : 1 - ease(57.5, 59, t);
