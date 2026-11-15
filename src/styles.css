@@ -200,3 +200,11 @@ body.story .hud-foot { top: auto !important; }
 .st-tag { top: 21cqh !important; }
 .st-name { top: 21cqh !important; }
 .st-zahl { top: 22cqh !important; }
+
+/* Namensschilder der Community-Figuren (über dem Kopf, folgen der Figur) */
+.namen { position: absolute; inset: 0; pointer-events: none; }
+.nm { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font-weight: 900; color: #14182a;
+  background: #fff; border: .18em solid #14182a; border-left: .55em solid var(--farbe, #2f6be0); border-radius: .6em;
+  padding: .12em .5em .14em .45em; line-height: 1.1; letter-spacing: .01em; box-shadow: 0 .25em 0 rgba(0,0,0,.35); }
+.nm::after { content: ''; position: absolute; left: 50%; bottom: -.55em; transform: translateX(-50%);
+  border: .32em solid transparent; border-top-color: #14182a; }

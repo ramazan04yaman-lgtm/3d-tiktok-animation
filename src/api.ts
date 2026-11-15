@@ -8,6 +8,8 @@ export interface ApiState {
   snapshot: Snapshot;
   entries: Entry[];
   startDay: string;
+  /** TikTok-Namen der Einwohner (Nr. = Figur). */
+  namen?: { nr: number; name: string; seit: string }[];
   warnings?: string[];
 }
 
@@ -39,5 +41,6 @@ export const api = {
   timeline: (folge: string) => get<{ timeline: Timeline; snapshot: Snapshot }>(`/api/timeline?folge=${encodeURIComponent(folge)}`),
   state: () => call('GET', '/api/state'),
   add: (f: EntryForm) => call('POST', '/api/entries', f),
+  namen: (namen: string[]) => call('POST', '/api/namen', { namen }),
   remove: (id: string) => call('DELETE', `/api/entries/${encodeURIComponent(id)}`),
 };

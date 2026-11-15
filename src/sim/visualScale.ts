@@ -24,7 +24,8 @@ export interface VisualScaleOptions {
   boost: number;
 }
 
-export const DEFAULT_VISUAL: VisualScaleOptions = { mode: 'log', logStartLiters: 1e4, boost: 1e12 };
+/** Sichtbarer Effekt ab 10 L: jede Verzehnfachung des Verbrauchs lässt ~5 % der Meeresfläche trockenfallen (Grafik verstärkt). */
+export const DEFAULT_VISUAL: VisualScaleOptions = { mode: 'log', logStartLiters: 10, boost: 1e12 };
 
 /** Liefert den optisch "ausgetrunkenen" Anteil 0..1. */
 export function visualDrainFraction(consumedMl: bigint, totalMl: bigint, o: VisualScaleOptions = DEFAULT_VISUAL): number {

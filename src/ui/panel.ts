@@ -41,6 +41,12 @@ export class Panel {
       </form>
       <div id="msg" class="msg"></div>
 
+      <h2>👥 TikTok-Namen der Einwohner</h2>
+      <p class="hint">Jeder Name bekommt eine eigene, dauerhafte Figur mit Namensschild. Nur echte Follower eintragen
+      (mehrere Namen mit Leerzeichen oder Komma trennen).</p>
+      <form id="namen" class="row"><input name="namen" placeholder="@name1 @name2"><button type="submit">Hinzufügen</button></form>
+      <div id="namenliste" class="log"></div>
+
       <h2>🎞️ Folge abspielen (Vorschau)</h2>
       <p class="hint">Spielt ein Drehbuch aus dem Ordner <b>folgen/</b> mit deinen echten Zahlen ab – ohne Ton.
       Das fertige Video (mit Stimme) erzeugt <code>npm run video</code>.</p>
@@ -71,6 +77,13 @@ export class Panel {
 
     const form = root.querySelector<HTMLFormElement>('#entry')!;
     form.addEventListener('submit', (ev) => { ev.preventDefault(); void this.submit(form); });
+    const nf = root.querySelector<HTMLFormElement>('#namen')!;
+    nf.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const liste = String(new FormData(nf).get('namen') ?? '').split(/[\s,;]+/).filter(Boolean);
+      if (!liste.length) { this.msg('Bitte mindestens einen Namen eingeben.', 'err'); return; }
+      void this.run(() => api.namen(liste), `✅ ${liste.length} Name(n) gespeichert.`).then(() => nf.reset());
+    });
     root.querySelectorAll<HTMLButtonElement>('[data-shot]').forEach((b) => b.addEventListener('click', () => cb.onShot(b.dataset.shot!)));
     root.querySelector('[data-free]')!.addEventListener('click', () => cb.onFreeCamera(true));
     const prev = root.querySelector<HTMLInputElement>('#preview')!;
@@ -146,6 +159,9 @@ export class Panel {
     const rows = [...s.entries].reverse().map((e) => `<div class="entry"><span>${e.day}${e.ref ? ' · ' + e.ref : ''}</span>
       <span>+${groupDE(e.followers)} 👥 +${groupDE(e.likes)} ❤️ +${groupDE(e.comments)} 💬 +${groupDE(e.shares)} 🔁 +${groupDE(e.saves ?? 0)} 🔖</span>
       <button data-del="${e.id}" title="Löschen">✕</button></div>`);
+    const nl = this.root.querySelector<HTMLElement>('#namenliste')!;
+    nl.innerHTML = (s.namen ?? []).map((n) => `<div class="entry"><span>Figur ${n.nr}</span><span>${n.name.replace(/[<>&"]/g, '')}</span></div>`).join('')
+      || '<p class="hint">Noch keine Namen.</p>';
     log.innerHTML = rows.length ? rows.join('') : '<p class="hint">Noch keine Einträge. Start der Simulation: ' + s.startDay + '</p>';
   }
 

@@ -5,7 +5,9 @@
  */
 import * as THREE from 'three';
 import type { EarthScene } from '../earth/scene.ts';
+import { People } from '../earth/people.ts';
 import { latLonToVec3 } from '../earth/geo.ts';
+import { SHOTS } from '../earth/camera.ts';
 import { formatLiters, formatMenge, groupDE, mlToLitersExact, percentExact } from '../sim/format.ts';
 import type { Snapshot } from '../sim/snapshot.ts';
 import { naechsteText, parseWords } from './script.ts';
@@ -26,6 +28,8 @@ function parseNum(v: string | number | undefined): number {
 
 export class StoryPlayer {
   private beatIndex = -1;
+  private namenEl!: HTMLElement;
+  private namenSchilder: HTMLElement[] = [];
   /** Gleiche Sticker in aufeinanderfolgenden Sätzen bleiben einfach stehen (kein erneutes Einblenden). */
   private stickerKey = '';
   private stickerStart = 0;
@@ -41,7 +45,8 @@ export class StoryPlayer {
   constructor(timeline: Timeline, scene: EarthScene, layer: HTMLElement, realDrain: () => number, dayLabel: () => string, snapshot: Snapshot) {
     this.timeline = timeline; this.scene = scene; this.layer = layer; this.snapshot = snapshot;
     this.realDrain = realDrain; this.dayLabel = dayLabel;
-    layer.innerHTML = '<div class="stickers"></div><div class="caption"></div>';
+    layer.innerHTML = '<div class="namen"></div><div class="stickers"></div><div class="caption"></div>';
+    this.namenEl = layer.querySelector('.namen')!;
     this.stickerEl = layer.querySelector('.stickers')!;
     this.captionEl = layer.querySelector('.caption')!;
   }
@@ -64,6 +69,12 @@ export class StoryPlayer {
       // Vorschau mit mehr Menschen (oder zurück zur echten Einwohnerzahl)
       this.scene.people.setPopulation(BigInt(beat.vorschauEinwohner ?? this.snapshot.population));
       if (shot === 'gruppe') this.scene.updateGroupShot();
+      if (shot === 'namen' && SHOTS.namen) {
+        // Kamerafahrt durch die Reihen dauert genau so lange wie die Sätze mit dieser Kamera
+        let ende = beat.end;
+        for (let j = i + 1; j < this.timeline.beats.length && this.timeline.beats[j].kamera === 'namen'; j++) ende = this.timeline.beats[j].end;
+        SHOTS.namen.pathSeconds = Math.max(3, ende - beat.start - (beat.uebergang || 0) * 0.5);
+      }
       this.scene.setFreeCamera(false);
       this.scene.director.setShot(shot, beat.start, beat.uebergang > 0 ? beat.uebergang : 0.0001);
       const key = JSON.stringify(beat.sticker);
@@ -78,7 +89,8 @@ export class StoryPlayer {
     const k = easeInOut(clamp01(local / Math.max(0.5, beat.end - beat.start - 0.2)));
     const drain = val(beat.wasser.von) + (val(beat.wasser.bis) - val(beat.wasser.von)) * k;
     this.scene.drainTarget = this.scene.drainShown = drain;
-    this.scene.previewActive = beat.wasser.von !== 'jetzt' || beat.wasser.bis !== 'jetzt' || !!beat.vorschauEinwohner;
+    // Vorschau nur, wenn ein ANDERER als der echte Stand gezeigt wird (Zeitraffer 0 -> heute ist echt)
+    this.scene.previewActive = beat.wasser.bis !== 'jetzt' || (beat.wasser.von !== 'jetzt' && beat.wasser.von !== 0) || !!beat.vorschauEinwohner;
     // Figur + Strohhalm
     this.scene.mascotVisible = beat.kamera === 'kapitaen';
     this.scene.mascot.talking = t >= beat.sprechen.start && t <= beat.sprechen.end;
@@ -223,6 +235,65 @@ export class StoryPlayer {
         n.textContent = groupDE(Math.round(target * easeInOut(clamp01((local - 0.3) / 1.2))));
       }
     });
+  }
+
+  /**
+   * NAMENSSCHILDER über den Figuren der Gemeinschaft (nach dem Rendern aufrufen – dann stimmen
+   * Kamera und Figurenpositionen genau). Nahe Schilder zuerst; überlappt ein Schild ein schon
+   * platziertes, rutscht es ein Stück nach oben. Unter der Anzeige oben wird nichts gezeigt.
+   */
+  nachRender(): void {
+    const namen = this.timeline.namen ?? [];
+    const beat = this.timeline.beats[this.beatIndex];
+    const people = this.scene.people;
+    const zeigen = namen.length > 0 && people.nah && !!beat && !beat.vorschauEinwohner && !this.scene.mascotVisible;
+    this.namenEl.style.display = zeigen ? '' : 'none';
+    if (!zeigen) return;
+    if (!this.namenSchilder.length) {
+      this.namenSchilder = namen.map((n, i) => {
+        const el = document.createElement('div');
+        el.className = 'nm';
+        el.style.setProperty('--farbe', People.gemeinschaftsLook(i).shirt);
+        el.textContent = n ?? '';
+        if (n) this.namenEl.appendChild(el);
+        return el;
+      });
+    }
+    const cam = this.scene.camera;
+    const W = 56.25;                      // Breite in cqh (9:16)
+    const n = Math.min(namen.length, people.anzahl);
+    const kandidaten: { i: number; x: number; y: number; fs: number; tiefe: number }[] = [];
+    const a = new THREE.Vector3(), b = new THREE.Vector3();
+    for (let i = 0; i < this.namenSchilder.length; i++) {
+      const el = this.namenSchilder[i];
+      const kopf = i < n && namen[i] ? people.positionOf(i) : null;
+      if (!kopf) { el.style.display = 'none'; continue; }
+      // positionOf liegt ~0,25 Figuren-Einheiten über dem Scheitel -> Schild direkt auf den Kopf setzen
+      const oben = kopf.clone().normalize().multiplyScalar(people.figureSize * 0.6);
+      a.copy(kopf).add(oben.clone().multiplyScalar(-0.3)).project(cam);
+      b.copy(kopf).add(oben.clone().multiplyScalar(0.7)).project(cam);
+      if (a.z < -1 || a.z > 1 || Math.abs(a.x) > 1.15 || Math.abs(a.y) > 1.15) { el.style.display = 'none'; continue; }
+      const proEinheit = Math.abs(b.y - a.y) * 50;            // cqh je 0,6 Figuren-Einheiten
+      kandidaten.push({ i, x: (a.x + 1) / 2 * 100, y: (1 - a.y) / 2 * 100, fs: Math.min(2.05, Math.max(1.3, proEinheit * 0.62)), tiefe: a.z });
+    }
+    kandidaten.sort((p, q) => p.tiefe - q.tiefe);
+    const belegt: { l: number; r: number; o: number; u: number }[] = [];
+    for (const k of kandidaten) {
+      const el = this.namenSchilder[k.i];
+      // Positionen in % des Bildes: x in % der Breite (Breite = W cqh), y in % der Höhe (= cqh)
+      const breite = ((el.textContent!.length * 0.6 + 1.6) * k.fs) / W * 100, hoehe = k.fs * 1.75;
+      let y = k.y;
+      const box = () => ({ l: k.x - breite / 2, r: k.x + breite / 2, o: y - hoehe, u: y });
+      const kollidiert = () => { const q = box(); return belegt.some((p) => q.l < p.r && q.r > p.l && q.o < p.u && q.u > p.o); };
+      for (let v = 0; v < 6 && kollidiert(); v++) y -= hoehe * 0.5;
+      const q = box();
+      // nicht unter der oberen Anzeige und nicht aus dem Bild
+      if (kollidiert() || q.o < 21 || q.l < 0.5 || q.r > 99.5 || q.u > 99) { el.style.display = 'none'; continue; }
+      belegt.push(q);
+      el.style.display = '';
+      el.style.left = `${k.x}%`; el.style.top = `${y}%`; el.style.fontSize = `${k.fs}cqh`;
+      el.style.zIndex = String(1000 - Math.round(k.tiefe * 500));
+    }
   }
 
   dispose(): void { this.layer.innerHTML = ''; }

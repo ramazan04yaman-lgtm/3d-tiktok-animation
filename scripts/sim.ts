@@ -6,6 +6,8 @@
  *   npm run sim -- totals --followers 1520 --likes 48000 --comments 900 --shares 300   (Gesamtstand aus TikTok)
  *   npm run sim -- sync         (alle Tage bis heute verbuchen und speichern)
  *   npm run sim -- undo         (letzten Eintrag löschen)
+ *   npm run sim -- namen @name1 @name2 …   (TikTok-Namen der Einwohner hinzufügen; ohne Namen: Liste anzeigen)
+ *   npm run sim -- name-loeschen @name    (Namen wieder entfernen)
  *   npm run sim -- init --start 2026-11-12   (Startdatum festlegen; nur ohne Einträge)
  *   Option --file <pfad> für eine andere Datei (z. B. zum Testen)
  */
@@ -14,13 +16,18 @@ import { assertDay } from '../src/sim/days.ts';
 import { formatDuration, formatLiters, groupDE, percentExact, sci } from '../src/sim/format.ts';
 import { daysUntilEmpty } from '../src/sim/simulation.ts';
 import { formatMenge } from '../src/sim/format.ts';
-import { DEFAULT_PATH, addEntry, computeState, loadFile, loadOrCreate, newFile, removeEntry, saveFile, today } from '../server/store.ts';
+import { DEFAULT_PATH, addEntry, addNamen, removeName, computeState, loadFile, loadOrCreate, newFile, removeEntry, saveFile, today } from '../server/store.ts';
 
 const [cmd = 'status', ...rest] = process.argv.slice(2);
 const opts: Record<string, string> = {};
+/** Freie Wörter (z. B. TikTok-Namen beim Befehl "namen"). */
+const woerter: string[] = [];
 for (let i = 0; i < rest.length; i++) {
   const a = rest[i];
-  if (!a.startsWith('--')) throw new Error(`Unbekanntes Argument: ${a}`);
+  if (!a.startsWith('--')) {
+    if (cmd === 'namen' || cmd === 'name-loeschen') { woerter.push(a); continue; }
+    throw new Error(`Unbekanntes Argument: ${a}`);
+  }
   const [k, v] = a.includes('=') ? a.slice(2).split('=', 2) : [a.slice(2), rest[++i]];
   if (v === undefined) throw new Error(`Wert fehlt für --${k}`);
   opts[k] = v;
@@ -98,6 +105,22 @@ try {
       saveFile(removeEntry(f, last.id), file);
       console.log(`↩️  Letzter Eintrag (${last.day}, +${last.followers} Follower) wurde gelöscht.`);
       printStatus(); break;
+    }
+    case 'namen': {
+      const f = loadOrCreate(file);
+      const neu = woerter;
+      const g = neu.length ? saveFile(addNamen(f, neu), file) : f;
+      const l = g.einwohnerNamen ?? [];
+      console.log(`\n👥 ${l.length} Einwohner mit TikTok-Namen (${neu.length ? `+${neu.length} neu` : 'Liste'}):`);
+      for (const n of l) console.log(`  Figur ${String(n.nr).padStart(3)}  ${n.name}`);
+      console.log('');
+      break;
+    }
+    case 'name-loeschen': {
+      const f = loadOrCreate(file);
+      saveFile(removeName(f, woerter[0] ?? ''), file);
+      console.log(`🗑️  ${woerter[0]} entfernt.`);
+      break;
     }
     default: throw new Error(`Unbekannter Befehl: ${cmd}`);
   }

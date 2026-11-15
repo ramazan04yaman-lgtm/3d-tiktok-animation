@@ -35,34 +35,58 @@
       "saves": 2,
       "ref": "video-01",
       "note": "Ergebnisse Video 1 (erstes veröffentlichtes TikTok)"
+    },
+    {
+      "id": "2a869b0b-8536-4fac-8945-009a10ce9387",
+      "day": "2026-11-15",
+      "createdAt": "2026-11-15T13:02:02.114Z",
+      "followers": 17,
+      "likes": 15,
+      "comments": 10,
+      "shares": 0,
+      "saves": 0,
+      "ref": "video-02",
+      "note": "Ergebnisse Folge 2 (Video 2): Speicherungen nicht gemeldet"
+    },
+    {
+      "id": "4507b04f-dc31-4560-9657-4f42f91f0f62",
+      "day": "2026-11-15",
+      "createdAt": "2026-11-15T13:02:02.247Z",
+      "followers": 0,
+      "likes": 15,
+      "comments": 8,
+      "shares": 0,
+      "saves": 0,
+      "ref": "video-03",
+      "note": "Aktivitäten Folge 3: Likes und Kommentare; Speicherungen noch nicht angegeben"
     }
   ],
-  "lastProcessedDay": "2026-11-14",
-  "lastProcessedAt": "2026-11-14T12:20:21.030Z",
+  "lastProcessedDay": "2026-11-15",
+  "lastProcessedAt": "2026-11-15T13:03:12.678Z",
   "snapshot": {
     "startDay": "2026-11-14",
-    "lastProcessedDay": "2026-11-14",
-    "lastProcessedAt": "2026-11-14T12:20:21.030Z",
-    "daysProcessed": 1,
-    "followers": "4",
-    "population": "4",
-    "likes": "4",
-    "comments": "2",
+    "lastProcessedDay": "2026-11-15",
+    "lastProcessedAt": "2026-11-15T13:03:12.678Z",
+    "daysProcessed": 2,
+    "followers": "21",
+    "population": "21",
+    "likes": "34",
+    "comments": "20",
     "shares": "0",
     "saves": "2",
     "totalWaterMl": "1386000000000000000000000",
-    "remainingMl": "1385999999999999999958960",
-    "totalConsumedMl": "41040",
-    "dailyMl": "40000",
+    "remainingMl": "1385999999999999999739660",
+    "totalConsumedMl": "260340",
+    "dailyMl": "210000",
     "consumedMl": {
-      "drinking": "40000",
-      "likes": "40",
-      "comments": "1000",
+      "drinking": "250000",
+      "likes": "340",
+      "comments": "10000",
       "shares": "0"
     },
-    "daysUntilEmpty": "34649999999999999999",
+    "daysUntilEmpty": "6599999999999999999",
     "depletedOnDay": null,
-    "entryCount": 1,
+    "entryCount": 3,
     "stufe": {
       "likeMl": "10",
       "kommentarMl": "500",
@@ -97,5 +121,112 @@
         "neuMl": "20000"
       }
     ]
-  }
+  },
+  "einwohnerNamen": [
+    {
+      "nr": 1,
+      "name": "@leonaprj",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 2,
+      "name": "@asen43013",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 3,
+      "name": "@nicidragoon",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 4,
+      "name": "@magdaa605",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 5,
+      "name": "@cool.shorts38",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 6,
+      "name": "@jaime_1234456789",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 7,
+      "name": "@tim.maciejewski6",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 8,
+      "name": "@bjarne.brawl.star",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 9,
+      "name": "@kilianott5",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 10,
+      "name": "@kukuwasgehor",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 11,
+      "name": "@thomas15361",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 12,
+      "name": "@ghost155151",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 13,
+      "name": "@king.murat21",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 14,
+      "name": "@theeditz477",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 15,
+      "name": "@pancake.544",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 16,
+      "name": "@oskorro8",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 17,
+      "name": "@benniiideralpha",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 18,
+      "name": "@leon.gas1",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 19,
+      "name": "@ole201156",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 20,
+      "name": "@ezzeeyfn",
+      "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 21,
+      "name": "@locskai.bence",
+      "seit": "2026-11-15T13:03:12.659Z"
+    }
+  ]
 }

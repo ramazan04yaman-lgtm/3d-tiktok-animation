@@ -19,7 +19,7 @@ export type Sticker =
   | { typ: 'szenario'; zeilen?: string[] }
   | { typ: 'stufen' }
   /** Ergebnisse seit dem letzten Video (wird aus den echten Zahlen berechnet). */
-  | { typ: 'ergebnis'; titel?: string; zeilen?: { ico: string; label: string; anzahl: string; menge: string; leise?: boolean }[]; summe?: string };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
+  | { typ: 'ergebnis'; titel?: string; follower?: boolean; zeilen?: { ico: string; label: string; anzahl: string; menge: string; leise?: boolean }[]; summe?: string };                                                  // aktuelle Verbrauchsstufe + nächste Meilensteine                             // Szenario-Karte (wird aus "szenario" berechnet)
 
 export type Musik = 'ruhig' | 'treibend' | 'drama';
 export type Effekt = 'pop' | 'whoosh' | 'tick' | 'ding' | 'gulp' | 'impact' | 'riser' | 'drop' | 'welle' | 'fanfare';
@@ -101,6 +101,8 @@ export interface TimelineBeat {
 
 export interface Timeline {
   titel: string;
+  /** TikTok-Namen der Einwohner (Index = Figur; Lücken = ohne Namen). */
+  namen?: (string | null)[];
   konto: string;
   dauer: number;
   beats: TimelineBeat[];

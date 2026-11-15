@@ -86,6 +86,7 @@ function tick(t: number, dt: number): void {
     else story.apply(Math.max(0, local));
   }
   scene.render(t, dt);
+  story?.nachRender();
   hud.update(snapshot, {
     visualDrain: scene.drainShown, seaLevel: scene.info.seaLevel, perFigure: scene.people.perFigure,
     preview: preview !== null || scene.previewActive, mode: visual.mode, demo,

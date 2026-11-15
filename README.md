@@ -47,10 +47,19 @@ npm run sim -- undo     # letzten Eintrag löschen
 
 > 🔖 **Speicherungen** (`--saves`) werden gezählt und im Video angezeigt, kosten aber **kein Wasser**.
 
+> 👥 **TikTok-Namen der Einwohner:** `npm run sim -- namen @name1 @name2` (oder im Bedienfeld).
+> Jeder Name bekommt eine eigene, dauerhafte Figur (feste Nummer, festes Aussehen, fester Platz auf dem Hof)
+> mit Namensschild über dem Kopf. Doppelte Namen und mehr Namen als Follower werden abgelehnt.
+> `npm run sim -- namen` zeigt die Liste, `npm run sim -- name-loeschen @name` entfernt einen Namen.
+
 #### 📒 Echter Verlauf unserer Serie
 | Eintrag | Datum | Follower | Likes | Kommentare | Shares | Speicherungen | Wasser dadurch |
 |---|---|---|---|---|---|---|---|
 | `video-01` | 14.11.2026 | +4 | 4 | 2 | 0 | 2 | 40 ml + 1 L = **1,04 L** (dazu 4 × 10 L Trinken am Ankunftstag) |
+| `video-02` | 15.11.2026 | +17 | 15 | 10 | 0 | – | 150 ml + 5 L = **5,15 L** |
+| `video-03` | 15.11.2026 | ±0 | 15 | 8 | 0 | – | 150 ml + 4 L = **4,15 L** |
+
+Stand 15.11.2026: 21 Einwohner, 210 L pro Tag, insgesamt 260,34 L getrunken (Trinken 250 L + Aktivitäten 10,34 L).
 
 Für das nächste Video nur die **neuen** Zahlen eintragen (`add … --ref video-02`) – oder den Gesamtstand aus der App
 (`totals … --ref video-02`): Das Programm zieht die schon gezählten Werte selbst ab.
@@ -146,7 +155,8 @@ Jede Folge ist eine Datei in **`folgen/`** (Beispiel: `folgen/folge-01.json`). P
   `northsea`, `sunda`, `pacific`, `flyover`, `bering`
 - **Sticker:** `tag`, `schild`, `zahl`, `info`, `zeiger` (zeigt auf einen Ort), `namensschild`, `profil`, `statistik`,
   `zahlen`, `stufen`, `szenario`, `ergebnis` (Ergebnis-Karte: was seit dem letzten Video dazukam)
-- **Kamera `hof`:** die ersten Einwohner (bis 12) zusammen vor ihrem Haus
+- **Kamera `hof`:** die ersten Einwohner zusammen vor ihrem Haus; **`gemeinschaft`:** alle Einwohner mit Namen von oben;
+  **`namen`:** Kamerafahrt durch die Reihen (Namensschilder groß)
 - **Weitere Felder:** `"strohhalm": true`, `"aktion": "winken" | "trinken"`, `"wasser": { "von": "jetzt", "bis": 0.5 }`
   (Vorschau, wird als VORSCHAU gekennzeichnet), `"min": 2.5` (Mindestdauer), `"audio": "aufnahmen/satz-03.mp3"`
 

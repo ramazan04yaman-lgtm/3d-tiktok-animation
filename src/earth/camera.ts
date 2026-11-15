@@ -19,6 +19,8 @@ export interface Shot {
   /** Kamerafahrt: Wegpunkte [lat, lon], Dauer in Sekunden. */
   path?: [number, number][];
   pathSeconds?: number;
+  /** Pfad nur einmal abfahren und am Ende stehen bleiben (statt von vorn zu beginnen). */
+  pathEinmal?: boolean;
   /** Zoom-Fahrt: Abstand ändert sich um so viel pro Sekunde (negativ = heranfahren). */
   zoom?: number;
   /** Grenze für die Zoom-Fahrt. */
@@ -110,7 +112,10 @@ export class CameraDirector {
     const s = SHOTS[this.shotName];
     const t = time - this.shotStart;
     let lat = s.lat, lon = s.lon;
-    if (s.path) [lat, lon] = pathPos(s.path, ((t / (s.pathSeconds ?? 20)) % 1 + 1) % 1);
+    if (s.path) {
+      const u = t / (s.pathSeconds ?? 20);
+      [lat, lon] = pathPos(s.path, s.pathEinmal ? Math.min(1, Math.max(0, u)) : (u % 1 + 1) % 1);
+    }
     if (s.spin) lon += s.spin * t;
     let dist = s.dist;
     if (s.zoom) {

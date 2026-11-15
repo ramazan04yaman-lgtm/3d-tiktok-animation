@@ -29,6 +29,54 @@ export interface SimFile {
   lastProcessedDay: Day;
   lastProcessedAt: string;
   snapshot: Snapshot;
+  /**
+   * TikTok-Namen der Einwohner (dauerhaft). Nr. 1 = Figur 1 usw. – jede Figur behält für immer
+   * ihren Namen, ihr Aussehen und ihren Platz. Einwohner ohne bekannten Namen bleiben namenlos.
+   */
+  einwohnerNamen?: EinwohnerName[];
+}
+
+export interface EinwohnerName {
+  /** Fortlaufende Nummer = Figur (1, 2, 3 …). Wird nie neu vergeben. */
+  nr: number;
+  /** TikTok-Name genau so, wie er eingegeben wurde (z. B. "@leonaprj"). */
+  name: string;
+  /** Wann der Name eingetragen wurde (ISO). */
+  seit: string;
+}
+
+/** Gültiger TikTok-Name: @ + 1–30 Zeichen aus Buchstaben, Ziffern, Punkt, Unterstrich. */
+export const NAME_REGEL = /^@[A-Za-z0-9._]{1,30}$/;
+
+/**
+ * Fügt TikTok-Namen hinzu (prüft alles, bevor etwas geändert wird):
+ * - exakte Schreibweise wird übernommen (nur Leerzeichen am Rand werden entfernt, fehlendes @ ergänzt)
+ * - kein Name doppelt (Groß-/Kleinschreibung egal)
+ * - nicht mehr Namen als Follower (jeder Name gehört zu einem echten Einwohner)
+ */
+export function addNamen(file: SimFile, namen: string[], now = new Date()): SimFile {
+  const liste = [...(file.einwohnerNamen ?? [])];
+  const vorhanden = new Set(liste.map((n) => n.name.toLowerCase()));
+  for (const roh of namen) {
+    const t = roh.trim();
+    const name = t.startsWith('@') ? t : '@' + t;
+    if (!NAME_REGEL.test(name)) throw new Error(`Ungültiger TikTok-Name: "${roh}" (erlaubt: Buchstaben, Ziffern, Punkt, Unterstrich)`);
+    if (vorhanden.has(name.toLowerCase())) throw new Error(`Name ${name} ist schon eingetragen – keine doppelte Figur.`);
+    vorhanden.add(name.toLowerCase());
+    liste.push({ nr: (liste.at(-1)?.nr ?? 0) + 1, name, seit: now.toISOString() });
+  }
+  const follower = computeState(file, today(file, now)).followers;
+  if (BigInt(liste.length) > follower) {
+    throw new Error(`${liste.length} Namen, aber nur ${follower} Follower/Einwohner. Bitte zuerst die Follower eintragen.`);
+  }
+  return { ...file, einwohnerNamen: liste };
+}
+
+/** Entfernt einen Namen (die Nummern der anderen bleiben unverändert). */
+export function removeName(file: SimFile, name: string): SimFile {
+  const liste = file.einwohnerNamen ?? [];
+  if (!liste.some((n) => n.name.toLowerCase() === name.toLowerCase())) throw new Error(`Name ${name} nicht gefunden`);
+  return { ...file, einwohnerNamen: liste.filter((n) => n.name.toLowerCase() !== name.toLowerCase()) };
 }
 
 export const DEFAULT_PATH = path.resolve(import.meta.dirname, '..', 'data', 'simulation.json');

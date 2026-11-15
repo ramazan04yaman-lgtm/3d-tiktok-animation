@@ -8,7 +8,7 @@
  * also zwischen zwei Videos nicht woanders hin.
  */
 import * as THREE from 'three';
-import { Crowd, FarCrowd, type Look, type Pose, lookFor } from './characters.ts';
+import { Crowd, FarCrowd, type Look, PALETTE, type Pose, lookFor } from './characters.ts';
 import { type EarthAssets, sampleElevation } from './assets.ts';
 import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
@@ -23,10 +23,27 @@ export const HOF_EINHEIT = 0.0006;
  * Solange es höchstens GRUENDER Menschen gibt, stehen alle nebeneinander vor dem Haus
  * (Reihen zu je 4, mittig um den Hof). Erst danach verteilen sich die Menschen auf die Städte der Welt.
  */
-export const GRUENDER = 12;
-/** Platz in Hof-Einheiten (x = Osten, z = Süden/zur Kamera) für Gründer i von n. */
+export const GRUENDER = 45;
+/** Abstand der Reihen in der Gemeinschaft (Hof-Einheiten). */
+export const GEMEINSCHAFT_REIHE = 2.3;
+/** Spalten der Gemeinschaft bei n Einwohnern. */
+export const gemeinschaftSpalten = (n: number) => (n <= 24 ? 3 : n <= 36 ? 4 : 5);
+/**
+ * Platz in Hof-Einheiten (x = Osten, z = Süden/zur Kamera) für Gründer i von n.
+ * Bis 4: zwei kleine Reihen vor dem Haus. Ab 5: die "Gemeinschaft" – Reihen zu je 3–5 Personen
+ * vom Haus nach vorne; Figur 1 steht vorne in der Mitte, die Nummern laufen Reihe für Reihe nach hinten.
+ */
 export function gruenderPlatz(i: number, n: number): [number, number] {
   if (n === 1) return [0, 0];
+  if (n > 4) {
+    const sp = gemeinschaftSpalten(n), reihen = Math.ceil(n / sp);
+    const reihe = Math.floor(i / sp), j = i % sp, inReihe = Math.min(sp, n - reihe * sp);
+    // Reihenfolge in der Reihe: Mitte zuerst, dann links/rechts (Figur 1 vorne Mitte)
+    const ordnung = Array.from({ length: inReihe }, (_, k) => k).sort((a, b) => Math.abs(a - (inReihe - 1) / 2) - Math.abs(b - (inReihe - 1) / 2) || a - b);
+    const x = (ordnung[j] - (inReihe - 1) / 2) * 2.5 + (reihe % 2 ? 0.45 : -0.45);
+    const z = (reihen - 1 - reihe) * GEMEINSCHAFT_REIHE - 0.4;
+    return [x, z];
+  }
   // Hochformat: schmale Reihen (2 bzw. 3 Personen), hintere Reihe enger -> alle Gesichter sichtbar
   const proReihe = n <= 4 ? 2 : 3, reihe = Math.floor(i / proReihe), reihen = Math.ceil(n / proReihe);
   const inReihe = Math.min(proReihe, n - reihe * proReihe), j = i % proReihe;
@@ -63,6 +80,8 @@ export class People {
   /** Kopfposition der ersten Figuren (für Zeiger-Sticker). */
   private headPos: THREE.Vector3[] = [];
   private assets: EarthAssets;
+  /** Anzahl gezeigter Figuren. */
+  get anzahl(): number { return this.shown; }
   /** Wie viele echte Menschen eine Figur darstellt. */
   perFigure = 1;
   /** Plattformen (Grundstück/Dorf): Figuren darauf stehen auf deren Höhe statt auf dem Gelände. */
@@ -73,10 +92,30 @@ export class People {
   constructor(assets: EarthAssets) {
     this.assets = assets;
     this.group.add(this.crowd.group, this.far.group);
-    for (let i = 0; i < MAX_FIGURES; i++) { this.looks[i] = lookFor(i, hash); this.far.setLook(i, this.looks[i]); }
+    for (let i = 0; i < MAX_FIGURES; i++) {
+      this.looks[i] = i < GRUENDER ? People.gemeinschaftsLook(i) : lookFor(i, hash);
+      this.far.setLook(i, this.looks[i]);
+    }
     // Städte gewichten (Wurzel der Einwohnerzahl -> auch kleinere Städte bekommen Leute)
     let acc = 0;
     for (const city of assets.cities) { acc += Math.pow(city.pop, 0.8); this.cumWeights.push(acc); }
+  }
+
+  /**
+   * Feste Figuren der Gemeinschaft: jede Nummer bekommt ein eigenes, unverwechselbares Aussehen
+   * (Hemdfarbe × Kopfbedeckung sind bis Figur 50 nie doppelt).
+   */
+  static gemeinschaftsLook(i: number): Look {
+    const P = PALETTE;
+    return {
+      skin: P.skins[(i * 5 + Math.floor(i / 6)) % P.skins.length],
+      hair: P.hair[(i * 3 + 1) % P.hair.length],
+      hairStyle: (i + Math.floor(i / 10) * 2) % 5,
+      shirt: P.shirts[i % P.shirts.length],
+      pants: P.pants[(i * 2) % P.pants.length],
+      shoes: '#ffffff',
+      tie: ['#ff4f5e', '#ffd23a', '#2fa8ff', '#ffffff'][(i + Math.floor(i / 4)) % 4],
+    };
   }
 
   private makePerson(i: number): Person {
@@ -112,8 +151,10 @@ export class People {
   /** Stadt mit den meisten gezeigten Figuren (für Gruppen-Nahaufnahmen). */
   busiestCity(): { lat: number; lon: number; city: string; count: number } {
     const m = new Map<string, { lat: number; lon: number; n: number }>();
-    for (let i = 0; i < this.shown; i++) {
+    // Gründer (Hof) nicht mitzählen – der Dorfplatz soll woanders stehen als der Hof
+    for (let i = GRUENDER; i < this.shown; i++) {
       const p = this.persons[i];
+      if (this.persons[0] && p.city === this.persons[0].city) continue;   // Stadt des Hofs auslassen
       const e = m.get(p.city) ?? { lat: 0, lon: 0, n: 0 };
       e.lat += p.lat; e.lon += p.lon; e.n++;
       m.set(p.city, e);
@@ -183,6 +224,12 @@ export class People {
         fwd.copy(this.kamera).sub(tmp);
         fwd.addScaledVector(p.up, -fwd.dot(p.up)).normalize();
       }
+      if (solo && this.shown > 1) {
+        // lebendiger: leicht hin- und herdrehen und ab und zu ein kleiner Freudenhüpfer
+        fwd.applyAxisAngle(p.up, Math.sin(time * 0.8 + i * 1.3) * 0.38);
+        const zz = ((time + 0.5 + i * 1.7) % 5.2 + 5.2) % 5.2;
+        if (zz > 4.3 && zz < 4.85) tmp.addScaledVector(p.up, Math.sin(((zz - 4.3) / 0.55) * Math.PI) * 0.22 * s);
+      }
       // beim Trinken/Winken leicht zur Kamera-nahen Seite drehen (wirkt lebendiger)
       rot.lookAt(fwd, zero, p.up);   // Gesicht (+z) zeigt in Blick-/Laufrichtung
       base.compose(tmp, new THREE.Quaternion().setFromRotationMatrix(rot), new THREE.Vector3(s, s, s));
@@ -205,7 +252,7 @@ export class People {
       }
       if (this.nah) { this.crowd.setLook(slot, this.looks[i]); this.crowd.setPose(slot, base, pose); slot++; }
       else this.far.setPose(i, base);
-      if (i < 8) this.headPos[i] = new THREE.Vector3(0, 1.45, 0).applyMatrix4(base);
+      if (i < GRUENDER) this.headPos[i] = new THREE.Vector3(0, 1.45, 0).applyMatrix4(base);
     }
     if (this.nah) this.crowd.commit(); else this.far.commit();
   }

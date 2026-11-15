@@ -202,6 +202,8 @@ const kurzDauer = (t: number) => t % 365 === 0 ? `${groupDE(t / 365)} ${t === 36
 
 export interface BuildInput {
   folge: Folge;
+  /** TikTok-Namen der Einwohner (Index = Figur). */
+  namen?: (string | null | undefined)[];
   snapshot: Snapshot;
   seit?: Snapshot;
   /** Gemessene Länge der Sprachaufnahme je Beat (Sekunden); fehlt -> Schätzung. */
@@ -213,7 +215,7 @@ export interface BuildInput {
 /** Pause nach jedem Satz (Sekunden) – kurz für ein flottes TikTok-Tempo. */
 export const PAUSE = 0.08;
 
-export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }: BuildInput): Timeline {
+export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, namen }: BuildInput): Timeline {
   const p = platzhalter(snapshot, seit);
   const beats: TimelineBeat[] = [];
   const captions: Caption[] = [];
@@ -260,7 +262,10 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }
     const von = conv(b.wasser?.von, b.szenario ? prevDrain : bis);
     const sticker: Sticker[] = (b.sticker ?? []).map((s) => {
       const f = fillSticker(s, p);
-      if (f.typ === 'ergebnis') return { ...f, ...ergebnisDaten(snapshot, seit) };
+      if (f.typ === 'ergebnis') {
+        const d = ergebnisDaten(snapshot, seit);
+        return { ...f, ...d, zeilen: f.follower === false ? d.zeilen.slice(1) : d.zeilen };
+      }
       if (f.typ === 'szenario' && b.szenario && sz) {
         return { typ: 'szenario', zeilen: [
           `${kurzZahl(b.szenario.einwohner)} MENSCHEN · ${kurzDauer(b.szenario.tage)}`,
@@ -302,7 +307,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten }
   // letzter Untertitel bleibt bis zum Ende stehen
   if (captions.length) captions[captions.length - 1].end = t;
   if (!musik.length || musik[0].start > 0) musik.unshift({ start: 0, typ: 'ruhig' });
-  return { titel: folge.titel, konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
+  return { titel: folge.titel, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
 }
 
 function fillSticker(s: Sticker, p: Record<string, string>): Sticker {

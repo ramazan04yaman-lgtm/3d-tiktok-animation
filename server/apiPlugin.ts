@@ -5,12 +5,13 @@
  *   GET    /api/state         -> aktueller Stand (alle Tage bis heute verbucht)
  *   POST   /api/entries       -> neuen Eintrag speichern
  *   DELETE /api/entries/:id   -> Eintrag löschen
+ *   POST   /api/namen         -> TikTok-Namen hinzufügen  { namen: ["@name", …] }
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 import { buildTimeline } from '../src/video/script.ts';
 import { echteZahlen, folgenPfad, listFolgen, loadFolge } from './folgen.ts';
-import { DEFAULT_PATH, type EntryInput, type SimFile, addEntry, loadOrCreate, removeEntry, saveFile, today } from './store.ts';
+import { DEFAULT_PATH, type EntryInput, type SimFile, addEntry, addNamen, loadOrCreate, removeEntry, saveFile, today } from './store.ts';
 
 function send(res: ServerResponse, status: number, body: unknown): void {
   res.statusCode = status;
@@ -27,7 +28,7 @@ function readBody(req: IncomingMessage): Promise<unknown> {
 }
 
 function view(f: SimFile, warnings: string[] = []) {
-  return { today: today(f), startDay: f.startDay, entries: f.entries, snapshot: f.snapshot, warnings };
+  return { today: today(f), startDay: f.startDay, entries: f.entries, snapshot: f.snapshot, namen: f.einwohnerNamen ?? [], warnings };
 }
 
 export function simulationApi(file = DEFAULT_PATH): Plugin {
@@ -61,6 +62,11 @@ export function simulationApi(file = DEFAULT_PATH): Plugin {
               if (body.mode !== 'new' && body.mode !== 'totals') throw new Error('mode muss "new" oder "totals" sein');
               const r = addEntry(loadOrCreate(file), body);
               return send(res, 200, view(saveFile(r.file, file), r.warnings));
+            }
+            if (req.method === 'POST' && url === '/namen') {
+              const body = (await readBody(req)) as { namen?: unknown };
+              if (!Array.isArray(body.namen) || !body.namen.every((n) => typeof n === 'string')) throw new Error('namen muss eine Liste sein');
+              return send(res, 200, view(saveFile(addNamen(loadOrCreate(file), body.namen as string[]), file)));
             }
             const m = url.match(/^\/entries\/([\w-]+)$/);
             if (req.method === 'DELETE' && m) {

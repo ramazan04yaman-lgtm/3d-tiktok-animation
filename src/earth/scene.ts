@@ -14,7 +14,7 @@ import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
 import { type Diorama, createDiorama } from './diorama.ts';
 import { SHOTS } from './camera.ts';
-import { HOF_EINHEIT, People } from './people.ts';
+import { GEMEINSCHAFT_REIHE, GRUENDER, HOF_EINHEIT, People, gemeinschaftSpalten } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
 export class EarthScene {
@@ -147,6 +147,18 @@ export class EarthScene {
     // Etwas weiter weg: die ersten Einwohner (Gründer) zusammen vor dem Haus
     SHOTS.hof = { label: `🏠 Die ersten Einwohner (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 5.2 * k, tilt: (9.6 * k) * 180 / Math.PI,
       focus: r + 0.75 * k, figur: k };
+    // Die Gemeinschaft (ab 5 Einwohnern): Übersicht von schräg oben + Kamerafahrt durch die Reihen
+    const n = Math.min(this.people.anzahl, GRUENDER);
+    const reihen = Math.ceil(n / gemeinschaftSpalten(n));
+    const vorne = (reihen - 1) * GEMEINSCHAFT_REIHE - 0.4, hinten = -0.4;
+    const latBei = (z: number) => p.lat - (z * k) * 180 / Math.PI;   // z = Hof-Einheiten nach Süden
+    const mitte = (vorne + hinten) / 2;
+    // steil von oben (≈60°), Blickpunkt etwas hinter der Mitte -> Gruppe sitzt unter der oberen Anzeige
+    const tiefe = vorne - hinten + 3;
+    SHOTS.gemeinschaft = { label: '👥 Die Gemeinschaft (alle Namen)', lat: latBei(mitte - tiefe * 0.08), lon: p.lon, dist: r + tiefe * 1.36 * k,
+      tilt: (tiefe * 0.8 * k) * 180 / Math.PI, focus: r + 0.5 * k, figur: k };
+    SHOTS.namen = { label: '🏷️ Kamerafahrt durch die Reihen', lat: latBei(vorne), lon: p.lon, dist: r + 5.2 * k, tilt: (8.6 * k) * 180 / Math.PI,
+      focus: r + 0.75 * k, figur: k, path: [[latBei(vorne - 0.8), p.lon], [latBei(hinten + 1.2), p.lon]], pathSeconds: 14, pathEinmal: true };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */
