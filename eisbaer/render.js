@@ -6,7 +6,7 @@ const FPS = 30; const args = process.argv.slice(2);
 const OUT = path.join(__dirname, 'build/frames'); fs.mkdirSync(OUT, { recursive: true });
 const TL = JSON.parse(fs.readFileSync(path.join(__dirname, 'build/timeline.json')));
 const test = args[0] === 'test';
-const frames = test ? args.slice(1).map(Number).map(t => Math.round(t * FPS)) : [...Array(Math.ceil(TL.duration * FPS)).keys()];
+const frames = process.env.RANGE ? (([a, b]) => { const r = []; for (let f = Math.floor(a * FPS); f <= Math.ceil(b * FPS); f++) r.push(f); return r; })(process.env.RANGE.split('-').map(Number)) : test ? args.slice(1).map(Number).map(t => Math.round(t * FPS)) : [...Array(Math.ceil(TL.duration * FPS)).keys()];
 const WORKERS = Number(process.env.WORKERS || (test ? 1 : 4));
 (async () => {
   const srv = spawn('python3', ['-m', 'http.server', '8765'], { cwd: path.join(__dirname, '..'), stdio: 'ignore' });

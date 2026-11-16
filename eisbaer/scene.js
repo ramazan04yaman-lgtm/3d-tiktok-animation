@@ -405,7 +405,7 @@ function bracket(a, b, text, k) {
 // ---------- Kamera ----------
 function cam(pos, look, fov = 40, t = 0, shake = 0.02) {
   camera.position.copy(pos).add(V(Math.sin(t * 1.1) * shake, Math.sin(t * 1.7 + 1) * shake, Math.cos(t * 0.9) * shake));
-  camera.fov = fov; camera.updateProjectionMatrix(); camera.lookAt(look);
+  camera.fov = fov; camera.updateProjectionMatrix(); camera.lookAt(look); camera.updateMatrixWorld(true);
 }
 const vl = (a, b, k) => a.clone().lerp(b, k);
 
@@ -442,10 +442,10 @@ const shots = [
       bear.root.position.set(0, 0, 3); poseBear(bear, { phase: T * 4.2, amp: 1, t: T });
       sunAt(seal.position);
       seal.userData.ol.userData.u.uA.value = clamp(u * 4) * 0.9;
-      cam(V(-1.2, 0.9, -59.5 + u * 0.4), V(0.2, 0.6, -40), 32 - u * 3, T, 0.015);
+      cam(V(0.9, 1.25, -61.6 + u * 0.3), V(0.4, 0.55, -40), 34 - u * 3, T, 0.015);
       const kk = clamp((T - WT(0, 'kilometer')) * 3);
       label3('1 KM', bear.root.position.clone().add(V(0, 2.2, 0)), kk);
-      pill('👀 SOFORT ENTDECKT', W / 2, 760, clamp((T - WT(0, 'entfernung')) * 3), '#ff4d4d');
+      pill('👀 SOFORT ENTDECKT', W / 2, 520, clamp((T - WT(0, 'entfernung')) * 3), '#ff4d4d');
     }
   },
   // 1: Robbe taucht ab
@@ -599,8 +599,8 @@ function diorama(T, i) {
     const nose = bear.nose.getWorldPosition(V(0, 0, 0)); const tgt = seal2.position.clone().add(V(0, 0.4, 0.8));
     const tn = WT(11, 'nase') - 0.2;
     smellRings.forEach((r, k) => { const ph = ((T - tn) * 0.55 + k / 6) % 1; r.visible = T > tn; r.position.copy(nose.clone().lerp(tgt, ph)).sub(DIO); r.scale.setScalar(0.5 + ph * 1.2); r.material.opacity = Math.sin(ph * Math.PI) * 0.9; });
-    bracket(V(DIO.x + cav.x + 1.9, 0, DIO.z), V(DIO.x + cav.x + 1.9, cav.y + cav.ry - 0.12, DIO.z), '1 METER', clamp((T - WT(11, 'meter') + 0.3) * 2));
-    pill('👃 RIECHT SIE TROTZDEM', W / 2, 760, clamp((T - WT(11, 'riech')) * 3), '#3ddc84');
+    bracket(V(DIO.x + cav.x - 0.3, 0, DIO.z), V(DIO.x + cav.x - 0.3, cav.y + cav.ry - 0.08, DIO.z), '1 METER', clamp((T - WT(11, 'meter') + 0.3) * 2));
+    pill('👃 RIECHT SIE TROTZDEM', W / 2, 520, clamp((T - WT(11, 'riech')) * 3), '#3ddc84');
   }
 }
 
