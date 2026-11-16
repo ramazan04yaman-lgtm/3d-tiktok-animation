@@ -512,7 +512,7 @@ function endcard(t, d) {
 
 const SCENES = {
   bed: { draw: bed, cams: [{ z: 2.0, cx: 380, cy: 1150 }, { z: 1.0, cx: 540, cy: 960 }, { z: 1.6, cx: 820, cy: 1100 }] },
-  phone: { draw: phonePOV, cams: [{ z: 1.0, cx: 540, cy: 960 }, { z: 1.5, cx: 540, cy: 760 }, { z: 1.25, cx: 540, cy: 1000 }] },
+  phone: { draw: phonePOV, cams: [{ z: 1.0, cx: 540, cy: 960 }, { z: 1.4, cx: 540, cy: 960 }, { z: 1.25, cx: 540, cy: 1000 }] },
   street: { draw: street, cams: [{ z: 1.0, cx: 540, cy: 960 }, { z: 1.7, cx: 600, cy: 1330 }, { z: 1.35, cx: 330, cy: 1250 }] },
   door: { draw: door, cams: [{ z: 1.0, cx: 540, cy: 960 }, { z: 1.45, cx: 450, cy: 1050 }, { z: 1.25, cx: 560, cy: 1000 }] },
   coffee: { draw: coffee, cams: [{ z: 1.15, cx: 560, cy: 1100 }, { z: 1.8, cx: 540, cy: 1150 }, { z: 1.0, cx: 540, cy: 960 }] },
