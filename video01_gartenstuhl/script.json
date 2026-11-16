@@ -1,0 +1,150 @@
+[
+ {
+  "say": "Er band fünfundvierzig Wetterballons an seinen Gartenstuhl und flog damit fast fünftausend Meter hoch.",
+  "cap": "Er band 45 Wetterballons an seinen Gartenstuhl und flog damit fast 5000 Meter hoch.",
+  "shots": [
+   "hook_sky",
+   "hook_face",
+   "rise_wide"
+  ]
+ },
+ {
+  "say": "Seit er dreizehn war, träumte er vom Fliegen.",
+  "cap": "Seit er 13 war, träumte er vom Fliegen.",
+  "shots": [
+   "kid_dream"
+  ]
+ },
+ {
+  "say": "Doch Pilot durfte er nie werden, wegen seiner schlechten Augen.",
+  "cap": "Doch Pilot durfte er nie werden, wegen seiner schlechten Augen.",
+  "shots": [
+   "eye_chart",
+   "eye_face"
+  ]
+ },
+ {
+  "say": "Also kaufte er Wetterballons und füllte sie mit Helium.",
+  "cap": "Also kaufte er Wetterballons und füllte sie mit Helium.",
+  "shots": [
+   "inflate",
+   "inflate_close"
+  ]
+ },
+ {
+  "say": "Er band sie an seinen Gartenstuhl und packte Sandwiches, Bier, ein Funkgerät und ein Luftgewehr ein.",
+  "cap": "Er band sie an seinen Gartenstuhl und packte Sandwiches, Bier, ein Funkgerät und ein Luftgewehr ein.",
+  "shots": [
+   "tie_chair",
+   "props_sandwich",
+   "props_beer",
+   "props_gun"
+  ]
+ },
+ {
+  "say": "Sein Plan: ein paar Meter über dem Garten schweben, dann ein paar Ballons abschießen und landen.",
+  "cap": "Sein Plan: ein paar Meter über dem Garten schweben, dann ein paar Ballons abschießen und landen.",
+  "shots": [
+   "plan_smug",
+   "hover_low",
+   "plan_shoot"
+  ]
+ },
+ {
+  "say": "Doch als seine Freunde das Seil kappten, schoss er wie eine Rakete in den Himmel.",
+  "cap": "Doch als seine Freunde das Seil kappten, schoss er wie eine Rakete in den Himmel.",
+  "shots": [
+   "cut_rope",
+   "rocket_up",
+   "friends_shock"
+  ]
+ },
+ {
+  "say": "Er hatte solche Angst, dass er sich nicht traute, auch nur einen Ballon abzuschießen.",
+  "cap": "Er hatte solche Angst, dass er sich nicht traute, auch nur einen Ballon abzuschießen.",
+  "shots": [
+   "scared_close",
+   "scared_gun"
+  ]
+ },
+ {
+  "say": "Und er trieb direkt in die Flugroute des Flughafens von Long Beach.",
+  "cap": "Und er trieb direkt in die Flugroute des Flughafens von Long Beach.",
+  "shots": [
+   "jet_pass",
+   "jet_wide"
+  ]
+ },
+ {
+  "say": "Ein Pilot meldete dem Tower: Da fliegt ein Mann in einem Gartenstuhl!",
+  "cap": "Ein Pilot meldete dem Tower: Da fliegt ein Mann in einem Gartenstuhl!",
+  "shots": [
+   "pilot_face",
+   "jet_pass_close",
+   "wave_plane"
+  ]
+ },
+ {
+  "say": "Nach fünfundvierzig Minuten schoss er endlich ein paar Ballons ab und begann zu sinken.",
+  "cap": "Nach 45 Minuten schoss er endlich ein paar Ballons ab und begann zu sinken.",
+  "shots": [
+   "aim",
+   "pop",
+   "sink"
+  ]
+ },
+ {
+  "say": "Doch dann fiel ihm das Gewehr aus der Hand.",
+  "cap": "Doch dann fiel ihm das Gewehr aus der Hand.",
+  "shots": [
+   "gun_fall",
+   "nooo"
+  ]
+ },
+ {
+  "say": "Kurz vor dem Boden verfing er sich in einer Stromleitung.",
+  "cap": "Kurz vor dem Boden verfing er sich in einer Stromleitung.",
+  "shots": [
+   "powerline",
+   "zap_face"
+  ]
+ },
+ {
+  "say": "Ein ganzes Viertel war zwanzig Minuten ohne Strom.",
+  "cap": "Ein ganzes Viertel war 20 Minuten ohne Strom.",
+  "shots": [
+   "blackout"
+  ]
+ },
+ {
+  "say": "Unten wartete schon die Polizei und nahm ihn sofort fest.",
+  "cap": "Unten wartete schon die Polizei und nahm ihn sofort fest.",
+  "shots": [
+   "police_car",
+   "arrest"
+  ]
+ },
+ {
+  "say": "Als ein Reporter fragte, warum er das getan hat, sagte er nur:",
+  "cap": "Als ein Reporter fragte, warum er das getan hat, sagte er nur:",
+  "shots": [
+   "reporter",
+   "reporter_close"
+  ]
+ },
+ {
+  "say": "Ein Mann kann nicht einfach nur rumsitzen.",
+  "cap": "Ein Mann kann nicht einfach nur rumsitzen.",
+  "shots": [
+   "quote_face"
+  ]
+ },
+ {
+  "say": "Basierend auf einer wahren Geschichte. Such nach Lawnchair Larry.",
+  "cap": "Basierend auf einer wahren Geschichte. Such nach Lawnchair Larry.",
+  "shots": [
+   "finale",
+   "finale_title"
+  ]
+ }
+]

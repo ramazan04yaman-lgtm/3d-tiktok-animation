@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { SHOTS } from './shots.js';
+const W = +(new URLSearchParams(location.search).get('w') || 1080), H = W * 16 / 9;
+const TL = await (await fetch('build/timeline.json')).json();
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.outputColorSpace = THREE.SRGBColorSpace;
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const g = out.getContext('2d');
+// flatten shots into a timeline
+const shots = []; TL.sentences.forEach((s, i) => { const end = i + 1 < TL.sentences.length ? TL.sentences[i + 1].t0 : TL.duration; const d = (end - s.t0) / s.shots.length; s.shots.forEach((n, k) => shots.push({ n, t0: s.t0 + k * d, t1: s.t0 + (k + 1) * d })); });
+const words = TL.sentences.flatMap(s => s.words);
+let cur = null, upd = null; const ctx = { scene: null, camera: new THREE.PerspectiveCamera(50, W / H, 0.05, 30000), T: 0 };
+function caption(T) {
+  let w = null; for (const x of words) if (x.t0 <= T && T < x.t1 + 0.25) w = x; if (!w) return;
+  const txt = w.w.toUpperCase(); const k = Math.min(1, (T - w.t0) / 0.09); const sc = 1.25 - 0.25 * k;
+  let size = W * 0.085; g.font = `900 ${size}px "Inter Display"`; const mw = g.measureText(txt).width; if (mw > W * 0.86) size *= W * 0.86 / mw;
+  g.save(); g.translate(W / 2, H * 0.6); g.scale(sc, sc); g.font = `900 ${size}px "Inter Display"`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineJoin = 'round'; g.lineWidth = size * 0.2; g.strokeStyle = '#000'; g.strokeText(txt, 0, 0); g.fillStyle = '#fff'; g.fillText(txt, 0, 0); g.restore();
+}
+window.SHOTLIST = shots; window.DUR = TL.duration;
+window.renderFrame = (T, q = 0.92) => {
+  const sh = shots.find(s => T >= s.t0 && T < s.t1) || shots[shots.length - 1];
+  if (cur !== sh) { cur = sh; ctx.scene = new THREE.Scene(); upd = SHOTS[sh.n](ctx); }
+  ctx.T = T; const u = Math.min(1, (T - sh.t0) / (sh.t1 - sh.t0)); upd(u, T - sh.t0);
+  r.render(ctx.scene, ctx.camera); g.drawImage(r.domElement, 0, 0); if (upd.overlay) upd.overlay(g, W, H, u); caption(T);
+  return out.toDataURL('image/jpeg', q);
+};
+await document.fonts.load('900 40px "Inter Display"');
+window.READY = true;
+</script></body></html>
