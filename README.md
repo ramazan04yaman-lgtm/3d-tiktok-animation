@@ -163,6 +163,15 @@ Jede Folge ist eine Datei in **`folgen/`** (Beispiel: `folgen/folge-01.json`). P
 - **Weitere Felder:** `"strohhalm": true`, `"aktion": "winken" | "trinken"`, `"wasser": { "von": "jetzt", "bis": 0.5 }`
   (Vorschau, wird als VORSCHAU gekennzeichnet), `"min": 2.5` (Mindestdauer), `"audio": "aufnahmen/satz-03.mp3"`
 
+### 🎯 Zuschauerbindung prüfen (vor jedem Rendern)
+```bash
+npm run bindung -- --folge video-04-kurz
+```
+Prüft automatisch: Länge 40–50 s · starkes Bild in der 1. Sekunde · Frage/Problem in den ersten 3 s ·
+spätestens alle 4 s etwas Neues im Bild · Sätze ≤ 12 Wörter · Überraschung in der Mitte (`"ueberraschung": true`) ·
+Cliffhanger am Ende (`"cliffhanger": true`) · keine Begrüßung/Regel-Wiederholung. Ohne Aufnahme wird im Tempo
+der Felix-Stimme geschätzt, mit Aufnahme wird die echte Zeitleiste geprüft.
+
 ### 2. Ansehen (ohne Ton)
 `npm run dev` → im Bedienfeld unter „Folge abspielen“ die Folge auswählen → ▶
 

@@ -16,6 +16,7 @@
     "screenshot": "node scripts/screenshot.ts",
     "video": "node scripts/render-video.ts",
     "sprechertext": "node scripts/sprechertext.ts",
+    "bindung": "node scripts/bindung.ts",
     "stimme-laden": "node scripts/stimme-laden.ts"
   },
   "dependencies": {

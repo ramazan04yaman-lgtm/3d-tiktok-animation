@@ -54,6 +54,10 @@ export interface Beat {
   aktion?: 'winken' | 'trinken';
   /** Mindestdauer in Sekunden. */
   min?: number;
+  /** Zuschauerbindung (nur für den Check): Einstiegs-Frage/Problem, Überraschung in der Mitte, Cliffhanger am Ende. */
+  hook?: boolean;
+  ueberraschung?: boolean;
+  cliffhanger?: boolean;
   /** In diesem Satz landen die neuen Einwohner (seit dem Vergleichsstand) nacheinander auf dem Hof. */
   ankunft?: boolean;
   /** Eigene Sprachaufnahme statt Computerstimme (Pfad relativ zur Folgen-Datei). */

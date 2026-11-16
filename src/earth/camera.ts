@@ -131,7 +131,8 @@ export class CameraDirector {
   update(time: number): CamState {
     if (this.free) return this.cur;
     const goal = this.target(time);
-    const k = this.transStart < 0 ? 1 : ease(Math.min(1, (time - this.transStart) / this.transDur));
+    // harter Schnitt (Übergang ~0): sofort am Ziel – auch schon im allerersten Bild
+    const k = this.transStart < 0 || this.transDur <= 0.001 ? 1 : ease(Math.min(1, (time - this.transStart) / this.transDur));
     // Beim Wechsel zwischen zwei nahen Shots kurz herauszoomen (Bogen statt Durchfliegen)
     const lift = Math.sin(Math.PI * k) * Math.max(0, Math.min(1.2, Math.abs(goal.lon - this.from.lon) / 120 + Math.abs(goal.lat - this.from.lat) / 80)) * (k < 1 ? 1 : 0);
     this.cur = {
