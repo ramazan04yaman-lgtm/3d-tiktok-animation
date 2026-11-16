@@ -462,23 +462,57 @@ function alignMouth(target) { rex.root.updateMatrixWorld(true); const p = rex.mo
 // ---------- Triceratops ----------
 function makeTri() {
   const g = new THREE.Group(); const body = new THREE.Group(); g.add(body);
-  const triCol = (geo) => { geo.computeVertexNormals(); const p = geo.attributes.position, n = geo.attributes.normal; const cols = []; const c = new THREE.Color();
-    for (let i = 0; i < p.count; i++) { c.set(0xb7a07a).lerp(new THREE.Color(0x6e5a44), clamp((n.getY(i) + 0.2))); if (n.getY(i) > 0.2 && Math.sin(p.getZ(i) * 5) > 0.5) c.lerp(new THREE.Color(0x4a3a2c), 0.4); cols.push(c.r, c.g, c.b); }
+  const A = new THREE.Color(0x8e8b74), B = new THREE.Color(0x585844), D = new THREE.Color(0x3e3d30);
+  const triCol = (geo, us = 1.3, vs = 0.8) => { geo.computeVertexNormals(); const p = geo.attributes.position, n = geo.attributes.normal; const cols = []; const c = new THREE.Color();
+    if (geo.attributes.uv) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * us, uv.getY(i) * vs); }
+    for (let i = 0; i < p.count; i++) { c.copy(A).lerp(B, clamp(n.getY(i) + 0.2)); if (n.getY(i) > 0.2 && Math.sin(p.getZ(i) * 4 + p.getX(i) * 2) > 0.55) c.lerp(D, 0.35); c.multiplyScalar(0.92 + 0.08 * Math.sin(p.getX(i) * 9 + p.getZ(i) * 7)); cols.push(c.r, c.g, c.b); }
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); return geo; };
   const ol = outlineMat(0xff3b30, 0.06);
-  const add = (geo, x, y, z, sx, sy, sz, parent = body, rx = 0) => { const gg = triCol(geo); const m = new THREE.Mesh(gg, skinM); m.position.set(x, y, z); m.scale.set(sx, sy, sz); m.rotation.x = rx; m.castShadow = true; parent.add(m); const o = new THREE.Mesh(gg, ol); o.position.copy(m.position); o.scale.copy(m.scale); o.rotation.copy(m.rotation); parent.add(o); return m; };
-  add(new THREE.SphereGeometry(1, 32, 24), 0, 1.75, 0, 1.15, 1.05, 2.3);
-  add(new THREE.SphereGeometry(1, 20, 14), 0, 1.5, -2.4, 0.4, 0.4, 1.1);
-  const head = new THREE.Group(); head.position.set(0, 1.6, 2.2); body.add(head);
-  add(new THREE.SphereGeometry(1, 24, 18), 0, 0, 0.6, 0.55, 0.6, 0.9, head);
-  add(new THREE.ConeGeometry(0.3, 0.6, 12), 0, -0.2, 1.55, 1, 1, 1, head, Math.PI / 2 + 0.4);
-  const frillG = new THREE.CylinderGeometry(0.95, 0.95, 0.12, 36, 1); const frill = add(frillG, 0, 0.55, -0.05, 1, 1, 1, head, -1.25);
-  const hornM = new THREE.MeshStandardMaterial({ color: 0xe9dcc0, roughness: 0.4 });
-  for (const s of [-1, 1]) { const h = new THREE.Mesh(new THREE.ConeGeometry(0.11, 1.1, 10), hornM); h.position.set(s * 0.28, 0.45, 1.1); h.rotation.x = 1.0; h.castShadow = true; head.add(h);
-    const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), darkM); e.position.set(s * 0.45, 0.2, 0.85); head.add(e); }
-  const nh = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.4, 8), hornM); nh.position.set(0, 0.25, 1.45); nh.rotation.x = 0.6; head.add(nh);
+  const add = (geo, parent, x, y, z, rx = 0, outline = true) => { const m = new THREE.Mesh(geo, skinM); m.position.set(x, y, z); m.rotation.x = rx; m.castShadow = true; m.receiveShadow = true; parent.add(m);
+    if (outline) { const o = new THREE.Mesh(geo, ol); o.position.copy(m.position); o.rotation.copy(m.rotation); parent.add(o); } return m; };
+  const seg = (parent, a, b, r1, r2, mat) => { const len = a.distanceTo(b); const geo = mat === skinM ? triCol(new THREE.CylinderGeometry(r2, r1, len, 14)) : new THREE.CylinderGeometry(r2, r1, len, 14); const m = new THREE.Mesh(geo, mat);
+    m.position.copy(a).lerp(b, 0.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize()); m.castShadow = true; parent.add(m); return m; };
+  // Rumpf: hoher Rücken über den Hüften, tiefer Bauch
+  const bg = new THREE.SphereGeometry(1, 56, 36); { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const hump = Math.exp(-Math.pow((z + 0.25) / 0.55, 2));
+    p.setXYZ(i, x * 1.08 * (1 - 0.12 * Math.max(0, z)), y > 0 ? y * (0.9 + 0.3 * hump) : y * 0.95, z * 2.25); } }
+  add(triCol(bg), body, 0, 1.85, 0);
+  const tailG = triCol(new THREE.CylinderGeometry(0.42, 0.05, 2.8, 18)); add(tailG, body, 0, 1.55, -3.2, -Math.PI / 2 - 0.22);
+  add(triCol(new THREE.SphereGeometry(1, 28, 20)), body, 0, 1.78, 2.05).scale.set(0.62, 0.66, 0.6); // Hals
+  const head = new THREE.Group(); head.position.set(0, 1.8, 2.35); body.add(head);
+  // Schädel: zur Schnabelspitze verjüngt
+  const sg = new THREE.SphereGeometry(1, 36, 26); { const p = sg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const t = (z + 1) / 2;
+    p.setXYZ(i, x * lerp(0.52, 0.22, Math.pow(t, 1.3)), y * lerp(0.6, 0.3, t) - 0.1 * t, t * 1.55); } }
+  add(triCol(sg), head, 0, 0, 0);
+  const hornM = new THREE.MeshStandardMaterial({ color: 0xe5d7b8, roughness: 0.45 }); const beakM = new THREE.MeshStandardMaterial({ color: 0x2c2822, roughness: 0.4 });
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.42, 18), beakM); beak.rotation.x = Math.PI / 2 + 0.55; beak.position.set(0, -0.3, 1.58); head.add(beak); // Papageienschnabel
+  for (const s of [-1, 1]) {
+    // lange, nach vorne gebogene Augenbrauenhörner
+    const pts = [V(s * 0.26, 0.3, 0.5), V(s * 0.31, 0.68, 0.78), V(s * 0.33, 0.92, 1.18), V(s * 0.3, 1.02, 1.62)]; const rr = [0.12, 0.095, 0.065, 0.03, 0.004];
+    for (let k = 0; k < pts.length - 1; k++) seg(head, pts[k], pts[k + 1], rr[k], rr[k + 1], hornM);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.14, 10), hornM); tip.position.copy(pts[3]).add(V(0, 0.01, 0.06)); tip.rotation.x = 1.4; head.add(tip);
+    const ch = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 12), hornM); ch.position.set(s * 0.5, -0.2, 0.45); ch.rotation.z = -s * 1.9; head.add(ch); // Wangenhorn
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe8b81a, roughness: 0.2 })); e.position.set(s * 0.43, 0.2, 0.55); head.add(e);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 8), darkM); pu.position.set(s * 0.48, 0.2, 0.58); head.add(pu);
+  }
+  const nh = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.42, 12), hornM); nh.position.set(0, 0.25, 1.28); nh.rotation.x = 0.5; head.add(nh);
+  // Nackenschild: gebogene Platte mit Randzacken (Epokzipitalia)
+  const fs = new THREE.Shape(); const NP = 15; fs.moveTo(-0.55, -0.25);
+  for (let k = 0; k <= NP; k++) { const a = Math.PI * (1.05 - 1.1 * k / NP); const rx = 1.2, ry = 1.35; const x = Math.cos(a) * rx, y = 0.15 + Math.sin(a) * ry; fs.lineTo(x, y);
+    if (k < NP) { const a2 = Math.PI * (1.05 - 1.1 * (k + 0.5) / NP); fs.lineTo(Math.cos(a2) * (rx + 0.13), 0.15 + Math.sin(a2) * (ry + 0.13)); } }
+  fs.lineTo(0.55, -0.25); fs.quadraticCurveTo(0, -0.05, -0.55, -0.25);
+  const frillG = new THREE.ExtrudeGeometry(fs, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 2, curveSegments: 6 });
+  { const p = frillG.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, p.getZ(i) - 0.22 * x * x); } } // leicht gewölbt
+  triCol(frillG, 0.6, 0.6); { const p = frillG.attributes.position, c = frillG.attributes.color; const col = new THREE.Color(); for (let i = 0; i < p.count; i++) { const r = Math.hypot(p.getX(i) / 1.2, (p.getY(i) - 0.15) / 1.35); col.setRGB(c.getX(i), c.getY(i), c.getZ(i)).lerp(new THREE.Color(0x9a5a3a), clamp((r - 0.75) * 3) * 0.6); c.setXYZ(i, col.r, col.g, col.b); } }
+  const frill = add(frillG, head, 0, 0.25, 0.05, -0.55, false);
   const legs = [];
-  for (const [x, z] of [[-0.75, 1.3], [0.75, 1.3], [-0.75, -1.3], [0.75, -1.3]]) { const l = new THREE.Group(); l.position.set(x, 1.4, z); body.add(l); const m = new THREE.Mesh(triCol(new THREE.CylinderGeometry(0.28, 0.24, 1.4, 12)), skinM); m.position.y = -0.7; m.castShadow = true; l.add(m); legs.push(l); }
+  for (const [x, z, front] of [[-0.78, 1.25, 1], [0.78, 1.25, 1], [-0.82, -1.15, 0], [0.82, -1.15, 0]]) {
+    const l = new THREE.Group(); l.position.set(x, 1.5, z); body.add(l);
+    seg(l, V(0, 0.1, 0), V(x * 0.06, -0.62, front ? 0.08 : -0.1), front ? 0.3 : 0.36, 0.25, skinM);
+    seg(l, V(x * 0.06, -0.62, front ? 0.08 : -0.1), V(x * 0.04, -1.36, 0.05), 0.24, 0.2, skinM);
+    const foot = new THREE.Mesh(triCol(new THREE.CylinderGeometry(0.22, 0.27, 0.16, 18)), skinM); foot.position.set(x * 0.04, -1.42, 0.08); foot.castShadow = true; l.add(foot);
+    for (let k = 0; k < 4; k++) { const nl = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), beakM); const a = -0.6 + k * 0.4; nl.scale.set(1, 0.7, 1.2); nl.position.set(x * 0.04 + Math.sin(a) * 0.24, -1.46, 0.08 + Math.cos(a) * 0.24); l.add(nl); }
+    legs.push(l);
+  }
   g.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
   return { root: g, head, frill, legs, ol, body };
 }
@@ -504,7 +538,7 @@ function burst(p, origin, t, { spread = 2, up = 3, g = 9.8, life = 1.5, ring = f
 // abgebrochene Zähne
 const brokenTeeth = []; { const r = rng(15); for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.12, 7), toothM); m.userData.v = [(r() - .5) * 2.5, 1 + r() * 2.5, (r() - .5) * 2.5, r() * 10]; m.castShadow = true; scene.add(m); brokenTeeth.push(m); } }
 // Frill-Bruchstücke
-const frillBits = []; { const r = rng(25); for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.12 + r() * 0.12), new THREE.MeshStandardMaterial({ color: 0xb7a07a, flatShading: true })); m.userData.v = [(r() - .5) * 3, 1 + r() * 3, (r() - .5) * 3, r() * 10]; scene.add(m); frillBits.push(m); } }
+const frillBits = []; { const r = rng(25); for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.12 + r() * 0.12), new THREE.MeshStandardMaterial({ color: 0x77735c, flatShading: true })); m.userData.v = [(r() - .5) * 3, 1 + r() * 3, (r() - .5) * 3, r() * 10]; scene.add(m); frillBits.push(m); } }
 
 // Zahn-Makro (Bananen-Vergleich + Sägekante)
 const MAC = V(2000, 0, 0); const macro = new THREE.Group(); macro.position.copy(MAC); scene.add(macro);
@@ -592,10 +626,12 @@ const shots = [
     // abgebrochene Zähne
     const tb = T - tBreak; if (tb > 0) { const top = V(0.3, 2.8, -0.2); brokenTeeth.forEach((m, i) => { const v = m.userData.v; m.visible = tb < 2; m.position.set(top.x + v[0] * tb * 0.6, Math.max(0.05, top.y + v[1] * tb - 4.9 * tb * tb), top.z + v[2] * tb * 0.6); m.rotation.set(v[3] + tb * 8, tb * 5, 0); });
       rex.teeth.forEach((m, i) => { if (i % 3 === 0) m.scale.y *= 0.3; }); burst(crumbs, top, tb, { spread: 1.5, up: 3 }); }
-    const camP = V(5.8, 3.6, -0.6);
-    cam(camP.clone().add(V(-u * 0.12, 0, u * 0.1)), V(0.2, 2.8, -1.4), 42, T, tb > 0 ? 0.03 + 0.15 * Math.exp(-tb * 4) : 0.03);
+    // Seitenprofil: Triceratops komplett sichtbar, T-Rex beißt von hinten in den Rücken; langsame Kamerafahrt nach innen
+    const camP = V(2.4, 3.0, 15.5);
+    cam(camP.clone().add(V(-u * 0.12, 0.04 * u, -u * 0.5)), V(1.2, 2.0, -0.4), 42, T, tb > 0 ? 0.03 + 0.15 * Math.exp(-tb * 4) : 0.03);
     label3('DINOSAURIER', rex.headG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.5, 0)), clamp((T - WT(0, 'dinos')) * 3), -60, -160);
-    label3('TRICERATOPS', V(0, 2.4, -1.5), clamp((T - WT(0, 'triceratops')) * 3), 120, 260);
+    label3('TRICERATOPS', tri.head.getWorldPosition(V(0, 0, 0)).add(V(0.3, 0.6, 0)), clamp((T - WT(0, 'triceratops')) * 3), 60, -230);
+    tri.ol.userData.u.uA.value = clamp((T - WT(0, 'triceratops')) * 4) * (1 - clamp((T - WT(0, 'triceratops') - 1.0) * 3)) * 0.9;
     pill('🦷 ZÄHNE BRECHEN AB', W / 2, 520, clamp((T - WT(0, 'knochen')) * 3), '#ff4d4d');
   },
   // 1: Zähne so groß wie Bananen, Sägekante
