@@ -1,0 +1,18 @@
+[
+ {"say":"Dieser Mann verkaufte den Eiffelturm an einen Schrotthändler.","cap":"Dieser Mann verkaufte den Eiffelturm an einen Schrotthändler.","shots":["h_tower_sell","h_face","h_cash"],"pause":0.35},
+ {"say":"Paris, neunzehnhundertfünfundzwanzig. Der Betrüger Victor Lustig las in der Zeitung, dass die Instandhaltung des Eiffelturms ein Vermögen kostete.","cap":"Paris, 1925. Der Betrüger Victor Lustig las in der Zeitung, dass die Instandhaltung des Eiffelturms ein Vermögen kostete.","shots":["paris_wide","cafe_read","paper_close","idea_face"]},
+ {"say":"Also ließ er gefälschte Regierungsbriefe drucken und lud sechs Schrotthändler in ein Luxushotel ein.","cap":"Also ließ er gefälschte Regierungsbriefe drucken und lud 6 Schrotthändler in ein Luxushotel ein.","shots":["letters_stamp","letters_fly","hotel_ext"]},
+ {"say":"Dort gab er sich als hoher Beamter aus und erklärte: Die Stadt wolle den Turm verschrotten.","cap":"Dort gab er sich als hoher Beamter aus und erklärte: Die Stadt wolle den Turm verschrotten.","shots":["meeting_wide","lustig_present","dealers_shock"]},
+ {"say":"Aber alles müsse streng geheim bleiben.","cap":"Aber alles müsse streng geheim bleiben.","shots":["secret_finger","dealers_lean"],"pause":0.25},
+ {"say":"Einer der Händler, André Poisson, wollte den Auftrag unbedingt.","cap":"Einer der Händler, André Poisson, wollte den Auftrag unbedingt.","shots":["poisson_eager","poisson_dream"]},
+ {"say":"Doch seine Frau wurde misstrauisch.","cap":"Doch seine Frau wurde misstrauisch.","shots":["wife_suspicious","wife_close"],"pause":0.25},
+ {"say":"Also gestand Lustig ihm heimlich, dass er als Beamter ein kleines Schmiergeld erwartete.","cap":"Also gestand Lustig ihm heimlich, dass er als Beamter ein kleines Schmiergeld erwartete.","shots":["whisper","finger_rub","poisson_think"]},
+ {"say":"Genau das überzeugte Poisson. Denn so verhielten sich echte Beamte.","cap":"Genau das überzeugte Poisson. Denn so verhielten sich echte Beamte.","shots":["poisson_relief","handshake"]},
+ {"say":"Er zahlte das Schmiergeld und den Kaufpreis für den Turm.","cap":"Er zahlte das Schmiergeld und den Kaufpreis für den Turm.","shots":["pay_cash","money_rain"]},
+ {"say":"Kurz darauf saß Lustig mit einem Koffer voller Geld im Zug nach Wien.","cap":"Kurz darauf saß Lustig mit einem Koffer voller Geld im Zug nach Wien.","shots":["train_ext","train_int"],"pause":0.3},
+ {"say":"Und Poisson? Der schämte sich so sehr, dass er nicht einmal zur Polizei ging.","cap":"Und Poisson? Der schämte sich so sehr, dass er nicht einmal zur Polizei ging.","shots":["poisson_waits","poisson_shame","police_pass"]},
+ {"say":"Einen Monat später kam Lustig zurück nach Paris und versuchte es einfach noch einmal.","cap":"Einen Monat später kam Lustig zurück nach Paris und versuchte es einfach noch einmal.","shots":["return_walk","meeting2"]},
+ {"say":"Diesmal ging ein Händler zur Polizei. Doch Lustig entkam rechtzeitig.","cap":"Diesmal ging ein Händler zur Polizei. Doch Lustig entkam rechtzeitig.","shots":["dealer_police","raid","escape_run"],"pause":0.3},
+ {"say":"Jahre später wurde er in Amerika wegen Falschgeld verhaftet und landete im Gefängnis auf Alcatraz.","cap":"Jahre später wurde er in Amerika wegen Falschgeld verhaftet und landete im Gefängnis auf Alcatraz.","shots":["press","arrest_us","alcatraz","cell"],"pause":0.5},
+ {"say":"Basierend auf einer wahren Geschichte. Such nach Victor Lustig.","cap":"Basierend auf einer wahren Geschichte. Such nach Victor Lustig.","shots":["finale","finale_title"]}
+]
