@@ -92,8 +92,8 @@ addS(crack(), WT(0, 'brechen') - 0.05, 0.9); addS(crack(), WT(2, 'knochen') - 0.
 addS(crack(), WT(4, 'biss') - 0.1, 1.0); addS(thud(), WT(4, 'biss') - 0.1, 0.8)
 addS(crack(), WT(5, 'knack'), 1.0); addS(thud(), WT(5, 'gesicht') - 0.1, 1.0)
 for k in range(4): addS(thud(), S[7]['start'] + k * 0.98, 0.5)
-addS(roar(1.2), WT(8, 'stürzt') - 0.1, 0.7); addS(crack(), WT(8, 'beißt') - 0.05, 1.0); addS(thud(), WT(8, 'beißt'), 0.7)
-addS(roar(2.2), WT(9, 'trex') - 0.2, 1.0); addS(sparkle(), WT(9, 'gebaut'), 0.7)
+addS(crack(), WT(8, 'beißt') - 0.05, 1.0); addS(thud(), WT(8, 'beißt'), 0.7)
+addS(sparkle(), WT(9, 'gebaut'), 0.7)
 # Urwald-Ambiente: leiser Wind + Vogelzwitschern
 wn = rng.standard_normal(N); sfx += lp(wn, 0.01) * 0.5
 for k in range(int(DUR / 1.7)):
