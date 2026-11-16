@@ -1,6 +1,7 @@
 # Video 01 – Lawnchair Larry (Gartenstuhl + 45 Ballons)
 
-**Datei:** `lawnchair_larry_final.mp4` (1080×1920, 30 fps, 57,8 s)
+**Datei (v2, aktuell):** `lawnchair_larry_v2.mp4` (1080×1920, 30 fps, 64,6 s)  
+**Alte Version:** `lawnchair_larry_final.mp4` (57,8 s)
 
 ## Caption (TikTok)
 Er wollte nur ein paar Meter schweben… 🎈🪑 #wahregeschichte #lawnchairlarry #szenarien #storytime #fyp #fürdich #crazy #1982
@@ -25,5 +26,15 @@ Basierend auf einer wahren Geschichte. Such nach Lawnchair Larry.
 - `tts.py` – Voice-over (Piper TTS, Stimme de_DE-thorsten-high) + Wort-Timings
 - `lib.js`, `shots.js`, `index.html` – prozedurale 3D-Szenen (Three.js)
 - `render.js` – Headless-Chromium-Renderer (4 Worker)
-- `music.py` – eigener, code-generierter Musiktrack
-- `build.sh` – komplette Pipeline
+- `plan.py` – Schnittplan (49 Einstellungen) + Untertitel-Blöcke
+- `music.py` – eigener Score mit Spannungsbogen (Aussetzer beim Stromausfall, Stille vor dem Zitat, Finale in Dur)
+- `sfx.py` – ~30 synthetische Soundeffekte (Wind, Jet, Ballon-Plopp, Seil-Riss, Funk, Strom-Zischen, Sirene, Kamera-Klicks …)
+- `build.sh` – komplette Pipeline inkl. Mix (Stimme mit Präsenz-EQ, Musik per Sidechain geduckt, −14 LUFS)
+
+## v2 – Verbesserungen
+- Figuren: glänzende Haut, Wangen, Stoffstruktur, Kragen/Knöpfe/Brusttasche, Schuhsohlen, Daumen, Schnurrbart zweiteilig, volleres Haar; Blinzeln + Atmen
+- Licht: Umgebungsreflexionen, Kantenlicht, Sonne, weiche Schatten; Farblooks (Traum, Nacht, Sonnenuntergang), Vignette
+- Umgebung: ziehende Wolken & Wolkendecke, Wind auf Ballons/Stuhl/Bäumen, Grashalme, Blumenbeete, Jeep, Vögel, Berge, Windstreifen, Tower mit Radar
+- Kamera: Fahrten, Orbits, Push-ins, Zoom-Punch auf Schlüsselwörter, Shake bei Action; Whip-Pan- und Zoom-Übergänge
+- 10 neue Zwischenschnitte (Fuß-Perspektive, Kinder-Nahaufnahme, Sehtest-POV, Helium-Flaschen, Draufsicht-Start, Weitwinkel-Angst, Tower, TV-Stromausfall, Handschellen …)
+- Untertitel: 2–3 Wörter, aktives Wort hervorgehoben, Schlüsselwörter gelb/rot/grün, Höhenmesser-Anzeige

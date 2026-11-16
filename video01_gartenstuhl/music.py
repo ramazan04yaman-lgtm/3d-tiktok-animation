@@ -1,36 +1,58 @@
-# Original procedural backing track: quirky "storytime" pizzicato/marimba groove, 112 BPM
-import numpy as np, wave, json, sys
-sr=44100; D=json.load(open('build/timeline.json'))['duration']+0.5
-bpm=112; beat=60/bpm; N=int(D*sr); out=np.zeros(N)
+# Original procedural score with a tension arc that follows the story (reads build/plan.json)
+import numpy as np, wave, json
+sr=44100; P=json.load(open('build/plan.json')); D=P['duration']+0.5
+T=json.load(open('build/timeline.json'))['sentences']; st=[s['t0'] for s in T]
+bpm=112; beat=60/bpm; N=int(D*sr); out=np.zeros(N); rng=np.random.default_rng(1)
 def note(f,dur,kind):
     t=np.arange(int(dur*sr))/sr
     if kind=='mar': s=(np.sin(2*np.pi*f*t)+0.3*np.sin(2*np.pi*f*4*t)*np.exp(-t*30))*np.exp(-t*7)
     elif kind=='piz': s=(np.sin(2*np.pi*f*t)+0.5*np.sin(2*np.pi*2*f*t)+0.2*np.sin(2*np.pi*3*f*t))*np.exp(-t*9)
     elif kind=='bass': s=np.tanh(1.5*np.sin(2*np.pi*f*t))*np.exp(-t*4)
     elif kind=='kick': s=np.sin(2*np.pi*(50+90*np.exp(-t*25))*t)*np.exp(-t*12)
-    elif kind=='hat': s=np.random.default_rng(1).standard_normal(len(t))*np.exp(-t*60); s=np.diff(s,prepend=0)
-    elif kind=='snap': s=np.random.default_rng(2).standard_normal(len(t))*np.exp(-t*35)
+    elif kind=='hat': s=rng.standard_normal(len(t))*np.exp(-t*60); s=np.diff(s,prepend=0)
+    elif kind=='snap': s=rng.standard_normal(len(t))*np.exp(-t*35)
+    elif kind=='pad': s=sum(np.sin(2*np.pi*f*k*t+k)/k for k in (1,2,3))*np.minimum(1,t/0.3)*np.minimum(1,(dur-t)/0.3)
+    elif kind=='pulse': s=np.tanh(2*np.sin(2*np.pi*f*t))*np.exp(-t*10)
     a=int(0.003*sr); s[:a]*=np.linspace(0,1,a); return s
 def put(t,s,g):
-    i=int(t*sr); j=min(N,i+len(s));
-    if i<N: out[i:j]+=s[:j-i]*g
+    i=int(t*sr); j=min(N,i+len(s))
+    if 0<=i<N: out[i:j]+=s[:j-i]*g
 m=lambda n:440*2**((n-69)/12)
-# progression in D minor: Dm Bb F A (8 beats each? 4 beats each)
-prog=[(50,[62,65,69]),(46,[58,62,65]),(53,[60,65,69]),(45,[61,64,69])]
+MIN=[(50,[62,65,69]),(46,[58,62,65]),(53,[60,65,69]),(45,[61,64,69])]
+MAJ=[(50,[62,66,69]),(55,[62,67,71]),(57,[61,64,69]),(50,[62,66,69])]
 mel=[74,None,77,76,74,None,72,74, 70,None,74,72,70,69,None,None, 72,None,77,76,72,None,69,72, 73,None,76,73,69,None,None,None]
+melM=[78,None,81,78,74,None,76,78, 79,None,78,76,74,None,None,None, 76,None,78,76,73,None,69,73, 74,None,None,None,None,None,None,None]
+def sec(t):
+    i=max(k for k in range(len(st)) if st[k]<=t+1e-6) if t>=st[0] else 0
+    return i
+# section -> (drums, bass, chords, melody, pad, pulse, level, major)
+S={0:(1,1,1,1,0,0,1.0,0),1:(0,0,1,1,1,0,0.6,0),2:(0,1,1,0,1,0,0.6,0),3:(1,1,1,1,0,0,0.85,0),4:(1,1,1,1,0,0,0.85,0),5:(1,1,1,1,1,0,0.8,0),
+   6:(1,1,1,1,0,0,1.0,0),7:(0,1,0,0,1,1,0.8,0),8:(1,1,1,0,1,1,0.85,0),9:(1,1,1,1,0,0,0.85,0),10:(1,1,1,1,0,0,0.9,0),11:(0,1,0,0,1,1,0.8,0),
+   12:(1,1,0,0,1,1,1.0,0),13:(0,0,0,0,1,0,0.5,0),14:(1,1,0,0,1,1,0.85,0),15:(0,1,1,0,1,0,0.6,0),16:(0,0,0,0,1,0,0.45,1),17:(1,1,1,1,1,0,1.0,1)}
+# blackout: silence 1.1 s after power-down (find shot)
+bo=[s for s in P['shots'] if s['n']=='blackout_tv'][0]; bo_t=bo['t0']+0.4*(bo['t1']-bo['t0'])
+rope=[s for s in P['shots'] if s['n']=='cut_rope'][0]; drop_t=rope['t0']+0.55*(rope['t1']-rope['t0'])
 nb=int(D/beat)+1
 for b in range(nb):
-    t=b*beat; bar=(b//4)%4; root,ch=prog[bar]
-    put(t,note(m(root-12),beat*0.9,'bass'),0.35 if b%2==0 else 0.2)
-    put(t,note(60,0.4,'kick'),0.55 if b%4 in (0,2) else 0)
-    put(t+beat/2,note(0,0.06,'hat'),0.12); put(t,note(0,0.04,'hat'),0.06)
-    if b%4 in (1,3): put(t,note(0,0.15,'snap'),0.18)
-    for k,n in enumerate(ch): put(t+beat/2,note(m(n),beat*0.45,'piz'),0.07)
-    for h in (0,1):
-        n=mel[(b*2+h)%32]
-        if n and b>=4: put(t+h*beat/2,note(m(n),beat*0.8,'mar'),0.16)
-# fade
-fi=int(0.3*sr); out[:fi]*=np.linspace(0,1,fi); fo=int(1.5*sr); out[-fo:]*=np.linspace(1,0,fo)
+    t=b*beat; i=sec(t); dr,ba,chd,me,pa,pu,lv,maj=S[i]
+    if bo_t<=t<bo_t+1.1: continue
+    if i==6 and t<drop_t: dr,me=0,0  # build-up before the rope snaps
+    prog=MAJ if maj else MIN; root,ch=prog[(b//4)%4]; M=melM if maj else mel
+    if ba: put(t,note(m(root-12),beat*0.9,'bass'),(0.35 if b%2==0 else 0.2)*lv)
+    if dr:
+        put(t,note(60,0.4,'kick'),(0.55 if b%4 in (0,2) else 0)*lv); put(t+beat/2,note(0,0.06,'hat'),0.12*lv); put(t,note(0,0.04,'hat'),0.06*lv)
+        if b%4 in (1,3): put(t,note(0,0.15,'snap'),0.18*lv)
+        if i in (6,12) : put(t+beat/4,note(0,0.04,'hat'),0.08*lv); put(t+3*beat/4,note(0,0.04,'hat'),0.08*lv)
+    if chd: [put(t+beat/2,note(m(n),beat*0.45,'piz'),0.07*lv) for n in ch]
+    if pu: put(t,note(m(root),beat*0.3,'pulse'),0.10*lv); put(t+beat/2,note(m(root),beat*0.3,'pulse'),0.07*lv)
+    if pa and b%4==0: [put(t,note(m(n-12),beat*4,'pad'),0.035*lv) for n in ch]
+    if me:
+        for h in (0,1):
+            n=M[(b*2+h)%32]
+            if n: put(t+h*beat/2,note(m(n),beat*0.8,'mar'),0.15*lv)
+# hits on key moments
+for tt_ in [0.0, drop_t, P['shots'][-1]['t0']]: put(tt_, note(m(38),1.5,'bass'),0.6); put(tt_, note(60,0.6,'kick'),0.8)
+fi=int(0.05*sr); out[:fi]*=np.linspace(0,1,fi); fo=int(2.5*sr); out[-fo:]*=np.linspace(1,0,fo)
 out=out/np.abs(out).max()*0.9
-st=np.stack([out,np.roll(out,int(0.012*sr))],1)
-w=wave.open('build/music.wav','wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((st*32767).astype(np.int16).tobytes())
+stc=np.stack([out,np.roll(out,int(0.012*sr))],1)
+w=wave.open('build/music.wav','wb'); w.setnchannels(2); w.setsampwidth(2); w.setframerate(sr); w.writeframes((stc*32767).astype(np.int16).tobytes()); print('music ok')

@@ -1,33 +1,89 @@
 <!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}canvas{display:block}</style>
-<script type="importmap">{"imports":{"three":"/three/build/three.module.js"}}</script></head><body>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script></head><body>
 <script type="module">
 import * as THREE from 'three';
-import { SHOTS } from './shots.js';
-const W = +(new URLSearchParams(location.search).get('w') || 1080), H = W * 16 / 9;
-const TL = await (await fetch('build/timeline.json')).json();
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { SHOTS, setEnv } from './shots.js';
+import * as L from './lib.js';
+const W = +(new URLSearchParams(location.search).get('w') || 1080), H = Math.round(W * 16 / 9);
+const PLAN = await (await fetch('build/plan.json')).json();
 const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
-r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.08; r.outputColorSpace = THREE.SRGBColorSpace;
+const pm = new THREE.PMREMGenerator(r); setEnv(pm.fromScene(new RoomEnvironment(), 0.04).texture);
 const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const g = out.getContext('2d');
-// flatten shots into a timeline
-const shots = []; TL.sentences.forEach((s, i) => { const end = i + 1 < TL.sentences.length ? TL.sentences[i + 1].t0 : TL.duration; const d = (end - s.t0) / s.shots.length; s.shots.forEach((n, k) => shots.push({ n, t0: s.t0 + k * d, t1: s.t0 + (k + 1) * d })); });
-const words = TL.sentences.flatMap(s => s.words);
+const shots = PLAN.shots, words = PLAN.words, chunks = PLAN.chunks;
 let cur = null, upd = null; const ctx = { scene: null, camera: new THREE.PerspectiveCamera(50, W / H, 0.05, 30000), T: 0 };
-function caption(T) {
-  let w = null; for (const x of words) if (x.t0 <= T && T < x.t1 + 0.25) w = x; if (!w) return;
-  const txt = w.w.toUpperCase(); const k = Math.min(1, (T - w.t0) / 0.09); const sc = 1.25 - 0.25 * k;
-  let size = W * 0.085; g.font = `900 ${size}px "Inter Display"`; const mw = g.measureText(txt).width; if (mw > W * 0.86) size *= W * 0.86 / mw;
-  g.save(); g.translate(W / 2, H * 0.6); g.scale(sc, sc); g.font = `900 ${size}px "Inter Display"`; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.lineJoin = 'round'; g.lineWidth = size * 0.2; g.strokeStyle = '#000'; g.strokeText(txt, 0, 0); g.fillStyle = '#fff'; g.fillText(txt, 0, 0); g.restore();
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const noise = (t, s) => Math.sin(t * 13.1 + s) * 0.5 + Math.sin(t * 27.7 + s * 2) * 0.3 + Math.sin(t * 51.3 + s * 3) * 0.2;
+
+// ---- keyword colours for subtitles
+const KEY = { yellow: ['45', '5000', '13', '20', 'WETTERBALLONS', 'GARTENSTUHL', 'GARTENSTUHL!', 'HELIUM', 'SANDWICHES', 'BIER', 'FUNKGERÄT', 'LUFTGEWEHR', 'BALLONS', 'BALLON', 'PILOT', 'TOWER', 'LONG', 'BEACH', 'METER', 'MINUTEN', 'FLIEGEN', 'PLAN', 'LAWNCHAIR', 'LARRY', 'FLUGROUTE', 'REPORTER'],
+  red: ['ANGST', 'RAKETE', 'KAPPTEN', 'STROMLEITUNG', 'POLIZEI', 'FEST', 'STROM', 'GEWEHR', 'SCHLECHTEN', 'AUGEN', 'NIE', 'SOFORT', 'FIEL'],
+  green: ['TRÄUMTE', 'RUMSITZEN', 'WAHREN', 'GESCHICHTE', 'ENDLICH'] };
+const COL = { yellow: '#FFD60A', red: '#FF453A', green: '#4CFF7A' };
+function keyCol(w) { const u = w.toUpperCase().replace(/[.,:!?]/g, ''); for (const k in KEY) if (KEY[k].includes(u)) return COL[k]; return null; }
+const isKey = w => !!keyCol(w.w);
+
+function captions(T) {
+  const c = chunks.find(c => T >= c.t0 && T < c.t1); if (!c) return;
+  const ws = c.idx.map(i => words[i]); const base = W * 0.078;
+  g.font = `900 ${base}px "Inter Display"`; const sp = base * 0.42;
+  let widths = ws.map(w => g.measureText(w.w.toUpperCase()).width); let total = widths.reduce((a, b) => a + b, 0) + sp * (ws.length - 1);
+  let scale = Math.min(1, W * 0.86 / (total + base * 0.3));
+  const k = clamp((T - c.t0) / 0.1); const pop = 0.82 + 0.18 * (1 - Math.pow(1 - k, 3)) + 0.06 * Math.sin(k * Math.PI);
+  g.save(); g.translate(W / 2, H * 0.635); g.scale(scale * pop, scale * pop); g.textBaseline = 'middle'; g.textAlign = 'left'; g.lineJoin = 'round';
+  let x = -total / 2;
+  ws.forEach((w, i) => {
+    const txt = w.w.toUpperCase(); const active = T >= w.t0 && (i === ws.length - 1 || T < ws[i + 1].t0); const said = T >= w.t0;
+    const col = keyCol(w.w); const s = active ? 1.08 : 1; const ww = widths[i];
+    g.save(); g.translate(x + ww / 2, 0); g.scale(s, s); g.translate(-ww / 2, 0); g.font = `900 ${base}px "Inter Display"`;
+    g.shadowColor = 'rgba(0,0,0,0.55)'; g.shadowBlur = base * 0.25; g.shadowOffsetY = base * 0.06;
+    g.lineWidth = base * 0.2; g.strokeStyle = '#000'; g.strokeText(txt, 0, 0); g.shadowColor = 'transparent';
+    g.fillStyle = col ? col : (said ? '#fff' : 'rgba(255,255,255,0.88)'); g.fillText(txt, 0, 0);
+    g.restore(); x += ww + sp;
+  });
+  g.restore();
 }
-window.SHOTLIST = shots; window.DUR = TL.duration;
-window.renderFrame = (T, q = 0.92) => {
-  const sh = shots.find(s => T >= s.t0 && T < s.t1) || shots[shots.length - 1];
-  if (cur !== sh) { cur = sh; ctx.scene = new THREE.Scene(); upd = SHOTS[sh.n](ctx); }
-  ctx.T = T; const u = Math.min(1, (T - sh.t0) / (sh.t1 - sh.t0)); upd(u, T - sh.t0);
-  r.render(ctx.scene, ctx.camera); g.drawImage(r.domElement, 0, 0); if (upd.overlay) upd.overlay(g, W, H, u); caption(T);
+function hud(alt) {
+  const txt = 'HÖHE  ' + alt.toLocaleString('de-DE') + ' m'; const s = W * 0.042;
+  g.save(); g.font = `800 ${s}px "Inter Display"`; const tw = g.measureText(txt).width; const x = W * 0.06, y = H * 0.125, pw = tw + s * 2.4, ph = s * 1.7;
+  g.fillStyle = 'rgba(10,20,35,0.55)'; g.beginPath(); g.roundRect(x, y, pw, ph, ph / 2); g.fill(); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#FFD60A'; g.beginPath(); g.moveTo(x + s * 0.7, y + ph * 0.7); g.lineTo(x + s * 1.15, y + ph * 0.28); g.lineTo(x + s * 1.6, y + ph * 0.7); g.fill();
+  g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(txt, x + s * 1.95, y + ph / 2 + 2); g.restore();
+}
+function grade(kind) {
+  const v = g.createRadialGradient(W / 2, H * 0.48, W * 0.35, W / 2, H / 2, H * 0.62);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, kind === 'night' ? 'rgba(5,10,40,0.6)' : 'rgba(0,0,0,0.38)'); g.fillStyle = v; g.fillRect(0, 0, W, H);
+  if (kind === 'dream') { const d = g.createRadialGradient(W / 2, H / 2, W * 0.3, W / 2, H / 2, H * 0.6); d.addColorStop(0, 'rgba(255,250,235,0)'); d.addColorStop(1, 'rgba(255,248,230,0.75)'); g.fillStyle = d; g.fillRect(0, 0, W, H); }
+  if (kind === 'warm') { g.fillStyle = 'rgba(255,140,60,0.08)'; g.fillRect(0, 0, W, H); }
+}
+window.DUR = PLAN.duration;
+window.renderFrame = (T, q = 0.93) => {
+  const si = shots.findIndex(s => T >= s.t0 && T < s.t1); const sh = shots[si < 0 ? shots.length - 1 : si];
+  if (cur !== sh) { cur = sh; L.resetReg(); ctx.scene = new THREE.Scene(); upd = SHOTS[sh.n](ctx); }
+  Object.assign(ctx, { T, alt: null, shake: 0, flash: 0, grade: null, hand: 1, roll: 0 }); L.WIND.v = 1;
+  const lt = T - sh.t0, u = Math.min(1, lt / (sh.t1 - sh.t0)); upd(u, lt);
+  L.REG.tickers.forEach(f => f(lt, T));
+  // keyword punch-in zoom + shake
+  let bump = 0; for (const w of words) { const k = T - w.t0; if (w.key && k >= 0 && k < 0.4) bump = Math.max(bump, Math.sin(k / 0.4 * Math.PI) * (k < 0.08 ? k / 0.08 : 1)); }
+  const cam = ctx.camera; cam.fov *= 1 - 0.05 * bump; cam.updateProjectionMatrix();
+  if (ctx.shake) { cam.rotateX(noise(T, 1) * 0.018 * ctx.shake); cam.rotateY(noise(T, 7) * 0.018 * ctx.shake); cam.rotateZ(noise(T, 3) * 0.012 * ctx.shake); }
+  r.render(ctx.scene, cam);
+  // transitions: whip-pan on new sentence, zoom-punch on cuts inside a sentence
+  const tr = 0.16; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  if (lt < tr && si > 0) {
+    const k = lt / tr, e = 1 - Math.pow(1 - k, 3);
+    if (sh.first) { const off = (1 - e) * W * 0.5 * (sh.dir || 1); for (let i = 0; i < 6; i++) { g.globalAlpha = i ? 0.22 : 1; g.drawImage(r.domElement, off * (1 - i * 0.12) - (i * W * 0.03 * (1 - e)) * (sh.dir || 1), 0); } g.globalAlpha = 1; }
+    else { const s = 1 + 0.14 * (1 - e); for (let i = 0; i < 4; i++) { const ss = s + i * 0.03 * (1 - e); g.globalAlpha = i ? 0.25 : 1; g.drawImage(r.domElement, (W - W * ss) / 2, (H - H * ss) / 2, W * ss, H * ss); } g.globalAlpha = 1; }
+  } else g.drawImage(r.domElement, 0, 0);
+  grade(ctx.grade);
+  if (upd.overlay) upd.overlay(g, W, H, u, T, lt);
+  if (ctx.alt != null) hud(ctx.alt);
+  if (ctx.flash > 0) { g.fillStyle = `rgba(255,255,255,${Math.min(0.9, ctx.flash)})`; g.fillRect(0, 0, W, H); }
+  captions(T);
   return out.toDataURL('image/jpeg', q);
 };
-await document.fonts.load('900 40px "Inter Display"');
+await document.fonts.load('900 40px "Inter Display"'); await document.fonts.load('800 40px "Inter Display"');
 window.READY = true;
 </script></body></html>

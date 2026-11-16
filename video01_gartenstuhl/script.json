@@ -5,31 +5,39 @@
   "shots": [
    "hook_sky",
    "hook_face",
+   "hook_feet",
    "rise_wide"
-  ]
+  ],
+  "pause": 0.35
  },
  {
   "say": "Seit er dreizehn war, träumte er vom Fliegen.",
   "cap": "Seit er 13 war, träumte er vom Fliegen.",
   "shots": [
-   "kid_dream"
-  ]
+   "kid_dream",
+   "kid_close"
+  ],
+  "pause": 0.12
  },
  {
   "say": "Doch Pilot durfte er nie werden, wegen seiner schlechten Augen.",
   "cap": "Doch Pilot durfte er nie werden, wegen seiner schlechten Augen.",
   "shots": [
    "eye_chart",
+   "eye_pov",
    "eye_face"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Also kaufte er Wetterballons und füllte sie mit Helium.",
   "cap": "Also kaufte er Wetterballons und füllte sie mit Helium.",
   "shots": [
+   "tanks_pan",
    "inflate",
    "inflate_close"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Er band sie an seinen Gartenstuhl und packte Sandwiches, Bier, ein Funkgerät und ein Luftgewehr ein.",
@@ -39,7 +47,8 @@
    "props_sandwich",
    "props_beer",
    "props_gun"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Sein Plan: ein paar Meter über dem Garten schweben, dann ein paar Ballons abschießen und landen.",
@@ -48,7 +57,8 @@
    "plan_smug",
    "hover_low",
    "plan_shoot"
-  ]
+  ],
+  "pause": 0.2
  },
  {
   "say": "Doch als seine Freunde das Seil kappten, schoss er wie eine Rakete in den Himmel.",
@@ -56,33 +66,40 @@
   "shots": [
    "cut_rope",
    "rocket_up",
+   "rocket_top",
    "friends_shock"
-  ]
+  ],
+  "pause": 0.25
  },
  {
   "say": "Er hatte solche Angst, dass er sich nicht traute, auch nur einen Ballon abzuschießen.",
   "cap": "Er hatte solche Angst, dass er sich nicht traute, auch nur einen Ballon abzuschießen.",
   "shots": [
    "scared_close",
+   "scared_wide",
    "scared_gun"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Und er trieb direkt in die Flugroute des Flughafens von Long Beach.",
   "cap": "Und er trieb direkt in die Flugroute des Flughafens von Long Beach.",
   "shots": [
    "jet_pass",
+   "jet_pass_close",
    "jet_wide"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Ein Pilot meldete dem Tower: Da fliegt ein Mann in einem Gartenstuhl!",
   "cap": "Ein Pilot meldete dem Tower: Da fliegt ein Mann in einem Gartenstuhl!",
   "shots": [
    "pilot_face",
-   "jet_pass_close",
+   "tower",
    "wave_plane"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Nach fünfundvierzig Minuten schoss er endlich ein paar Ballons ab und begann zu sinken.",
@@ -91,7 +108,8 @@
    "aim",
    "pop",
    "sink"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Doch dann fiel ihm das Gewehr aus der Hand.",
@@ -99,7 +117,8 @@
   "shots": [
    "gun_fall",
    "nooo"
-  ]
+  ],
+  "pause": 0.2
  },
  {
   "say": "Kurz vor dem Boden verfing er sich in einer Stromleitung.",
@@ -107,22 +126,27 @@
   "shots": [
    "powerline",
    "zap_face"
-  ]
+  ],
+  "pause": 0.12
  },
  {
   "say": "Ein ganzes Viertel war zwanzig Minuten ohne Strom.",
   "cap": "Ein ganzes Viertel war 20 Minuten ohne Strom.",
   "shots": [
+   "blackout_tv",
    "blackout"
-  ]
+  ],
+  "pause": 0.25
  },
  {
   "say": "Unten wartete schon die Polizei und nahm ihn sofort fest.",
   "cap": "Unten wartete schon die Polizei und nahm ihn sofort fest.",
   "shots": [
    "police_car",
-   "arrest"
-  ]
+   "arrest",
+   "cuffs_close"
+  ],
+  "pause": 0.12
  },
  {
   "say": "Als ein Reporter fragte, warum er das getan hat, sagte er nur:",
@@ -130,14 +154,16 @@
   "shots": [
    "reporter",
    "reporter_close"
-  ]
+  ],
+  "pause": 0.55
  },
  {
   "say": "Ein Mann kann nicht einfach nur rumsitzen.",
   "cap": "Ein Mann kann nicht einfach nur rumsitzen.",
   "shots": [
    "quote_face"
-  ]
+  ],
+  "pause": 0.45
  },
  {
   "say": "Basierend auf einer wahren Geschichte. Such nach Lawnchair Larry.",
@@ -145,6 +171,7 @@
   "shots": [
    "finale",
    "finale_title"
-  ]
+  ],
+  "pause": 0.12
  }
 ]
