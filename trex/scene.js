@@ -186,8 +186,8 @@ const cheekM = skinM.clone(); cheekM.side = THREE.DoubleSide;
 const scuteM = new THREE.MeshStandardMaterial({ color: 0x5f3f25, roughness: 0.6, bumpMap: scaleTex, bumpScale: 1.0 });
 const clawM = new THREE.MeshStandardMaterial({ color: 0x2b2520, roughness: 0.35 });
 const toothM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.3 });
-const pinkM = new THREE.MeshStandardMaterial({ color: 0x7c2f37, roughness: 0.55 });
-const tongueM = new THREE.MeshStandardMaterial({ color: 0xa0434c, roughness: 0.45, bumpMap: scaleTex, bumpScale: 0.3 });
+const pinkM = new THREE.MeshStandardMaterial({ color: 0xc4566a, roughness: 0.5 });
+const tongueM = new THREE.MeshStandardMaterial({ color: 0xd06a78, roughness: 0.45, bumpMap: scaleTex, bumpScale: 0.3 });
 const throatM = new THREE.MeshStandardMaterial({ color: 0x2a0b0e, roughness: 0.9 });
 const boneM = new THREE.MeshStandardMaterial({ color: 0xf1e9d6, roughness: 0.55 });
 const skullBoneM = new THREE.MeshStandardMaterial({ color: 0xf1e9d6, roughness: 0.5, transparent: true, opacity: 0.9 }); // Röntgen: Zahnwurzeln sichtbar
@@ -262,7 +262,7 @@ function headSurf(upper, t, phi, k = 1) {
 }
 function headNormal(upper, t, phi) { const p = headProf(upper, t); const q = headSurf(upper, t, phi); const h = q.y > 0 ? p.top : p.bot;
   return V(q.x / Math.max(1e-3, p.w * p.w), q.y / Math.max(1e-3, h * h), 0).normalize(); }
-const MOUTH = new THREE.Color(0x4e1a20);
+const MOUTH = new THREE.Color(0xb34e60);
 function headGeo(upper) {
   const R = 56, SD = 40; const pos = [], idx = [], uv = [];
   for (let i = 0; i < R; i++) { const t = i / (R - 1); for (let j = 0; j < SD; j++) { const q = headSurf(upper, t, j / SD * Math.PI * 2); pos.push(q.x, q.y, q.z); uv.push(t * 1.1, j / SD * 1.1); } }
@@ -302,7 +302,7 @@ function updateCheek(g, ang) { const { K, M, s } = g.userData; const pos = g.att
       const i = (k * M + m) * 3; pos[i] = p.x; pos[i + 1] = p.y; pos[i + 2] = p.z; skinColor(0.15 - v * 0.7, z + 4, c, p.x, p.y); col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b; } }
   g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }
 const TOOTH_L0 = 0.12;
-const gumM = new THREE.MeshStandardMaterial({ color: 0x93383d, roughness: 0.5, bumpMap: scaleTex, bumpScale: 0.4 });
+const gumM = new THREE.MeshStandardMaterial({ color: 0xd9788a, roughness: 0.5, bumpMap: scaleTex, bumpScale: 0.4 });
 function surfPlace(parent, mesh, upper, t, phi, k, sx, sy, thick) {
   const p = headSurf(upper, t, phi, k); const n = headNormal(upper, t, phi); mesh.position.copy(p); mesh.lookAt(p.clone().add(n)); mesh.scale.set(sx, sy, thick); parent.add(mesh); return mesh;
 }
@@ -623,8 +623,8 @@ const seesaw = new THREE.Group(); scene.add(seesaw);
 { const m = new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true });
   const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 13), m); bar.renderOrder = 20; seesaw.add(bar);
   const tr = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.8, 3), m); tr.position.y = -0.44; tr.renderOrder = 20; seesaw.add(tr);
-  const wHead = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff4d4d, depthTest: false })); wHead.position.z = 6; wHead.renderOrder = 21; seesaw.add(wHead);
-  const wTail = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshBasicMaterial({ color: 0x4dc3ff, depthTest: false })); wTail.position.z = -6; wTail.renderOrder = 21; seesaw.add(wTail);
+  const wHead = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff4d4d, depthTest: false })); wHead.visible = false; wHead.position.z = 6; wHead.renderOrder = 21; seesaw.add(wHead);
+  const wTail = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), new THREE.MeshBasicMaterial({ color: 0x4dc3ff, depthTest: false })); wTail.visible = false; wTail.position.z = -6; wTail.renderOrder = 21; seesaw.add(wTail);
   seesaw.userData = { m, wHead, wTail };
 }
 
@@ -633,14 +633,16 @@ const $ = id => document.getElementById(id);
 const capEl = $('cap'), labEl = $('labels'), svgEl = $('svg'), badge = $('badge'), cta = $('cta');
 let ui = [], svg = [];
 function proj(p) { const v = p.clone().project(camera); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H]; }
-function pill(text, x, y, k, color = '#f3c63f') { if (k <= 0) return; ui.push(`<div class="pill" style="left:${x}px;top:${y}px;border-color:${color};transform:translate(-50%,-50%) scale(${back(k)})">${text}</div>`); }
-function label3(text, p, k, dx = 0, dy = -140) { if (k <= 0) return; const [x, y] = proj(p); const half = text.length * 15 + 20; const lx = clamp(x + dx, half + 30, W - half - 30), ly = clamp(y + dy, 120, H - 120);
-  svg.push(`<g opacity="${clamp(k * 2)}"><line x1="${x}" y1="${y}" x2="${lerp(x, lx, ease(k))}" y2="${lerp(y, ly + 8, ease(k))}" stroke="#000" stroke-width="10" stroke-linecap="round"/><line x1="${x}" y1="${y}" x2="${lerp(x, lx, ease(k))}" y2="${lerp(y, ly + 8, ease(k))}" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="9" fill="#fff" stroke="#000" stroke-width="4"/></g>`);
+function pill(text, x, y, k, color = '#f3c63f') { return; if (k <= 0) return; ui.push(`<div class="pill" style="left:${x}px;top:${y}px;border-color:${color};transform:translate(-50%,-50%) scale(${back(k)})">${text}</div>`); }
+function label3(text, p, k, dx = 0, dy = -140) { if (k <= 0) return; const [x, y] = proj(p); const half = text.length * 13 + 20; const lx = clamp(x + dx, half + 30, W - half - 30), ly = clamp(y + dy, 120, H - 120);
+  const ex = lerp(lx, x, ease(k)), ey = lerp(ly + 6, y, ease(k)); const ang = Math.atan2(ey - (ly + 6), ex - lx); const ah = (a, r) => `${ex - Math.cos(ang + a) * r},${ey - Math.sin(ang + a) * r}`;
+  svg.push(`<g opacity="${clamp(k * 2)}"><line x1="${lx}" y1="${ly + 6}" x2="${ex}" y2="${ey}" stroke="#3a3a3a" stroke-width="7" stroke-linecap="round"/><line x1="${lx}" y1="${ly + 6}" x2="${ex}" y2="${ey}" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="${ex},${ey} ${ah(0.45, 22)} ${ah(-0.45, 22)}" fill="#fff" stroke="#3a3a3a" stroke-width="3"/></g>`);
   ui.push(`<div class="lab" style="left:${lx}px;top:${ly}px;transform:translate(-50%,-100%) scale(${back(k)})">${text}</div>`); }
 function gauge(x, y, val, k, text, col) {
   if (k <= 0) return; const R = 150; const arc = (a0, a1, c) => { const p0 = [x + R * Math.cos(Math.PI + a0 * Math.PI), y + R * Math.sin(Math.PI + a0 * Math.PI)], p1 = [x + R * Math.cos(Math.PI + a1 * Math.PI), y + R * Math.sin(Math.PI + a1 * Math.PI)]; return `<path d="M${p0[0]} ${p0[1]} A${R} ${R} 0 0 1 ${p1[0]} ${p1[1]}" stroke="${c}" stroke-width="34" fill="none"/>`; };
   const ang = Math.PI + clamp(val) * Math.PI; const nx = x + (R - 30) * Math.cos(ang), ny = y + (R - 30) * Math.sin(ang);
-  svg.push(`<g transform="translate(${x},${y}) scale(${back(k)}) translate(${-x},${-y})">
+  svg.push(`<g transform="translate(${x},${y}) scale(${back(k) * 0.78}) translate(${-x},${-y})">
     <path d="M${x - R - 30} ${y + 10} A${R + 30} ${R + 30} 0 0 1 ${x + R + 30} ${y + 10} Z" fill="#fff" stroke="#000" stroke-width="8"/>
     ${arc(0.02, 0.33, '#e8483b')}${arc(0.34, 0.66, '#f3c63f')}${arc(0.67, 0.98, '#3ddc84')}
     <text x="${x}" y="${y - 62}" text-anchor="middle" font-family="M" font-weight="900" font-size="30" fill="#111">BEISSKRAFT</text>
@@ -689,7 +691,7 @@ const shots = [
     // Seitenprofil: Triceratops komplett sichtbar, T-Rex beißt von hinten in den Rücken; langsame Kamerafahrt nach innen
     const camP = V(2.4, 3.0, 15.5).add(V(-u * 0.12, 0.04 * u, -u * 0.5)); const mouthP = rex.mouthMark.getWorldPosition(V(0, 0, 0));
     const kz = ease((T - (tBite - 0.15)) / 0.5); // Profil -> Nahaufnahme der Zähne im Rücken
-    const HC = [-3.0, 0.5, 0.8, 0, -0.1, 0]; // Seitenansicht auf den Biss cam(camP.clone().lerp(mouthP.clone().add(V(HC[0], HC[1], HC[2])), kz), V(1.2, 2.0, -0.4).lerp(mouthP.clone().add(V(HC[3], HC[4], HC[5])), kz), lerp(42, 38, kz), T, tb > 0 ? 0.03 + 0.15 * Math.exp(-tb * 4) : 0.03);
+    const HC = [-2.8, 1.0, 0.9, 0, -0.2, 0]; /* Seitenansicht auf den Biss */ cam(camP.clone().lerp(mouthP.clone().add(V(HC[0], HC[1], HC[2])), kz), V(1.2, 2.0, -0.4).lerp(mouthP.clone().add(V(HC[3], HC[4], HC[5])), kz), lerp(42, 38, kz), T, tb > 0 ? 0.03 + 0.15 * Math.exp(-tb * 4) : 0.03);
     label3('DINOSAURIER', rex.headG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.5, 0)), clamp((T - WT(0, 'dinos')) * 3), -60, -160);
     label3('TRICERATOPS', tri.head.getWorldPosition(V(0, 0, 0)).add(V(0.3, 0.6, 0)), clamp((T - WT(0, 'triceratops')) * 3), 60, -230);
     tri.ol.userData.u.uA.value = clamp((T - WT(0, 'triceratops')) * 4) * (1 - clamp((T - WT(0, 'triceratops') - 1.0) * 3)) * 0.9;
@@ -705,7 +707,7 @@ const shots = [
       pill('🍌 SO GROSS WIE BANANEN', W / 2, 520, clamp((T - WT(1, 'banan')) * 3));
       label3('BIS 30 CM', mp.clone().add(V(0.1, -0.35, 0.3)), clamp((T - WT(1, 'groß')) * 3), 200, 240);
     } else {
-      CUT = tG; const v = T - tG; macro.visible = true; rex.root.visible = false; ground.visible = world.visible = sky.visible = false; scene.background = new THREE.Color(0x1e2f3d);
+      CUT = tG; const v = T - tG; macro.visible = true; rex.root.visible = false; ground.visible = world.visible = sky.visible = false; scene.background = new THREE.Color(0xdfe3e2);
       sunAt(MAC); macro.userData.dents.forEach((d, i) => { d.scale.setScalar(Math.max(0.001, back((v - 0.2) * 3 - (i % 22) * 0.03))); });
       macro.userData.ban.visible = true;
       cam(MAC.clone().add(V(Math.sin(v * 0.3) * 1.2, 0.4, 4.8)), MAC.clone().add(V(0, 0.2, 0)), 42, T, 0.01);
@@ -767,7 +769,11 @@ const shots = [
       const tilt = lerp(0.04, 0.62, f) + (v < 0.6 ? Math.sin(v * 9) * 0.03 : 0); rex.root.rotation.set(0, -Math.PI / 2, 0); rex.root.rotateX(tilt);
       sunAt(V(0, 0, 0));
       const tp = T - (tF + 0.45); if (tp > 0) burst(dust, V(-5.4, 0.3, 0), tp, { spread: 2.5, up: 2, ring: true, life: 2 });
-      cam(V(-6, 3.6, 18 - v * 0.3), V(-0.8, 2.4, 0), 44, T * 8, 0.02 + (tp > 0 ? 0.15 * Math.exp(-tp * 4) : 0));
+      if (tp > 0.15) { const hpS = rex.headG.getWorldPosition(V(0, 0, 0)); const [hx, hy] = proj(hpS.clone().add(V(0, 0.9, 0))); const ks = clamp((tp - 0.15) * 4);
+        for (let k = 0; k < 3; k++) { const a = tp * 4 + k * 2.09; const sx = hx + Math.cos(a) * 110, sy = hy + Math.sin(a) * 30; const R = 26 * ks, r2 = R * 0.45;
+          const pts = Array.from({ length: 10 }, (_, j) => { const aa = -Math.PI / 2 + j * Math.PI / 5; const rr = j % 2 ? r2 : R; return `${sx + Math.cos(aa) * rr},${sy + Math.sin(aa) * rr}`; }).join(' ');
+          svg.push(`<polygon points="${pts}" fill="#ffd21f" stroke="#7a5200" stroke-width="3"/>`); } }
+      cam(V(-5.0, 3.2, 13.5 - v * 0.3), V(-1.6, 2.4, 0), 44, T * 8, 0.02 + (tp > 0 ? 0.15 * Math.exp(-tp * 4) : 0));
       label3('SCHWERER KOPF', rex.headG.getWorldPosition(V(0, 0, 0)), clamp((T - WT(5, 'kopf')) * 3), 220, -260);
       pill('⚠️ KOPFLASTIG', W / 2, 520, clamp((T - WT(5, 'kippt')) * 3), '#ff4d4d');
     }
@@ -782,7 +788,7 @@ const shots = [
     const armView = T < tTail - 0.3;
     if (armView) { const sp = rex.arms[1].getWorldPosition(V(0, 0, 0)); rex.torso.updateMatrixWorld(true); const ARC = [-1.2, -0.2, 2.0, 0, -0.35, 0, 36]; cam(sp.clone().add(V(ARC[0], ARC[1], ARC[2])), sp.clone().add(V(ARC[3], ARC[4], ARC[5])), ARC[6], T, 0.01);
       label3('WINZIGE ARME', sp.clone().add(V(-0.2, -0.4, 0)), clamp((T - WT(6, 'stummel') + 0.1) * 3), 120, 300); }
-    else { CUT = tTail - 0.3; cam(V(-6.5, 4.0, 21.5), V(0, 2.8, 0), 46, T, 0.02);
+    else { CUT = tTail - 0.3; cam(V(-4.5, 3.4, 16.5), V(0.4, 2.8, 0), 46, T, 0.02);
       const k = clamp((T - WT(6, 'wippe') + 0.6) * 2.5); seesaw.visible = k > 0; seesaw.userData.m.opacity = k;
       seesaw.position.set(0, 3.1, 0.1); seesaw.rotation.set(0, -Math.PI / 2, 0); seesaw.rotateX(tilt * 0.9); seesaw.rotateX(0); seesaw.scale.set(1, 1, lerp(0.7, 1, k));
       label3('LANGER SCHWANZ', V(4.6, 2.7, 0), clamp((T - tTail) * 3), 0, -260);
@@ -792,12 +798,13 @@ const shots = [
   (T) => {
     const u = T - S[7].start; rex.root.rotation.y = -Math.PI / 2; rex.root.position.set(4 - u * 1.6, 0, 0);
     poseRex(rex, { phase: T * 3.2, amp: 1, t: T, jaw: 0.08, head: 0.04, tail: 1.12, teeth: 2.3 }); sunAt(rex.root.position);
-    const bp = rex.root.position; cam(V(bp.x - 5.5, 1.2, 14), V(bp.x - 0.5, 2.6, 0), 46, T, 0.04);
+    const bp = rex.root.position; cam(V(bp.x - 4.2, 1.5, 10.5), V(bp.x - 0.8, 2.6, 0), 46, T, 0.04);
     const ph = (T * 3.2) % Math.PI; burst(dust, V(bp.x - 0.4, 0.1, 0.6), ph / 3.2 * 1.2, { spread: 1, up: 1, ring: true, life: 0.9 });
     pill('✅ PERFEKT AUSBALANCIERT', W / 2, 520, clamp((u - 0.2) * 3), '#3ddc84');
   },
   // 8: Triceratops läuft vorbei – Angriff
   (T) => {
+    cta.style.display = 'block';
     const u = T - S[8].start; tri.root.visible = true; const tL = WT(8, 'stürzt') - 0.1, tBite = WT(8, 'beißt') - 0.05;
     const triX = lerp(6, -1.5, clamp(u / (tBite - S[8].start + 0.2))); tri.root.position.set(triX, 0, 0); tri.root.rotation.y = -Math.PI / 2; poseTri(tri, { phase: T * 4, amp: T < tBite + 0.2 ? 1 : 0, t: T });
     tri.ol.userData.u.uA.value = clamp((T - WT(8, 'tricer')) * 4) * (1 - clamp((T - WT(8, 'tricer') - 1.2) * 3)) * 0.9;
@@ -820,7 +827,7 @@ const shots = [
     rex.ol.userData.u.uA.value = clamp((T - WT(9, 'trex')) * 4) * 0.9; sunAt(V(0, 0, 0));
     const a = 0.7 + u * 0.12; const k9 = ease(u / 1.6); const hp = rex.headG.getWorldPosition(V(0, 0, 0)).add(V(0, 0, 0.6)); const R9 = lerp(5, 14, k9); cam(V(Math.sin(a) * R9, lerp(4.0, 1.3, k9), Math.cos(a) * R9 + lerp(3.2, 0, k9)), hp.clone().lerp(V(0, 3.0, 0.8), k9), 46, T, 0.02 + roar * 0.02);
     pill('🦖 T-REX', W / 2, 520, clamp((T - WT(9, 'trex')) * 3));
-    cta.style.display = T > WT(9, 'trex') + 0.3 ? 'block' : 'none';
+    cta.style.display = 'block';
   },
 ];
 
