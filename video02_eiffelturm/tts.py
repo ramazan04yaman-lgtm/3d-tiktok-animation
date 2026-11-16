@@ -17,10 +17,28 @@ for i,s in enumerate(S):
     tot=sum(wts); acc=0; wl=[]
     for wd,wt in zip(words,wts): wl.append([wd.strip(',.:'),acc/tot*d,(acc+wt)/tot*d]); acc+=wt
     if WM:
-        segs,_=WM.transcribe(a/32768.0 if sr==16000 else np.interp(np.arange(0,len(a),sr/16000),np.arange(len(a)),a)/32768.0,language='de',word_timestamps=True)
+        a16=np.interp(np.arange(0,len(a),sr/16000),np.arange(len(a)),a)/32768.0
+        segs,_=WM.transcribe(a16.astype(np.float32),language='de',word_timestamps=True,initial_prompt=s['say'])
         ww=[x for sg in segs for x in sg.words]
-        if len(ww)==len(words): wl=[[words[k].strip(',.:'),x.start,x.end] for k,x in enumerate(ww)]; src='whisper'
-        else: src=f'prop({len(ww)}/{len(words)})'
+        if len(ww)==len(words): wl=[[words[k].strip(',.:'),x.start,x.end] for k,x in enumerate(ww)]; src='whisper-exact'
+        elif ww:
+            # character-position interpolation: map each spoken word's char span onto whisper's char timeline
+            import re
+            norm=lambda x: re.sub(r'[^a-zäöüß0-9]','',x.lower())
+            wc=[]; pos=0
+            for x in ww: n=max(1,len(norm(x.word))); wc.append((pos,pos+n,x.start,x.end)); pos+=n
+            totw=pos; spk=[max(1,len(norm(x))) for x in sw]; tots=sum(spk)
+            def tat(cp):
+                cp=cp/tots*totw
+                for c0,c1,t0,t1 in wc:
+                    if cp<=c1: return t0+(t1-t0)*max(0,min(1,(cp-c0)/(c1-c0)))
+                return wc[-1][3]
+            acc=0; wl=[]
+            for k,wd in enumerate(words):
+                n=spk[k] if len(sw)==len(words) else max(1,len(norm(wd)))
+                wl.append([wd.strip(',.:'),tat(acc),tat(acc+n)]); acc+=n
+            src=f'whisper-interp({len(ww)}/{len(words)})'
+        else: src='prop'
         print(i,src)
     timeline.append({"t0":round(t,3),"t1":round(t+d,3),"shots":s['shots'],"words":[{"w":x[0],"t0":round(t+x[1],3),"t1":round(t+x[2],3)} for x in wl]})
     gap=s.get('pause',0.12); audio.append(a); audio.append(np.zeros(int(gap*sr),np.float32)); t+=d+gap

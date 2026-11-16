@@ -432,6 +432,7 @@ export function makeEiffel(col = 0x6f5236) {
   mesh(box(12, 1.1, 12), lm(6, 1), 0, 30, 0, g); mesh(box(12.4, 0.25, 12.4), solid, 0, 30.6, 0, g);
   frustum(5.6, 1.4, 30, 30.6, 3, 18);
   mesh(box(3.2, 1.6, 3.2), solid, 0, 61.4, 0, g); mesh(sph(1.4, 16), solid, 0, 62.8, 0, g); mesh(cyl(0.12, 0.2, 5), solid, 0, 66, 0, g);
+  for (let i = 0; i < 6; i++) { const b = mesh(sph(0.35, 10), mat(0xfff0c0, { e: 0xffd080, ei: 1.2 }), (i % 2 ? 1 : -1) * 11.5, 16.9, (i < 3 ? 1 : -1) * 11.5 * (i % 3 === 2 ? 0 : 1), g); b.castShadow = false; }
   return g;
 }
 let _cob, _fac, _wall, _parq, _bill;
@@ -501,3 +502,52 @@ export function makeSteam() {
   const g = new THREE.Group(); const m = mat(0xf2f2f2, { r: 1, t: 0.85, e: 0xdddddd, ei: 0.3 }); const ps = []; for (let i = 0; i < 18; i++) { const p = mesh(sph(0.5, 12), m, 0, 0, 0, g); p.castShadow = false; ps.push(p); }
   tick(t => ps.forEach((p, i) => { const k = ((t * 0.6 + i / 18) % 1); p.position.set(-k * 8, k * 5, Math.sin(i) * k); p.scale.setScalar(0.4 + k * 2.2); })); return g;
 }
+
+// ================= VIDEO 02 v2: PARIS 1925 DETAILS =================
+export function makeCar1920(col = 0x1d2a44) {
+  const g = new THREE.Group(); const body = mat(col, { r: 0.3, m: 0.4, phys: true, cc: 0.8, env: 0.9 }), blk = mat(0x111111, { r: 0.4 }), chrome = mat(0xe0e0e0, { m: 1, r: 0.15, env: 1.2 });
+  mesh(box(2.2, 0.55, 1.3), body, 0, 0.75, 0, g); mesh(box(1.3, 0.8, 1.25), body, -0.35, 1.4, 0, g); mesh(box(1.32, 0.06, 1.3), blk, -0.35, 1.82, 0, g);
+  mesh(box(0.9, 0.45, 1.27), mat(0x9fc6e0, { r: 0.05, m: 0.5, env: 1.2 }), -0.35, 1.45, 0, g);
+  mesh(box(0.7, 0.5, 0.9), body, 1.1, 0.85, 0, g); mesh(box(0.05, 0.42, 0.7), chrome, 1.46, 0.88, 0, g);
+  for (const z of [-0.45, 0.45]) { mesh(sph(0.13, 16), chrome, 1.5, 1.05, z, g); mesh(sph(0.1, 12), mat(0xfff6c8, { e: 0xfff0a0, ei: 0.6 }), 1.56, 1.05, z, g); }
+  const wheels = []; for (const [x, z] of [[0.8, 0.68], [-0.85, 0.68], [0.8, -0.68], [-0.85, -0.68]]) { const w = new THREE.Group(); w.position.set(x, 0.42, z); g.add(w); const t = mesh(new THREE.TorusGeometry(0.33, 0.09, 10, 24), blk, 0, 0, 0, w); for (let i = 0; i < 8; i++) { const sp = mesh(box(0.02, 0.6, 0.02), chrome, 0, 0, 0, w); sp.rotation.z = i * Math.PI / 8; } mesh(cyl(0.08, 0.08, 0.1, 12), chrome, 0, 0, 0, w).rotation.x = Math.PI / 2; wheels.push(w); }
+  for (const z of [-0.68, 0.68]) { const f = mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.22, 20, 1, true, 0, Math.PI), body, 0.8, 0.45, z, g); f.rotation.x = Math.PI / 2; f.rotation.y = Math.PI / 2; f.material = body; const f2 = f.clone(); f2.position.x = -0.85; g.add(f2); mesh(box(1.0, 0.04, 0.18), blk, 0, 0.55, z * 1.05, g); }
+  g.userData.wheels = wheels; return g;
+}
+export function makeMorrisColumn() {
+  const g = new THREE.Group(); const t = canvasTex(1024, 512, (c, w, h) => { c.fillStyle = '#2f5a3a'; c.fillRect(0, 0, w, h);
+    const posters = [['#e8b04a', 'EXPOSITION', 'ARTS DÉCORATIFS', '1925'], ['#c0392b', 'CIRQUE', "D'HIVER", 'PARIS'], ['#1d3b8a', 'LE BAL', 'NÈGRE', 'JAZZ'], ['#f2e6c8', 'CINÉMA', 'GAUMONT', 'PALACE']];
+    posters.forEach((p, i) => { const x = i * 256 + 14; c.fillStyle = p[0]; c.fillRect(x, 40, 228, 430); c.fillStyle = i === 3 ? '#222' : '#fff'; c.textAlign = 'center'; c.font = '900 40px Inter Display'; c.fillText(p[1], x + 114, 130); c.font = '800 26px Inter Display'; c.fillText(p[2], x + 114, 180); c.font = '900 64px Inter Display'; c.fillText(p[3], x + 114, 400); c.strokeStyle = c.fillStyle; c.lineWidth = 6; c.beginPath(); c.arc(x + 114, 270, 50, 0, 7); c.stroke(); }); });
+  mesh(cyl(0.65, 0.65, 3.0, 32), new THREE.MeshStandardMaterial({ map: t, roughness: 0.85, envMapIntensity: 0.4 }), 0, 1.7, 0, g);
+  const gr = mat(0x2f5a3a, { r: 0.5, m: 0.3 }); mesh(cyl(0.75, 0.8, 0.25, 32), gr, 0, 0.12, 0, g); mesh(cyl(0.78, 0.7, 0.3, 32), gr, 0, 3.3, 0, g); const d = mesh(new THREE.SphereGeometry(0.72, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), gr, 0, 3.45, 0, g); d.scale.y = 0.6; mesh(sph(0.1, 12), gr, 0, 3.95, 0, g);
+  return g;
+}
+export function makeMetroEntrance() {
+  const g = new THREE.Group(); const gr = mat(0x2d5a3f, { r: 0.45, m: 0.5 });
+  for (const x of [-1.2, 1.2]) { const pts = []; for (let i = 0; i <= 20; i++) { const k = i / 20; pts.push(new THREE.Vector3(x + Math.sin(k * 3) * 0.05 * Math.sign(x), k * 3.2, 0)); } pts.push(new THREE.Vector3(x * 0.85, 3.5, 0)); mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.07, 8), gr, 0, 0, 0, g); mesh(sph(0.16, 16), mat(0xffa040, { e: 0xff8a20, ei: 1.2 }), x * 0.82, 3.55, 0, g); }
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.42), new THREE.MeshStandardMaterial({ map: canvasTex(512, 108, (c, w, h) => { c.fillStyle = '#e9dfb0'; c.fillRect(0, 0, w, h); c.strokeStyle = '#2d5a3f'; c.lineWidth = 10; c.strokeRect(5, 5, w - 10, h - 10); c.fillStyle = '#2d5a3f'; c.font = 'italic 700 56px Liberation Serif, serif'; c.textAlign = 'center'; c.fillText('MÉTROPOLITAIN', w / 2, 74); }), roughness: 0.6, side: THREE.DoubleSide }));
+  sign.position.set(0, 3.05, 0.02); g.add(sign);
+  for (const z of [-1.5, 0]) mesh(box(0.06, 0.9, 1.5), gr, -1.2, 0.45, z - 0.75, g), mesh(box(0.06, 0.9, 1.5), gr, 1.2, 0.45, z - 0.75, g);
+  const hole = mesh(new THREE.PlaneGeometry(2.3, 3), mat(0x0d0d0d, { r: 1 }), 0, 0.01, -1.6, g); hole.rotation.x = -Math.PI / 2; hole.castShadow = false;
+  return g;
+}
+export function shopSign(text, bg = '#1d3b2a', fg = '#e9c76a', w = 5) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.65), new THREE.MeshStandardMaterial({ map: canvasTex(512, 66, (c, W, H) => { c.fillStyle = bg; c.fillRect(0, 0, W, H); c.fillStyle = fg; c.font = '700 44px Liberation Serif, serif'; c.textAlign = 'center'; c.fillText(text, W / 2, 48); c.strokeStyle = fg; c.lineWidth = 3; c.strokeRect(6, 6, W - 12, H - 12); }), roughness: 0.6 })); return m;
+}
+export function makeFlowerBox(w = 1.6) { const g = new THREE.Group(); mesh(box(w, 0.2, 0.3), mat(0x6b3d22), 0, 0, 0, g); const cols = [0xff4d6d, 0xffd23f, 0xffffff, 0xc77dff]; for (let i = 0; i < 9; i++) { mesh(sph(0.08, 8), mat(cols[i % 4]), -w / 2 + 0.1 + i * (w - 0.2) / 8, 0.15, 0, g).castShadow = false; } mesh(box(w - 0.1, 0.1, 0.25), mat(0x3d8b3a, { fab: true }), 0, 0.1, 0, g); return g; }
+export function makeSconce() { const g = new THREE.Group(); const gold = mat(0xd9b44a, { m: 0.9, r: 0.25 }); mesh(box(0.12, 0.3, 0.05), gold, 0, 0, 0, g); mesh(cyl(0.02, 0.02, 0.25), gold, 0, 0.05, 0.12, g).rotation.x = Math.PI / 2; mesh(cyl(0.08, 0.12, 0.16, 16), mat(0xfff0d0, { e: 0xffc070, ei: 1.5 }), 0, 0.12, 0.24, g); const l = new THREE.PointLight(0xffc27a, 4, 5); l.position.set(0, 0.15, 0.3); g.add(l); return g; }
+export function makeColumn(h = 6) { const g = new THREE.Group(); const m = mat(0xf0e9de, { r: 0.25, phys: true, cc: 0.6, env: 0.9 }); mesh(cyl(0.3, 0.3, h - 0.6, 20), m, 0, h / 2, 0, g); mesh(box(0.8, 0.3, 0.8), m, 0, 0.15, 0, g); mesh(box(0.8, 0.3, 0.8), m, 0, h - 0.15, 0, g); mesh(new THREE.TorusGeometry(0.32, 0.04, 8, 24), mat(0xd9b44a, { m: 0.9, r: 0.3 }), 0, h - 0.45, 0, g).rotation.x = Math.PI / 2; return g; }
+export function makeGlass() { const g = new THREE.Group(); const gl = mat(0xffffff, { t: 0.35, r: 0.05, phys: true, cc: 1, env: 1.5 }); mesh(cyl(0.04, 0.005, 0.1, 16), gl, 0, 0.17, 0, g); mesh(cyl(0.006, 0.006, 0.12, 8), gl, 0, 0.06, 0, g); mesh(cyl(0.035, 0.035, 0.005, 16), gl, 0, 0.003, 0, g); mesh(cyl(0.032, 0.005, 0.06, 16), mat(0xf5d76e, { t: 0.7, e: 0x8a6a10, ei: 0.3 }), 0, 0.16, 0, g); return g; }
+export function makeCigarSmoke(n = 14) {
+  const g = new THREE.Group(); const m = new THREE.MeshStandardMaterial({ color: 0xdddddd, transparent: true, opacity: 0.18, roughness: 1, depthWrite: false }); const ps = [];
+  for (let i = 0; i < n; i++) { const p = new THREE.Mesh(sph(0.06, 10), m); g.add(p); ps.push(p); }
+  tick(t => ps.forEach((p, i) => { const k = (t * 0.35 + i / n) % 1; p.position.set(Math.sin(k * 9 + i) * 0.08 * k, k * 0.9, Math.cos(k * 7 + i) * 0.06 * k); p.scale.setScalar(0.5 + k * 3); })); return g;
+}
+export function makeCitroenLetters() {
+  const g = new THREE.Group(); const L_ = 'CITROËN'.split(''); const ms = [];
+  L_.forEach((ch, i) => { const t = canvasTex(128, 128, (c, w, h) => { c.clearRect(0, 0, w, h); c.font = '900 110px Inter Display'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#fff'; c.fillText(ch, w / 2, h / 2 + 6); });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2), new THREE.MeshBasicMaterial({ map: t, transparent: true, color: 0xffe08a, fog: false, depthWrite: false })); m.position.set(0, 52 - i * 4.2, 3.1); g.add(m); ms.push(m); });
+  g.userData.letters = ms; return g;
+}
+export function clocheHat(head, col = 0xa83a5a) { const h = new THREE.Group(); h.position.set(0, 0.2, -0.02); head.add(h); const d = mesh(new THREE.SphereGeometry(0.37, 32, 16, 0, Math.PI * 2, 0, Math.PI / 1.9), mat(col, { fab: true, r: 0.85 }), 0, 0, 0, h); d.scale.y = 0.9; mesh(new THREE.TorusGeometry(0.36, 0.04, 8, 32), mat(col, { fab: true }), 0, -0.02, 0, h).rotation.x = Math.PI / 2; mesh(new THREE.TorusGeometry(0.355, 0.02, 6, 32), mat(0x222222), 0, 0.06, 0, h).rotation.x = Math.PI / 2; return h; }
+export function flatCap(head, col = 0x5a4a3a) { const h = new THREE.Group(); h.position.set(0, 0.24, 0.02); head.add(h); const d = mesh(sph(0.34, 24), mat(col, { fab: true, r: 0.9 }), 0, 0, 0, h); d.scale.set(1.05, 0.35, 1.1); const b = mesh(box(0.36, 0.03, 0.18), mat(col, { fab: true }), 0, -0.04, 0.34, h); b.rotation.x = 0.15; return h; }

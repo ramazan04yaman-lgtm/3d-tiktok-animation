@@ -90,19 +90,31 @@ def clang(): t=tt(1.2); x=sum(np.sin(2*np.pi*f*t)*np.exp(-t*k) for f,k in ((180,
 def door(): t=tt(0.5); x=np.sin(2*np.pi*70*t)*np.exp(-t*12)+noise(0.5)*np.exp(-t*25)*0.6; return x/np.abs(x).max()
 def pressloop(d): out=np.zeros(int(d*sr)); [out.__setitem__(slice(int(k*0.42*sr),int(k*0.42*sr)+int(0.25*sr)), clunk()*0.7) for k in range(int(d/0.42))]; return out
 def whisper_(d): x=noise(d); x=x-lpv(x,0.2); t=tt(d); return env(x*np.abs(np.sin(2*np.pi*3*t))*0.25,0.05,0.1)
+def horn(): t=tt(0.7); f=np.where(t<0.3,420,330)*(1+0.03*np.sin(2*np.pi*30*t)); x=np.sign(np.sin(2*np.pi*np.cumsum(f)/sr))*0.5+np.sin(2*np.pi*np.cumsum(f)/sr); return env(lpv(x,0.3),0.02,0.1)
+def murmur(d): x=lpv(noise(d),0.08); t=tt(d); x*= 0.6+0.4*np.abs(np.sin(2*np.pi*1.7*t)*np.sin(2*np.pi*0.6*t)); return env(x/np.abs(x).max(),0.3,0.3)
+def typewriter(d): out=np.zeros(int(d*sr)); k=0.0
+    
+def typewriter(d):
+    out=np.zeros(int(d*sr)); tt_=0.0
+    while tt_<d-0.1: c=click()*0.8; i=int(tt_*sr); out[i:i+len(c)]+=c; tt_+=0.06+rng.random()*0.07
+    return out
 STREET={'paris_wide','cafe_read','paper_close','idea_face','letters_fly','hotel_ext','h_tower_sell','h_face','h_cash','poisson_dream','poisson_waits','police_pass','return_walk','dealer_police','finale'}
 for s in P['shots']:
     n=s['n']; t0=s['t0']; t1=min(s['t1'],D); d=t1-t0; at=lambda f: t0+f*d
     if t0>0: put(t0-0.08, whoosh(0.32) if s['first'] else swish(0.2), 0.22 if s['first'] else 0.1, 0.4*s['dir'])
     if n in STREET: put(t0, wind(d+0.1)*0.5, 0.08)
-    if n=='h_tower_sell': put(0,boom(),0.9); put(0,whoosh(0.8),0.45); put(0.2,kaching(),0.3)
+    if n=='h_sold': put(0,whoosh(0.9),0.55); put(t0+0.22,boom(),1.0); put(t0+0.22,clunk(),0.9); put(t0+0.3,kaching(),0.45)
+    if n=='h_tower_sell': put(t0,horn(),0.18,-0.5); put(t0,murmur(d),0.1)
+    if n=='newsboy': put(t0,murmur(d),0.15); put(at(0.1),beep(1700,0.08),0.1); put(at(0.3),rustle(0.4),0.3)
+    if n=='question': put(t0,sparkle(),0.35); put(t0+0.4,ding(),0.35); put(t0+1.2,bloop(),0.35); put(t0+1.3,bloop(),0.3)
+    if n in('paris_wide','hotel_ext','return_walk'): put(at(0.3),horn(),0.18,0.4); put(t0,murmur(d),0.12)
     if n=='h_face': put(at(0.7),ding(),0.3)
     if n=='h_cash': put(at(0.15),clunk(),0.6); put(at(0.17),kaching(),0.5); put(at(0.2),rustle(d*0.8),0.35)
     if n=='paris_wide': put(t0,accordion(d+0.3),0.25); put(t0,birds(d),0.12)
     if n=='cafe_read': put(t0,rustle(0.4),0.3); put(t0,steps(d,3),0.08)
     if n=='paper_close': put(t0,rustle(0.5),0.35)
     if n=='idea_face': put(at(0.35),ding(),0.4)
-    if n=='letters_stamp': put(at(0.45),clunk(),0.8); put(at(0.46),door()*0.4,0.4)
+    if n=='letters_stamp': put(t0,typewriter(0.42*d),0.35); put(at(0.45),clunk(),0.8); put(at(0.46),door()*0.4,0.4)
     if n=='letters_fly': put(t0,rustle(d),0.3); put(t0,whoosh(d),0.25)
     if n=='hotel_ext': put(t0,steps(d,5),0.15)
     if n in('meeting_wide','meeting2'): put(t0,whisper_(d),0.12)
