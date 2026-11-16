@@ -136,8 +136,8 @@ const muscleM = new THREE.MeshStandardMaterial({ color: 0xc8202c, roughness: 0.4
 const darkM = new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.3 });
 
 // Loft entlang einer Wirbelsäule: keys [z, y, rx, ry]
-const KEYS = [[-7.2, 2.25, 0.04, 0.05], [-6, 2.45, 0.14, 0.17], [-4.6, 2.7, 0.26, 0.33], [-3.2, 2.88, 0.4, 0.5], [-1.8, 3.0, 0.56, 0.68], [-0.6, 3.08, 0.72, 0.88],
-  [0.4, 3.02, 0.82, 1.02], [1.3, 2.92, 0.78, 1.0], [2.1, 3.0, 0.62, 0.8], [2.75, 3.25, 0.46, 0.58], [3.2, 3.55, 0.38, 0.46], [3.55, 3.8, 0.34, 0.42]];
+const KEYS = [[-7.6, 2.15, 0.025, 0.03], [-6.6, 2.32, 0.08, 0.1], [-5.5, 2.5, 0.15, 0.2], [-4.3, 2.68, 0.25, 0.33], [-3.0, 2.86, 0.38, 0.49], [-1.8, 3.0, 0.54, 0.67], [-0.6, 3.08, 0.72, 0.88],
+  [0.4, 3.02, 0.84, 1.04], [1.3, 2.9, 0.86, 1.08], [2.1, 3.0, 0.72, 0.92], [2.75, 3.28, 0.57, 0.71], [3.2, 3.58, 0.49, 0.6], [3.55, 3.82, 0.44, 0.54]];
 function cr(p0, p1, p2, p3, t) { const t2 = t * t, t3 = t2 * t; return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3); }
 function sampleKeys(u) { const n = KEYS.length - 1; const f = u * n; const i = Math.min(n - 1, Math.floor(f)); const t = f - i;
   const k = j => KEYS[Math.max(0, Math.min(n, j))]; return [0, 1, 2, 3].map(c => cr(k(i - 1)[c], k(i)[c], k(i + 1)[c], k(i + 2)[c], t)); }
@@ -164,16 +164,60 @@ function updateLoft(g, { tail = 1, sway = 0, droop = 0 }) {
   }
   g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere();
 }
-// Kopfform aus verformter Kugel
-function headGeo(upper) {
-  const g = new THREE.SphereGeometry(1, 40, 28); const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) { let x = p.getX(i), y = p.getY(i), z = p.getZ(i); const t = (z + 1) / 2;
-    const wdt = upper ? lerp(0.36, 0.17, Math.pow(t, 1.1)) : lerp(0.32, 0.14, t);
-    const top = upper ? lerp(0.48, 0.2, Math.pow(t, 0.9)) : 0.05; const bot = upper ? 0.06 : lerp(0.3, 0.13, t);
-    p.setXYZ(i, x * wdt, y > 0 ? y * top : y * bot, t * (upper ? 1.55 : 1.45) - 0.12); }
-  return colorize(g, 4);
+// ---------- Kopf: Loft mit Superellipsen-Querschnitten (exakte Oberflächenfunktion) ----------
+const SE = 2.6; // Superellipsen-Exponent: etwas kantiger, knöcherner Querschnitt
+const sgnPow = (v, p) => Math.sign(v) * Math.pow(Math.abs(v), p);
+function headProf(upper, t) {
+  let z, w, top, bot;
+  if (upper) {
+    z = lerp(-0.18, 1.62, t);
+    w = t < 0.35 ? lerp(0.47, 0.36, t / 0.35) : lerp(0.36, 0.22, (t - 0.35) / 0.65);
+    top = t < 0.3 ? lerp(0.6, 0.47, t / 0.3) : lerp(0.47, 0.31, (t - 0.3) / 0.7);
+    if (t > 0.42 && t < 0.9) top += 0.022 * Math.max(0, Math.sin((t - 0.42) * 42)); // raue Nasenknochen
+    bot = 0.075;
+  } else {
+    z = lerp(-0.1, 1.67, t);
+    w = lerp(0.42, 0.21, Math.pow(t, 0.9));
+    top = 0.06;
+    bot = t < 0.22 ? lerp(0.3, 0.37, t / 0.22) : lerp(0.37, 0.21, (t - 0.22) / 0.78); // tiefer, kräftiger Unterkiefer
+  }
+  const eb = t < 0.13 ? Math.sqrt(1 - Math.pow((0.13 - t) / 0.13, 2)) : 1;
+  const ef = t > 0.86 ? Math.pow(Math.max(0, 1 - Math.pow((t - 0.86) / 0.14, 2)), 0.42) : 1; // stumpfe, kräftige Schnauze
+  const e = eb * ef; return { z, w: w * e, top: top * e, bot: bot * e };
 }
-function wFn(t, upper) { return upper ? lerp(0.36, 0.17, Math.pow(t, 1.1)) : lerp(0.32, 0.14, t); }
+function headSurf(upper, t, phi, k = 1) {
+  const p = headProf(upper, t); const c = Math.cos(phi), s = Math.sin(phi);
+  return V(p.w * sgnPow(c, 2 / SE) * k, (s > 0 ? p.top : p.bot) * sgnPow(s, 2 / SE) * k, p.z);
+}
+function headNormal(upper, t, phi) { const p = headProf(upper, t); const q = headSurf(upper, t, phi); const h = q.y > 0 ? p.top : p.bot;
+  return V(q.x / Math.max(1e-3, p.w * p.w), q.y / Math.max(1e-3, h * h), 0).normalize(); }
+const MOUTH = new THREE.Color(0x8e3f45);
+function headGeo(upper) {
+  const R = 56, SD = 40; const pos = [], idx = [], uv = [];
+  for (let i = 0; i < R; i++) { const t = i / (R - 1); for (let j = 0; j < SD; j++) { const q = headSurf(upper, t, j / SD * Math.PI * 2); pos.push(q.x, q.y, q.z); uv.push(t * 6, j / SD * 3); } }
+  for (let i = 0; i < R - 1; i++) for (let j = 0; j < SD; j++) { const a = i * SD + j, b = i * SD + (j + 1) % SD, c = a + SD, d = b + SD; idx.push(a, b, c, b, d, c); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+  colorize(g, 4); const n = g.attributes.normal, col = g.attributes.color; const c = new THREE.Color();
+  for (let i = 0; i < n.count; i++) { const ny = n.getY(i); const m = upper ? clamp((-ny - 0.55) * 4) : clamp((ny - 0.55) * 4);
+    if (m > 0) { c.setRGB(col.getX(i), col.getY(i), col.getZ(i)).lerp(MOUTH, m); col.setXYZ(i, c.r, c.g, c.b); } }
+  return g;
+}
+// ---------- Zähne: dick, D-förmig, nach hinten gebogen, mit gezackten Schneidkanten ----------
+function toothGeo(r) {
+  const R = 30, SD = 18, curv = 0.14 + r() * 0.2, fat = 0.9 + r() * 0.25, dens = 13 + r() * 5; const pos = [], idx = [];
+  for (let i = 0; i < R; i++) { const t = i / (R - 1); const tp = clamp((t - 0.09) / 0.91);
+    const a = 0.24 * fat * Math.pow(1 - tp, 0.75), b = 0.165 * fat * Math.pow(1 - tp, 0.85); const y = 0.1 - 1.1 * t; const zc = -curv * tp * tp;
+    for (let j = 0; j < SD; j++) { const ph = j / SD * Math.PI * 2; const cw = Math.pow(Math.abs(Math.cos(ph)), 14);
+      const saw = tp > 0.04 && tp < 0.93 ? Math.pow(0.5 + 0.5 * Math.sin(tp * Math.PI * 2 * dens), 3) : 0; const serr = 0.022 * cw * saw * (1 - tp * 0.5);
+      const ra = a + serr, rb = b; pos.push(rb * Math.sin(ph), y, ra * Math.cos(ph) + zc); } }
+  for (let i = 0; i < R - 1; i++) for (let j = 0; j < SD; j++) { const a = i * SD + j, b = i * SD + (j + 1) % SD, c = a + SD, d = b + SD; idx.push(a, c, b, b, c, d); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+}
+const TOOTH_L0 = 0.12;
+const gumM = new THREE.MeshStandardMaterial({ color: 0x93383d, roughness: 0.5, bumpMap: scaleTex, bumpScale: 0.4 });
+function surfPlace(parent, mesh, upper, t, phi, k, sx, sy, thick) {
+  const p = headSurf(upper, t, phi, k); const n = headNormal(upper, t, phi); mesh.position.copy(p); mesh.lookAt(p.clone().add(n)); mesh.scale.set(sx, sy, thick); parent.add(mesh); return mesh;
+}
 
 // ---------- T-Rex ----------
 function makeRex() {
@@ -187,37 +231,64 @@ function makeRex() {
   const skin = new THREE.Group(), skull = new THREE.Group(); headG.add(skin, skull);
   const upG = headGeo(true), loG = headGeo(false);
   const up = new THREE.Mesh(upG, skinM); up.castShadow = true; skin.add(up); skin.add(new THREE.Mesh(upG, ol));
-  const jaw = new THREE.Group(); jaw.position.set(0, -0.04, 0.02); headG.add(jaw);
+  const jaw = new THREE.Group(); jaw.position.set(0, -0.05, -0.15); headG.add(jaw); // Gelenk hinten am Schädel
   const jawSkin = new THREE.Group(), jawSkull = new THREE.Group(); jaw.add(jawSkin, jawSkull);
-  const lo = new THREE.Mesh(loG, skinM); lo.castShadow = true; lo.position.y = -0.03; jawSkin.add(lo); const loO = new THREE.Mesh(loG, ol); loO.position.y = -0.03; jawSkin.add(loO);
-  const sUp = new THREE.Mesh(upG, boneM); skull.add(sUp); const sLo = new THREE.Mesh(loG, boneM); sLo.position.y = -0.03; jawSkull.add(sLo);
+  const lo = new THREE.Mesh(loG, skinM); lo.castShadow = true; jawSkin.add(lo); jawSkin.add(new THREE.Mesh(loG, ol));
+  skull.add(new THREE.Mesh(upG, boneM)); jawSkull.add(new THREE.Mesh(loG, boneM));
   // Mundraum
-  const palate = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), pinkM); palate.scale.set(0.26, 0.05, 0.62); palate.position.set(0, 0.0, 0.62); headG.add(palate);
-  const tongue = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), pinkM); tongue.scale.set(0.22, 0.06, 0.55); tongue.position.set(0, 0.02, 0.6); jaw.add(tongue);
-  // Zähne
-  const teeth = []; const tg = new THREE.ConeGeometry(0.034, 0.15, 7); tg.translate(0, -0.075, 0);
+  const palate = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), pinkM); palate.scale.set(0.27, 0.035, 0.68); palate.position.set(0, -0.05, 0.72); headG.add(palate);
+  const tongue = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), pinkM); tongue.scale.set(0.23, 0.05, 0.62); tongue.position.set(0, 0.04, 0.85); jaw.add(tongue);
+  // Zähne + Zahnfleisch
+  const r = rng(321); const geos = Array.from({ length: 8 }, () => toothGeo(r)); const teeth = [];
+  const addTooth = (parent, x, y, z, size, lower, s) => { const m = new THREE.Mesh(geos[(r() * geos.length) | 0], toothM); m.position.set(x, y, z);
+    m.rotation.set((r() - .5) * 0.14, (r() - .5) * 0.3, (lower ? Math.PI : 0) + s * (0.07 + r() * 0.06) * (lower ? -1 : 1)); m.userData.base = size * (0.88 + r() * 0.24); m.castShadow = true; parent.add(m); teeth.push(m);
+    const gb = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), gumM); gb.position.set(x, y + (lower ? -0.005 : 0.005), z); gb.scale.set(0.05, 0.03, 0.06); gb.userData.tooth = m; (lower ? gumBulbsLo : gumBulbsUp).push(gb); return m; };
+  const gumBulbsUp = [], gumBulbsLo = [];
   for (const s of [-1, 1]) {
-    for (let k = 0; k < 11; k++) { const t = 0.2 + k / 11 * 0.72; const z = t * 1.55 - 0.12; const m = new THREE.Mesh(tg, toothM); m.position.set(s * wFn(t, true) * 0.86, -0.0, z); m.rotation.x = 0.1; m.userData.base = 1 - k / 22; headG.add(m); teeth.push(m); }
-    for (let k = 0; k < 10; k++) { const t = 0.22 + k / 10 * 0.68; const z = t * 1.45 - 0.12; const m = new THREE.Mesh(tg, toothM); m.position.set(s * wFn(t, false) * 0.84, 0.02, z); m.rotation.x = Math.PI - 0.1; m.userData.base = 0.9 - k / 25; jaw.add(m); teeth.push(m); }
+    const upZ = []; const gumUp = [], gumLo = [];
+    // Zwischenkiefer: kleine, dicht stehende Schneidezähne vorne
+    for (let k = 0; k < 4; k++) { const t = 0.955 - k * 0.022; const p = headProf(true, t); const x = s * p.w * 0.78, z = p.z - 0.01; addTooth(headG, x, -0.045, z, 0.55, false, s); upZ.push(z); gumUp.push(V(x, -0.03, z)); }
+    // Oberkiefer: 12 Zähne, größte im vorderen Drittel, unregelmäßige Abstände
+    let t = 0.86;
+    for (let k = 0; k < 12; k++) { const p = headProf(true, t); const x = s * p.w * 0.84, z = p.z; const size = 0.5 + 0.65 * Math.exp(-Math.pow((k - 3) / 3.4, 2)); addTooth(headG, x, -0.05, z, size, false, s); upZ.push(z); gumUp.push(V(x, -0.035, z)); t -= 0.05 + (r() - .5) * 0.018; }
+    gumUp.sort((a, b) => a.z - b.z); upZ.sort((a, b) => a - b);
+    // Unterkiefer: Zähne stehen innen und versetzt zwischen den oberen (Verzahnung)
+    for (let k = 0; k < upZ.length - 1; k++) { const zAbs = (upZ[k] + upZ[k + 1]) / 2 + (r() - .5) * 0.02; const zl = zAbs + 0.15; const tl = (zl + 0.1) / 1.77; if (tl < 0.25 || tl > 0.96) continue;
+      const p = headProf(false, tl); const x = s * p.w * 0.74; const kk = (0.96 - tl) / 0.7 * 12; const size = 0.45 + 0.6 * Math.exp(-Math.pow((kk - 2.5) / 3.6, 2));
+      addTooth(jaw, x, 0.045, zl, size, true, s); gumLo.push(V(x, 0.035, zl)); }
+    gumLo.sort((a, b) => a.z - b.z);
+    const mkGum = (pts, parent) => { const g = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.026, 8), gumM); g.scale.set(1, 0.8, 1); parent.add(g); };
+    mkGum(gumUp, skin); mkGum(gumLo, jawSkin); gumBulbsUp.forEach(g => skin.add(g)); gumBulbsLo.forEach(g => jawSkin.add(g)); gumBulbsUp.length = 0; gumBulbsLo.length = 0;
   }
-  // Augen
+  // Augen in Augenhöhlen, leicht nach vorne gerichtet + Augenbrauenwulst + Tränenbeinhorn
   const eyeM = new THREE.MeshStandardMaterial({ color: 0xf2c230, roughness: 0.2, emissive: 0x2a1c00 });
+  const socketM = new THREE.MeshStandardMaterial({ color: 0x2b1a10, roughness: 0.8 });
   for (const s of [-1, 1]) {
-    const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), eyeM); e.position.set(s * 0.29, 0.25, 0.32); headG.add(e);
-    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), darkM); pu.scale.set(0.6, 1.4, 0.6); pu.position.set(s * 0.335, 0.25, 0.34); headG.add(pu);
-    const brow = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), skinM); brow.geometry = colorize(new THREE.SphereGeometry(1, 14, 10)); brow.scale.set(0.09, 0.05, 0.14); brow.position.set(s * 0.25, 0.33, 0.3); skin.add(brow);
-    const nos = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), darkM); nos.position.set(s * 0.12, 0.17, 1.35); skin.add(nos);
+    const phi = s > 0 ? 0.78 : Math.PI - 0.78; const ep = headSurf(true, 0.2, phi, 0.96); const en = headNormal(true, 0.2, phi);
+    const sock = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12), socketM); surfPlace(skin, sock, true, 0.2, phi, 0.985, 0.085, 0.07, 0.03);
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.058, 16, 12), eyeM); e.position.copy(ep).addScaledVector(en, 0.012); headG.add(e);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), darkM); pu.scale.set(0.55, 1.45, 0.55); pu.position.copy(ep).addScaledVector(en, 0.05).add(V(0, 0, 0.012)); headG.add(pu);
+    const brow = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 16, 12)), skinM); surfPlace(skin, brow, true, 0.17, s > 0 ? 1.12 : Math.PI - 1.12, 0.99, 0.12, 0.07, 0.07);
+    const lac = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 14, 10)), skinM); surfPlace(skin, lac, true, 0.3, s > 0 ? 1.22 : Math.PI - 1.22, 0.99, 0.08, 0.05, 0.05);
+    const nos = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), darkM); surfPlace(skin, nos, true, 0.935, s > 0 ? 0.95 : Math.PI - 0.95, 0.995, 0.045, 0.028, 0.015);
   }
-  // Schädelfenster (Löcher) + Muskeln
+  // Schädelfenster: Antorbital-, Augen-, Schläfenfenster, Nasenloch (+ Unterkieferfenster)
   const holes = [], muscles = [];
+  const holeShape = (parent, upper, t, phi, sx, sy) => { const g = new THREE.Group(); const p = headSurf(upper, t, phi, 0.99); const n = headNormal(upper, t, phi); g.position.copy(p); g.lookAt(p.clone().add(n)); parent.add(g);
+    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 14), holeM); m.scale.set(sx, sy, 0.03); g.add(m); return g; };
+  const lowerHoles = [];
   for (const s of [-1, 1]) {
-    for (const [t, y, sz, sy] of [[0.55, 0.15, 0.2, 0.08], [0.22, 0.25, 0.08, 0.08], [0.06, 0.18, 0.08, 0.13], [0.38, 0.12, 0.06, 0.045]]) {
-      const h = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), holeM); h.scale.set(0.03, sy, sz); h.position.set(s * wFn(t, true) * lerp(1, 0.75, y / 0.48) * 0.98, y, t * 1.55 - 0.12); skull.add(h); holes.push(h);
-    }
-    const mu = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); mu.scale.set(0.08, 0.2, 0.14); mu.position.set(s * 0.3, 0.12, -0.02); mu.rotation.x = 0.5; skull.add(mu); muscles.push(mu);
-    const mu2 = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); mu2.scale.set(0.07, 0.16, 0.12); mu2.position.set(s * 0.27, -0.1, 0.05); jawSkull.add(mu2); muscles.push(mu2);
+    const P = a => s > 0 ? a : Math.PI - a;
+    holes.push(holeShape(skull, true, 0.52, P(0.42), 0.2, 0.095));
+    const orb = holeShape(skull, true, 0.2, P(0.8), 0.07, 0.1); const ok = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), holeM); ok.scale.set(0.035, 0.07, 0.03); ok.position.set(0, -0.11, 0); orb.add(ok); holes.push(orb); // Schlüsselloch-Form
+    holes.push(holeShape(skull, true, 0.05, P(0.45), 0.075, 0.15));
+    holes.push(holeShape(skull, true, 0.935, P(0.95), 0.06, 0.035));
+    lowerHoles.push(holeShape(jawSkull, false, 0.22, s > 0 ? -0.55 : Math.PI + 0.55, 0.13, 0.06));
+    const mu = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); surfPlace(skull, mu, true, 0.06, P(0.5), 1.0, 0.13, 0.2, 0.09); muscles.push(mu);
+    const mu2 = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); surfPlace(jawSkull, mu2, false, 0.1, s > 0 ? -0.35 : Math.PI + 0.35, 1.0, 0.12, 0.13, 0.08); muscles.push(mu2);
   }
-  const mouthMark = new THREE.Object3D(); mouthMark.position.set(0, -0.02, 0.85); headG.add(mouthMark);
+  holes.push(...lowerHoles);
+  const mouthMark = new THREE.Object3D(); mouthMark.position.set(0, -0.03, 0.9); headG.add(mouthMark);
   // Beine
   const legs = [];
   for (const s of [-1, 1]) {
@@ -234,14 +305,25 @@ function makeRex() {
       const cl = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 6), darkM); cl.rotation.x = Math.PI / 2; cl.position.set(tx, -0.02, 0.5 - Math.abs(tx)); foot.add(cl); }
     legs.push({ hip, knee, ankle, s });
   }
-  // Arme
+  // Arme: kurz und kräftig, Oberarm + Unterarm, Hand mit zwei Krallenfingern (+ verkümmerter dritter Mittelhandknochen)
   const arms = [];
+  const capsG = (rad, len) => { const g = colorize(new THREE.CapsuleGeometry(rad, len, 6, 12)); g.translate(0, -len / 2, 0); return g; };
+  const clawG = (() => { const c = new THREE.CatmullRomCurve3([V(0, 0, 0), V(0, -0.03, 0.04), V(0, -0.08, 0.05)]); return new THREE.TubeGeometry(c, 10, 0.012, 6); })();
   for (const s of [-1, 1]) {
-    const sh = new THREE.Group(); sh.position.set(s * 0.5, -0.45, 1.55); torso.add(sh);
-    const ua = new THREE.Mesh(colorize(new THREE.CylinderGeometry(0.07, 0.06, 0.45, 8)), skinM); ua.geometry.translate(0, -0.22, 0); ua.rotation.x = 0.6; sh.add(ua);
-    const fa = new THREE.Group(); fa.position.set(0, -0.37, 0.25); sh.add(fa);
-    const f = new THREE.Mesh(colorize(new THREE.CylinderGeometry(0.055, 0.045, 0.38, 8)), skinM); f.geometry.translate(0, -0.19, 0); f.rotation.x = -0.7; fa.add(f);
-    for (const cx of [-0.03, 0.03]) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.12, 6), darkM); c.position.set(cx, -0.3, 0.3); c.rotation.x = 2.2; fa.add(c); }
+    const sh = new THREE.Group(); sh.position.set(s * 0.54, -0.42, 1.62); torso.add(sh);
+    const delt = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 16, 12)), skinM); delt.scale.set(0.12, 0.15, 0.14); sh.add(delt);
+    const ua = new THREE.Mesh(capsG(0.085, 0.3), skinM); ua.rotation.x = 0.55; ua.castShadow = true; sh.add(ua);
+    const el = new THREE.Group(); el.position.set(0, -0.27, 0.16); sh.add(el);
+    const fa = new THREE.Mesh(capsG(0.065, 0.2), skinM); fa.rotation.x = -0.85; el.add(fa);
+    const hand = new THREE.Group(); hand.position.set(0, -0.15, 0.2); hand.rotation.y = -s * 0.35; el.add(hand);
+    const palm = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 12, 8)), skinM); palm.scale.set(0.05, 0.035, 0.065); hand.add(palm);
+    for (const fx of [-0.028, 0.028]) {
+      const f1 = new THREE.Group(); f1.position.set(fx, -0.01, 0.05); f1.rotation.x = 0.5; hand.add(f1);
+      f1.add(new THREE.Mesh(capsG(0.022, 0.07), skinM));
+      const f2 = new THREE.Group(); f2.position.y = -0.09; f2.rotation.x = 0.5; f1.add(f2); f2.add(new THREE.Mesh(capsG(0.019, 0.05), skinM));
+      const cl = new THREE.Mesh(clawG, darkM); cl.position.y = -0.07; cl.rotation.x = 0.3; f2.add(cl);
+    }
+    const vest = new THREE.Mesh(capsG(0.012, 0.03), skinM); vest.position.set(s * 0.05, -0.01, 0.02); vest.rotation.z = s * 0.8; hand.add(vest);
     arms.push(sh);
   }
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
@@ -254,13 +336,13 @@ function poseRex(r, { phase = 0, amp = 0, head = 0, jaw = 0.05, t = 0, breathe =
   }
   r.torso.position.y = 3.0 + Math.abs(Math.sin(phase)) * 0.08 * amp + Math.sin(t * 1.6) * 0.02 * breathe - 0.05 * amp;
   r.torso.rotation.x = pitch; r.torso.rotation.z = Math.sin(phase) * 0.025 * amp;
-  r.headG.rotation.x = head + Math.sin(phase * 2) * 0.03 * amp; r.headG.rotation.y = Math.sin(t * 0.6) * 0.05 * breathe;
+  r.headG.rotation.x = head - jaw * 0.12 + Math.sin(phase * 2) * 0.03 * amp; r.headG.rotation.y = Math.sin(t * 0.6) * 0.05 * breathe;
   r.jaw.rotation.x = jaw;
   updateLoft(r.loftG, { tail, sway: sway === null ? Math.sin(t * 1.3) * 0.25 + Math.sin(phase) * 0.15 * amp : sway, droop });
   r.arms.forEach(a => { a.scale.setScalar(arm); a.rotation.x = Math.sin(t * 2 + a.position.x) * 0.1; });
-  r.teeth.forEach(m => { const s = teeth * m.userData.base; m.scale.set(lerp(1, 0.9, clamp(teeth - 1)) * Math.max(0.001, Math.min(s, 1) * (teeth > 1 ? 1 + (teeth - 1) * 0.4 : 1)), Math.max(0.001, s), Math.max(0.001, Math.min(s, 1) * (teeth > 1 ? 1 + (teeth - 1) * 0.4 : 1))); });
+  r.teeth.forEach(m => { const b = m.userData.base; const L = Math.max(0.001, teeth * b) * TOOTH_L0; const th = Math.max(0.001, b * lerp(0.8, 2.15, clamp((teeth - 0.8) / 1.5))) * TOOTH_L0; m.scale.set(th, L, th); });
   r.skin.visible = r.jawSkin.visible = skull < 0.5; r.skull.visible = r.jawSkull.visible = skull >= 0.5;
-  r.holes.forEach(h => h.visible = holes > 0); r.holes.forEach((h, i) => { const k = back(holes * 1.4 - (i % 4) * 0.12); h.scale.y = Math.max(0.001, h.userData.sy ?? (h.userData.sy = h.scale.y)) * Math.max(0.001, k); h.scale.z = (h.userData.sz ?? (h.userData.sz = h.scale.z)) * Math.max(0.001, k); });
+  r.holes.forEach((h, i) => { h.visible = holes > 0; h.scale.setScalar(Math.max(0.001, back(holes * 1.4 - (i % 4) * 0.12))); });
   r.muscles.forEach((m, i) => { const k = back(muscles * 1.3 - i * 0.08); m.visible = muscles > 0; m.scale.set(...(m.userData.s ?? (m.userData.s = m.scale.toArray())).map(v => v * Math.max(0.001, k))); });
 }
 const rex = makeRex(); scene.add(rex.root);
@@ -405,7 +487,7 @@ const shots = [
     if (T < tG) {
       rex.root.rotation.y = -Math.PI / 2; const g = ease((T - WT(1, 'zähne') + 0.1) / 0.9); poseRex(rex, { t: T, jaw: 0.6, head: 0.1, teeth: lerp(0.8, 2.3, g) });
       sunAt(V(0, 0, 0)); const hp = rex.headG.getWorldPosition(V(0, 0, 0)); const mp = rex.mouthMark.getWorldPosition(V(0, 0, 0));
-      cam(mp.clone().add(V(-0.2, 0.15, 2.7 - u * 0.15)), mp.clone().add(V(0, -0.05, 0)), 38, T, 0.015);
+      cam(mp.clone().add(V(-0.35, 0.05, 3.7 - u * 0.15)), mp.clone().add(V(0, -0.1, 0)), 38, T, 0.015);
       pill('🍌 SO GROSS WIE BANANEN', W / 2, 520, clamp((T - WT(1, 'banan')) * 3));
       label3('BIS 30 CM', mp.clone().add(V(0.1, -0.35, 0.3)), clamp((T - WT(1, 'groß')) * 3), 200, 240);
     } else {
@@ -436,7 +518,7 @@ const shots = [
     const u = T - S[3].start; rex.root.rotation.y = -Math.PI / 2; sunAt(V(0, 0, 0));
     const sk = T > WT(3, 'schädel') - 0.15 ? 1 : 0;
     poseRex(rex, { t: T, jaw: 0.25, head: 0.05, teeth: 2.3, skull: sk, holes: clamp((T - WT(3, 'löcher') + 0.1) / 0.6), muscles: clamp((T - WT(3, 'kiefer') + 0.1) / 0.7) });
-    rex.headG.updateMatrixWorld(true); cam(rex.headG.localToWorld(V(2.9 - u * 0.08, 0.35, 0.75)), rex.headG.localToWorld(V(0, 0.05, 0.72)), 40, T, 0.015);
+    rex.headG.updateMatrixWorld(true); cam(rex.headG.localToWorld(V(4.0 - u * 0.08, 0.3, 0.7)), rex.headG.localToWorld(V(0, 0.0, 0.7)), 40, T, 0.015);
     const h0 = rex.holes[4].getWorldPosition(V(0, 0, 0)); label3('LÖCHER', h0, clamp((T - WT(3, 'löcher')) * 3), -60, -260);
     const m0 = rex.muscles[2].getWorldPosition(V(0, 0, 0)); label3('MUSKELN', m0, clamp((T - WT(3, 'kiefer')) * 3), 160, 300);
     pill(sk ? '💀 LEICHTER SCHÄDEL' : '', W / 2, 520, sk ? clamp((T - WT(3, 'löcher')) * 3) : 0);
@@ -448,7 +530,7 @@ const shots = [
     poseRex(rex, { t: T, jaw, head: 0.05, teeth: 2.3, skull: 1, holes: 1, muscles: 1 + (T > snap ? 0.15 * Math.exp(-(T - snap) * 3) : 0) });
     rex.headG.updateMatrixWorld(true);
     const sh = T > snap ? 0.12 * Math.exp(-(T - snap) * 5) : 0;
-    cam(rex.headG.localToWorld(V(2.3, -0.1, 2.6)), rex.headG.localToWorld(V(0, -0.25, 0.7)), 42, T * 7, 0.01 + sh);
+    cam(rex.headG.localToWorld(V(3.2, -0.15, 3.4)), rex.headG.localToWorld(V(0, -0.35, 0.7)), 42, T * 7, 0.01 + sh);
     const v = ease((T - snap) / 1.6); const tons = T > WT(4, 'sechs') - 0.1 ? 'FAST 6 TONNEN' : (v * 5.8).toFixed(1).replace('.', ',') + ' T';
     gauge(W / 2, 430, 0.18 + v * 0.8, 1, T < snap ? 'SCHWACH' : tons, T < snap ? '#ff4d4d' : '#3ddc84');
     pill('🏆 STÄRKSTER BISS ALLER LANDTIERE', W / 2, 1460, clamp((T - WT(4, 'stärk')) * 3));
@@ -484,7 +566,7 @@ const shots = [
     poseRex(rex, { t: T, jaw: 0.1, head: 0.5 * (tilt / 0.62) + 0.05, tail, arm, teeth: 2.3 });
     rex.root.rotation.set(0, -Math.PI / 2, 0); rex.root.rotateX(tilt); sunAt(V(0, 0, 0));
     const armView = T < tTail - 0.3;
-    if (armView) { const sp = rex.arms[1].getWorldPosition(V(0, 0, 0)); rex.torso.updateMatrixWorld(true); const side = rex.torso.localToWorld(V(5, -0.7, 1.4)); cam(side, rex.torso.localToWorld(V(0, -0.7, 1.5)), 42, T, 0.02);
+    if (armView) { const sp = rex.arms[1].getWorldPosition(V(0, 0, 0)); rex.torso.updateMatrixWorld(true); cam(sp.clone().add(V(-1.3, 0.3, 4.2)), sp.clone().add(V(0, -0.15, 0)), 34, T, 0.015);
       label3('WINZIGE ARME', sp.clone().add(V(-0.2, -0.4, 0)), clamp((T - WT(6, 'stummel') + 0.1) * 3), 120, 300); }
     else { cam(V(-6.5, 4.0, 21.5), V(0, 2.8, 0), 46, T, 0.02);
       const k = clamp((T - WT(6, 'wippe') + 0.6) * 2.5); seesaw.visible = k > 0; seesaw.userData.m.opacity = k;
