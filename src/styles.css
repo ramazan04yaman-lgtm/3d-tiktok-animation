@@ -211,3 +211,27 @@ body.story .hud-foot { top: auto !important; }
   padding: .12em .5em .14em .45em; line-height: 1.1; letter-spacing: .01em; box-shadow: 0 .25em 0 rgba(0,0,0,.35); }
 .nm::after { content: ''; position: absolute; left: 50%; bottom: -.55em; transform: translateX(-50%);
   border: .32em solid transparent; border-top-color: #14182a; }
+
+/* Tag 4: größere Schrift, weniger Kleinkram gleichzeitig */
+.nm.neu { background: #ffd23a; }
+.nm.neu::before { content: 'NEU'; background: #ff2a4a; color: #fff; border-radius: .4em; padding: 0 .3em; margin-right: .35em; font-size: .8em; }
+body.story .h3-pct { display: none; }
+body.story .h3-t small { font-size: 1.1cqh; }
+body.story .h3-t b { font-size: 2.75cqh; }
+body.story .h3-wasser small { font-size: 1.05cqh; }
+body.story .h3-wasser b { font-size: 2.15cqh; }
+body.story .h3-ziel { font-size: 1.4cqh; }
+body.story .h3-ziel b { font-size: 1.6cqh; }
+body.story .h3 .hud-foot { font-size: 1.05cqh; }
+.sf-kopf small { font-size: 1.5cqh; color: #5a6380; }
+.st-stufen .sf-z { font-size: 2.05cqh; padding: .6cqh 0; }
+.st-stufen .sf-z b { font-size: 2.8cqh; }
+.st-stufen .sf-z i, .st-stufen .sf-weg { display: none; }
+.st-stufen .sf-next small { font-size: 1.5cqh; }
+.st-stufen .sf-next span { font-size: 1.7cqh; }
+.st-zahlen .zk.klein { display: none; }
+.st-zahlen .zk small { font-size: 1.4cqh; }
+.st-zahlen .zk b { font-size: 3cqh; }
+.st-zahlen .zk.gross b { font-size: 4cqh; }
+.st-zahlen .zk.lang b { font-size: 2.15cqh; }
+.st-zahlen .zk-pct { font-size: 2.3cqh; }

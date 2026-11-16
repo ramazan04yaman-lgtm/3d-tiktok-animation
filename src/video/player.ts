@@ -47,6 +47,7 @@ export class StoryPlayer {
     this.realDrain = realDrain; this.dayLabel = dayLabel;
     layer.innerHTML = '<div class="namen"></div><div class="stickers"></div><div class="caption"></div>';
     this.namenEl = layer.querySelector('.namen')!;
+    if (timeline.ankunft) scene.updateNeueShot(timeline.ankunft.von, timeline.ankunft.bis);
     this.stickerEl = layer.querySelector('.stickers')!;
     this.captionEl = layer.querySelector('.caption')!;
   }
@@ -84,13 +85,18 @@ export class StoryPlayer {
       }
     }
     const local = t - beat.start;
+    // Ankunft der neuen Einwohner (vorher unsichtbar)
+    const an = this.timeline.ankunft;
+    this.scene.people.ankunft = an ? { von: an.von, bis: an.bis, abstand: an.abstand, t: t - an.start } : null;
     // Wasserstand
     const val = (v: number | 'jetzt') => (v === 'jetzt' ? this.realDrain() : v);
     const k = easeInOut(clamp01(local / Math.max(0.5, beat.end - beat.start - 0.2)));
     const drain = val(beat.wasser.von) + (val(beat.wasser.bis) - val(beat.wasser.von)) * k;
     this.scene.drainTarget = this.scene.drainShown = drain;
     // Vorschau nur, wenn ein ANDERER als der echte Stand gezeigt wird (Zeitraffer 0 -> heute ist echt)
-    this.scene.previewActive = beat.wasser.bis !== 'jetzt' || (beat.wasser.von !== 'jetzt' && beat.wasser.von !== 0) || !!beat.vorschauEinwohner;
+    // 0 = Starttag des Experiments (echter früherer Zustand, z. B. für Vorher/Nachher)
+    const echt = (v: number | 'jetzt') => v === 'jetzt' || v === 0;
+    this.scene.previewActive = !echt(beat.wasser.bis) || !echt(beat.wasser.von) || !!beat.vorschauEinwohner;
     // Figur + Strohhalm
     this.scene.mascotVisible = beat.kamera === 'kapitaen';
     this.scene.mascot.talking = t >= beat.sprechen.start && t <= beat.sprechen.end;
@@ -149,7 +155,7 @@ export class StoryPlayer {
     const zeile = (ico: string, lbl: string, val: string, stufe: string) =>
       `<div class="sf-z"><span>${ico} ${lbl}</span><b>${esc(val)}</b><i>Stufe ${esc(stufe)}</i></div>`;
     return `<div class="st st-stufen" ${id}>
-      <div class="sf-kopf">⚡ VERBRAUCHSSTUFE JETZT</div>
+      <div class="sf-kopf">⚡ SO VIEL KOSTET ES JETZT<br><small>BEI ${groupDE(B(s.followers))} FOLLOWERN</small></div>
       ${zeile('🥤', 'Pro Einwohner/Tag', formatMenge(B(st.trinkMl)), st.meilensteine.trinken)}
       ${zeile('❤️', 'Pro Like', formatMenge(B(st.likeMl)), st.meilensteine.like)}
       ${zeile('💬', 'Pro Kommentar', formatMenge(B(st.kommentarMl)), st.meilensteine.kommentar)}
@@ -255,7 +261,7 @@ export class StoryPlayer {
     if (!this.namenSchilder.length) {
       this.namenSchilder = namen.map((n, i) => {
         const el = document.createElement('div');
-        el.className = 'nm';
+        el.className = 'nm' + (this.timeline.ankunft && i >= this.timeline.ankunft.von ? ' neu' : '');
         el.style.setProperty('--farbe', People.gemeinschaftsLook(i).shirt);
         el.textContent = n ?? '';
         if (n) this.namenEl.appendChild(el);
@@ -269,7 +275,9 @@ export class StoryPlayer {
     const a = new THREE.Vector3(), b = new THREE.Vector3();
     for (let i = 0; i < this.namenSchilder.length; i++) {
       const el = this.namenSchilder[i];
-      const kopf = i < n && namen[i] ? people.positionOf(i) : null;
+      // In der Einstellung "neue" nur die Schilder der Neuen (übersichtlich)
+      const nurNeue = beat.kamera === 'neue' && this.timeline.ankunft;
+      const kopf = i < n && namen[i] && !(nurNeue && i < nurNeue.von) ? people.positionOf(i) : null;
       if (!kopf) { el.style.display = 'none'; continue; }
       // positionOf liegt ~0,25 Figuren-Einheiten über dem Scheitel -> Schild direkt auf den Kopf setzen
       const oben = kopf.clone().normalize().multiplyScalar(people.figureSize * 0.6);
@@ -277,27 +285,34 @@ export class StoryPlayer {
       b.copy(kopf).add(oben.clone().multiplyScalar(0.7)).project(cam);
       if (a.z < -1 || a.z > 1 || Math.abs(a.x) > 1.15 || Math.abs(a.y) > 1.15) { el.style.display = 'none'; continue; }
       const proEinheit = Math.abs(b.y - a.y) * 50;            // cqh je 0,6 Figuren-Einheiten
-      kandidaten.push({ i, x: (a.x + 1) / 2 * 100, y: (1 - a.y) / 2 * 100, fs: Math.min(2.05, Math.max(1.3, proEinheit * 0.62)), tiefe: a.z });
+      kandidaten.push({ i, x: (a.x + 1) / 2 * 100, y: (1 - a.y) / 2 * 100, fs: Math.min(2.7, Math.max(1.5, proEinheit * 0.7)), tiefe: a.z });
     }
     kandidaten.sort((p, q) => p.tiefe - q.tiefe);
     const belegt: { l: number; r: number; o: number; u: number }[] = [];
     for (const k of kandidaten) {
       const el = this.namenSchilder[k.i];
       // Positionen in % des Bildes: x in % der Breite (Breite = W cqh), y in % der Höhe (= cqh)
-      const breite = ((el.textContent!.length * 0.6 + 1.6) * k.fs) / W * 100, hoehe = k.fs * 1.75;
-      let y = k.y;
-      const box = () => ({ l: k.x - breite / 2, r: k.x + breite / 2, o: y - hoehe, u: y });
+      const em = el.textContent!.length * 0.6 + (el.classList.contains('neu') ? 4 : 1.6);
+      let y = k.y, fs = k.fs;
+      const breite = () => (em * fs) / W * 100, hoehe = () => fs * 1.75;
+      // am Bildrand nach innen schieben statt ausblenden
+      const mitteX = () => Math.min(99.5 - breite() / 2, Math.max(0.5 + breite() / 2, k.x));
+      const box = () => ({ l: mitteX() - breite() / 2, r: mitteX() + breite() / 2, o: y - hoehe(), u: y });
       const kollidiert = () => { const q = box(); return belegt.some((p) => q.l < p.r && q.r > p.l && q.o < p.u && q.u > p.o); };
-      for (let v = 0; v < 6 && kollidiert(); v++) y -= hoehe * 0.5;
+      // Platz suchen: erst etwas kleiner, dann nach oben stapeln
+      suche: for (const f of [1, 0.85, 0.72]) {
+        fs = Math.max(1.3, k.fs * f);
+        for (let v = 0; v < 6; v++) { y = k.y - v * hoehe() * 0.55; if (!kollidiert()) break suche; }
+      }
       const q = box();
       // nicht unter der oberen Anzeige und nicht aus dem Bild
-      if (kollidiert() || q.o < 21 || q.l < 0.5 || q.r > 99.5 || q.u > 99) { el.style.display = 'none'; continue; }
+      if (kollidiert() || q.o < 21 || q.l < 0.4 || q.r > 99.6 || q.u > 99) { el.style.display = 'none'; continue; }
       belegt.push(q);
       el.style.display = '';
-      el.style.left = `${k.x}%`; el.style.top = `${y}%`; el.style.fontSize = `${k.fs}cqh`;
+      el.style.left = `${mitteX()}%`; el.style.top = `${y}%`; el.style.fontSize = `${fs}cqh`;
       el.style.zIndex = String(1000 - Math.round(k.tiefe * 500));
     }
   }
 
-  dispose(): void { this.layer.innerHTML = ''; }
+  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; }
 }

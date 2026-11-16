@@ -36,6 +36,8 @@ export function platzhalter(s: Snapshot, seit?: Snapshot): Record<string, string
   return {
     tag: String(Math.max(1, s.daysProcessed)),
     einwohner: groupDE(B(s.population)),
+    einwohner_vorher: groupDE(B(seit?.population ?? s.population)),
+    neue_einwohner: groupDE(B(s.population) - B(seit?.population ?? s.population)),
     einwohner_text: B(s.population) === 1n ? 'ein Mensch' : `${groupDE(B(s.population))} Menschen`,
     follower: groupDE(B(s.followers)),
     neue_follower: groupDE(B(s.followers) - B(seit?.followers ?? '0')),
@@ -304,10 +306,22 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
     });
     t += dauer;
   });
+  // Ankunft der neuen Einwohner (seit dem Vergleichsstand)
+  let ankunft: Timeline['ankunft'];
+  const ab = folge.beats.findIndex((b) => b.ankunft);
+  if (ab >= 0 && seit) {
+    const von = Number(seit.population), bis = Number(snapshot.population);
+    if (bis > von) {
+      const start = beats[ab].start + 0.4, abstand = Math.min(0.6, 3.6 / (bis - von));
+      ankunft = { von, bis, start, abstand };
+      for (let k = 0; k < bis - von; k++) ev(start + k * abstand + 0.75, 'pop', 0.9);
+      ev(start + (bis - von - 1) * abstand + 1.1, 'ding');
+    }
+  }
   // letzter Untertitel bleibt bis zum Ende stehen
   if (captions.length) captions[captions.length - 1].end = t;
   if (!musik.length || musik[0].start > 0) musik.unshift({ start: 0, typ: 'ruhig' });
-  return { titel: folge.titel, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
+  return { titel: folge.titel, ankunft, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
 }
 
 function fillSticker(s: Sticker, p: Record<string, string>): Sticker {

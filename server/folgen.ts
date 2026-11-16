@@ -33,11 +33,11 @@ export function loadFolge(p: string): Folge {
  *        -> so zeigt ein Video genau die Ergebnisse, die mit diesem Eintrag dazukamen.
  */
 export function echteZahlen(file = DEFAULT_PATH, seit?: string, stichtag?: string): { snapshot: Snapshot; seit?: Snapshot; namen: string[] } {
-  const f = loadOrCreate(file);
-  // Stichtag: Stand an einem festen Tag (damit Text, Aufnahme und Zahlen zusammenpassen, egal wann gerendert wird)
-  const t = stichtag ?? today(f);
-  const spaetester = f.entries.reduce((m, e) => (e.day > m ? e.day : m), f.startDay);
-  if (t < spaetester) throw new Error(`Stichtag ${t} liegt vor dem letzten Eintrag (${spaetester}).`);
+  const alle = loadOrCreate(file);
+  // Stichtag: Stand an einem festen Tag (damit Text, Aufnahme und Zahlen zusammenpassen, egal wann gerendert wird).
+  // Spätere Einträge zählen dann noch nicht -> auch alte Folgen lassen sich jederzeit genau so neu erzeugen.
+  const t = stichtag ?? today(alle);
+  const f = { ...alle, entries: alle.entries.filter((e) => e.day <= t) };
   const snapshot = toSnapshot(computeState(f, t));
   // TikTok-Namen in Figuren-Reihenfolge (Nr. 1 = Figur 1)
   const namen: string[] = [];

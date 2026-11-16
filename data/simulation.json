@@ -59,34 +59,46 @@
       "saves": 0,
       "ref": "video-03",
       "note": "Aktivitäten Folge 3: Likes und Kommentare; Speicherungen noch nicht angegeben"
+    },
+    {
+      "id": "f76a7d6b-73d7-46a5-a726-a38def63b36a",
+      "day": "2026-11-16",
+      "createdAt": "2026-11-16T09:34:29.198Z",
+      "followers": 6,
+      "likes": 13,
+      "comments": 3,
+      "shares": 0,
+      "saves": 0,
+      "ref": "video-04",
+      "note": "Tag 4: Shares und Speicherungen nicht angegeben"
     }
   ],
-  "lastProcessedDay": "2026-11-15",
-  "lastProcessedAt": "2026-11-15T13:03:12.678Z",
+  "lastProcessedDay": "2026-11-16",
+  "lastProcessedAt": "2026-11-16T09:34:29.338Z",
   "snapshot": {
     "startDay": "2026-11-14",
-    "lastProcessedDay": "2026-11-15",
-    "lastProcessedAt": "2026-11-15T13:03:12.678Z",
-    "daysProcessed": 2,
-    "followers": "21",
-    "population": "21",
-    "likes": "34",
-    "comments": "20",
+    "lastProcessedDay": "2026-11-16",
+    "lastProcessedAt": "2026-11-16T09:34:29.338Z",
+    "daysProcessed": 3,
+    "followers": "27",
+    "population": "27",
+    "likes": "47",
+    "comments": "23",
     "shares": "0",
     "saves": "2",
     "totalWaterMl": "1386000000000000000000000",
-    "remainingMl": "1385999999999999999739660",
-    "totalConsumedMl": "260340",
-    "dailyMl": "210000",
+    "remainingMl": "1385999999999999999468030",
+    "totalConsumedMl": "531970",
+    "dailyMl": "270000",
     "consumedMl": {
-      "drinking": "250000",
-      "likes": "340",
-      "comments": "10000",
+      "drinking": "520000",
+      "likes": "470",
+      "comments": "11500",
       "shares": "0"
     },
-    "daysUntilEmpty": "6599999999999999999",
+    "daysUntilEmpty": "5133333333333333332",
     "depletedOnDay": null,
-    "entryCount": 3,
+    "entryCount": 4,
     "stufe": {
       "likeMl": "10",
       "kommentarMl": "500",
@@ -227,6 +239,36 @@
       "nr": 21,
       "name": "@locskai.bence",
       "seit": "2026-11-15T13:03:12.659Z"
+    },
+    {
+      "nr": 22,
+      "name": "@.45347",
+      "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 23,
+      "name": "@christophchaos",
+      "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 24,
+      "name": "@leon10202660",
+      "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 25,
+      "name": "@j.bln11",
+      "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 26,
+      "name": "@amir_78811",
+      "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 27,
+      "name": "@miss_sophie123",
+      "seit": "2026-11-16T09:34:29.328Z"
     }
   ]
 }

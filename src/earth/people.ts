@@ -16,6 +16,8 @@ import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
 export const MAX_FIGURES = 4000;
 /** Höchstens so viele Figuren in voller Detailstufe gleichzeitig. */
 export const NAH_MAX = 400;
+/** Fallzeit bei der Ankunft (Sekunden). */
+const FALLZEIT = 0.75;
 /** Maßstab des Hofs (1 Umgebungs-Einheit in Szeneneinheiten) – gleicher Wert wie EarthScene.HOF_K. */
 export const HOF_EINHEIT = 0.0006;
 /**
@@ -27,11 +29,12 @@ export const GRUENDER = 45;
 /** Abstand der Reihen in der Gemeinschaft (Hof-Einheiten). */
 export const GEMEINSCHAFT_REIHE = 2.3;
 /** Spalten der Gemeinschaft bei n Einwohnern. */
-export const gemeinschaftSpalten = (n: number) => (n <= 24 ? 3 : n <= 36 ? 4 : 5);
+export const gemeinschaftSpalten = (_n: number) => 4;
 /**
  * Platz in Hof-Einheiten (x = Osten, z = Süden/zur Kamera) für Gründer i von n.
- * Bis 4: zwei kleine Reihen vor dem Haus. Ab 5: die "Gemeinschaft" – Reihen zu je 3–5 Personen
- * vom Haus nach vorne; Figur 1 steht vorne in der Mitte, die Nummern laufen Reihe für Reihe nach hinten.
+ * Bis 4: zwei kleine Reihen vor dem Haus. Ab 5: die "Gemeinschaft" – Reihen zu je 4 Personen,
+ * Reihe 1 direkt vor dem Haus (Figur 1 in der Mitte), neue Einwohner kommen in neue Reihen davor.
+ * So behält jede Figur für immer ihren Platz, egal wie viele noch dazukommen.
  */
 export function gruenderPlatz(i: number, n: number): [number, number] {
   if (n === 1) return [0, 0];
@@ -41,7 +44,8 @@ export function gruenderPlatz(i: number, n: number): [number, number] {
     // Reihenfolge in der Reihe: Mitte zuerst, dann links/rechts (Figur 1 vorne Mitte)
     const ordnung = Array.from({ length: inReihe }, (_, k) => k).sort((a, b) => Math.abs(a - (inReihe - 1) / 2) - Math.abs(b - (inReihe - 1) / 2) || a - b);
     const x = (ordnung[j] - (inReihe - 1) / 2) * 2.5 + (reihe % 2 ? 0.45 : -0.45);
-    const z = (reihen - 1 - reihe) * GEMEINSCHAFT_REIHE - 0.4;
+    void reihen;
+    const z = reihe * GEMEINSCHAFT_REIHE - 0.4;
     return [x, z];
   }
   // Hochformat: schmale Reihen (2 bzw. 3 Personen), hintere Reihe enger -> alle Gesichter sichtbar
@@ -80,6 +84,20 @@ export class People {
   /** Kopfposition der ersten Figuren (für Zeiger-Sticker). */
   private headPos: THREE.Vector3[] = [];
   private assets: EarthAssets;
+  /**
+   * ANKUNFT neuer Einwohner (Figuren von..bis-1): vor ihrer Ankunft unsichtbar, dann fallen sie
+   * nacheinander mit erhobenen Armen vom Himmel und landen mit einem kleinen Hüpfer.
+   * t = Sekunden seit Beginn der Ankunft (wird vom Video-Player gesetzt; null = alle da).
+   */
+  ankunft: { von: number; bis: number; t: number; abstand: number } | null = null;
+  /** Sekunden seit Landung (negativ = noch nicht gelandet/unsichtbar), null = keine Ankunft für diese Figur. */
+  private seitLandung(i: number): number | null {
+    const a = this.ankunft;
+    if (!a || i < a.von || i >= a.bis) return null;
+    return a.t - (i - a.von) * a.abstand - FALLZEIT;
+  }
+  /** Noch nicht angekommen (unsichtbar)? */
+  unsichtbar(i: number): boolean { const l = this.seitLandung(i); return l !== null && l < -FALLZEIT; }
   /** Anzahl gezeigter Figuren. */
   get anzahl(): number { return this.shown; }
   /** Wie viele echte Menschen eine Figur darstellt. */
@@ -144,7 +162,7 @@ export class People {
 
   /** Aktuelle 3D-Position über dem Kopf einer Figur (für Zeiger-Sticker). */
   positionOf(i: number): THREE.Vector3 | null {
-    if (i >= this.shown || !this.headPos[i]) return null;
+    if (i >= this.shown || !this.headPos[i] || this.unsichtbar(i)) return null;
     return this.headPos[i].clone();
   }
 
@@ -194,11 +212,17 @@ export class People {
       d.sort((a, b) => a[0] - b[0]);
       liste = d.slice(0, NAH_MAX).map((x) => x[1]);
     } else liste = Array.from({ length: this.shown }, (_, i) => i);
+    // noch nicht angekommene Figuren nicht zeichnen
+    const unsichtbar = (i: number) => this.unsichtbar(i);
+    if (this.nah) liste = liste.filter((i) => !unsichtbar(i));
     this.crowd.setCount(this.nah ? liste.length : 0);
     this.far.setCount(this.nah ? 0 : this.shown);
     let slot = 0;
+    const NULL = new THREE.Matrix4().makeScale(0, 0, 0);
     for (const i of liste) {
       const p = this.persons[i];
+      if (unsichtbar(i)) { this.far.setPose(i, NULL); this.headPos[i] = undefined as unknown as THREE.Vector3; continue; }
+      const gelandet = this.seitLandung(i);
       // Zyklus: 0–4 s laufen, 4–5.6 s stehen + trinken, 5.6–6.4 s winken (jeder mit eigener Verschiebung)
       const cyc = 6.4 + p.drinkEvery * 0.3;
       const tc = ((time + p.phase * 3) % cyc + cyc) % cyc;
@@ -230,11 +254,20 @@ export class People {
         const zz = ((time + 0.5 + i * 1.7) % 5.2 + 5.2) % 5.2;
         if (zz > 4.3 && zz < 4.85) tmp.addScaledVector(p.up, Math.sin(((zz - 4.3) / 0.55) * Math.PI) * 0.22 * s);
       }
+      if (gelandet !== null && gelandet < 0.6) {
+        // Ankunft: Fall vom Himmel (quadratisch beschleunigt), danach ein kleiner Hüpfer
+        if (gelandet < 0) tmp.addScaledVector(p.up, Math.pow(-gelandet / FALLZEIT, 2) * 9 * s);
+        else tmp.addScaledVector(p.up, Math.sin((gelandet / 0.6) * Math.PI) * 0.45 * s);
+      }
       // beim Trinken/Winken leicht zur Kamera-nahen Seite drehen (wirkt lebendiger)
       rot.lookAt(fwd, zero, p.up);   // Gesicht (+z) zeigt in Blick-/Laufrichtung
       base.compose(tmp, new THREE.Quaternion().setFromRotationMatrix(rot), new THREE.Vector3(s, s, s));
       const pose: Pose = { legL: 0, legR: 0, armL: 0, armR: 0, liftL: 0, liftR: 0, drink: 0, headTilt: 0, bodyLean: 0 };
-      if (solo) {
+      if (gelandet !== null && gelandet < 1.4) {
+        // Ankunft: beide Arme hoch vor Freude
+        const k = gelandet < 0 ? 1 : Math.max(0, 1 - gelandet / 1.4);
+        pose.liftL = pose.liftR = 0.95 * k; pose.armL = Math.sin(time * 12) * 0.2 * k;
+      } else if (solo) {
         // vor dem Haus: trinken, winken, kurz wippen
         const z = ((time + 0.5 + i * 1.7) % 5.2 + 5.2) % 5.2;   // jeder mit eigenem Rhythmus
         if (z < 2.2) { const k = Math.sin((z / 2.2) * Math.PI); pose.drink = Math.min(1, k * 1.5); pose.headTilt = k * 0.35; }

@@ -93,15 +93,26 @@ test('TikTok-Namen: exakt, eindeutig, dauerhaft, nicht mehr als Follower', () =>
   assert.equal(loadFile(p)!.einwohnerNamen!.length, 3);
 });
 
-test('Echter Spielstand: alle 21 Namen exakt wie vorgegeben', () => {
+test('Echter Spielstand: alle 27 Namen exakt wie vorgegeben, Folge 3 bleibt reproduzierbar', () => {
   const soll = ['@leonaprj', '@asen43013', '@nicidragoon', '@magdaa605', '@cool.shorts38', '@jaime_1234456789', '@tim.maciejewski6',
     '@bjarne.brawl.star', '@kilianott5', '@kukuwasgehor', '@thomas15361', '@ghost155151', '@king.murat21', '@theeditz477',
-    '@pancake.544', '@oskorro8', '@benniiideralpha', '@leon.gas1', '@ole201156', '@ezzeeyfn', '@locskai.bence'];
+    '@pancake.544', '@oskorro8', '@benniiideralpha', '@leon.gas1', '@ole201156', '@ezzeeyfn', '@locskai.bence',
+    '@.45347', '@christophchaos', '@leon10202660', '@j.bln11', '@amir_78811', '@miss_sophie123'];
   const f = loadFile()!;
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.name), soll);
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.nr), soll.map((_, i) => i + 1));
   const z = echteZahlen(undefined, 'video-03', '2026-11-15');
   assert.equal(z.snapshot.population, '21');
   assert.equal(z.snapshot.totalConsumedMl, '260340');
-  assert.equal(z.namen.length, 21);
+  assert.equal(z.namen.length, 27);
+  // Tag 4: 27 Einwohner, 270 L/Tag, Aktivitäten 1,63 L, Like weiterhin 10 ml
+  const v4 = echteZahlen(undefined, 'video-04', '2026-11-16');
+  assert.equal(v4.snapshot.population, '27');
+  assert.equal(v4.seit!.population, '21');
+  assert.equal(v4.snapshot.dailyMl, '270000');
+  assert.equal(v4.snapshot.stufe.likeMl, '10');
+  const extra = (x: typeof v4.snapshot) => BigInt(x.consumedMl.likes) + BigInt(x.consumedMl.comments) + BigInt(x.consumedMl.shares);
+  assert.equal(extra(v4.snapshot) - extra(v4.seit!), 1_630n);           // 130 ml + 1,5 L
+  // 260,34 L + 16.11.: 21 × 10 L + 6 × 10 L (Ankunftstag) + 1,63 L
+  assert.equal(v4.snapshot.totalConsumedMl, '531970');
 });

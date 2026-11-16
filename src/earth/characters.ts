@@ -123,7 +123,7 @@ export function smooth(color = '#ffffff', extra: THREE.MeshStandardMaterialParam
 }
 /** Kräftige schwarze Kontur: Rückseite der Form, entlang der Normalen aufgeblasen. */
 export function outlineMaterial(dicke = 0.022): THREE.MeshBasicMaterial {
-  dicke = Math.round(dicke * 0.6 * 10000) / 10000;   // dünne Konturen wie im Referenzbild
+  dicke = Math.round(dicke * 0.8 * 10000) / 10000;   // klare, saubere Konturen (für alle Figuren gleich)
   const key = 'ol' + dicke;
   if (matCache.has(key)) return matCache.get(key) as THREE.MeshBasicMaterial;
   const m = new THREE.MeshBasicMaterial({ color: '#111322', side: THREE.BackSide });

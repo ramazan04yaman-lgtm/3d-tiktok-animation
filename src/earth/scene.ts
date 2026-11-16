@@ -14,7 +14,7 @@ import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
 import { type Diorama, createDiorama } from './diorama.ts';
 import { SHOTS } from './camera.ts';
-import { GEMEINSCHAFT_REIHE, GRUENDER, HOF_EINHEIT, People, gemeinschaftSpalten } from './people.ts';
+import { GEMEINSCHAFT_REIHE, GRUENDER, HOF_EINHEIT, People, gemeinschaftSpalten, gruenderPlatz } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
 export class EarthScene {
@@ -141,6 +141,7 @@ export class EarthScene {
     const p = this.people.firstPerson();
     const k = EarthScene.HOF_K;
     const r = this.place(this.hof, p.lat, p.lon, k, 0, 0.4);
+    this.hofOrt = { lat: p.lat, lon: p.lon, r };
     // Kamera ca. 5 Einheiten hoch, 9 Einheiten südlich – Blick auf Mensch Nr. 1 vor seinem Haus
     SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 2.3 * k, tilt: (4.6 * k) * 180 / Math.PI,
       focus: r + 0.7 * k, figur: k, spin: 0.002 };
@@ -159,6 +160,20 @@ export class EarthScene {
       tilt: (tiefe * 0.8 * k) * 180 / Math.PI, focus: r + 0.5 * k, figur: k };
     SHOTS.namen = { label: '🏷️ Kamerafahrt durch die Reihen', lat: latBei(vorne), lon: p.lon, dist: r + 5.2 * k, tilt: (8.6 * k) * 180 / Math.PI,
       focus: r + 0.75 * k, figur: k, path: [[latBei(vorne - 0.8), p.lon], [latBei(hinten + 1.2), p.lon]], pathSeconds: 14, pathEinmal: true };
+  }
+
+  private hofOrt: { lat: number; lon: number; r: number } | null = null;
+  /** Kamera "neue": Blick auf die Plätze der neuen Einwohner (Figuren von..bis-1) auf dem Hof. */
+  updateNeueShot(von: number, bis: number): void {
+    if (!this.hofOrt || bis <= von) return;
+    const { lat, lon, r } = this.hofOrt, k = EarthScene.HOF_K, n = Math.min(this.people.anzahl, GRUENDER);
+    let x = 0, z = 0;
+    for (let i = von; i < bis; i++) { const q = gruenderPlatz(i, n); x += q[0]; z += q[1]; }
+    x /= bis - von; z /= bis - von;
+    const grad = (u: number) => (u * k) * 180 / Math.PI;
+    // Blickpunkt etwas hinter den Neuen -> sie stehen in der Bildmitte statt oben
+    SHOTS.neue = { label: '✨ Die neuen Einwohner', lat: lat - grad(z - 4.6), lon: lon + grad(x) / Math.cos(lat * Math.PI / 180),
+      dist: r + 12 * k, tilt: grad(18), focus: r + 0.8 * k, figur: k };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */

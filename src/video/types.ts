@@ -54,6 +54,8 @@ export interface Beat {
   aktion?: 'winken' | 'trinken';
   /** Mindestdauer in Sekunden. */
   min?: number;
+  /** In diesem Satz landen die neuen Einwohner (seit dem Vergleichsstand) nacheinander auf dem Hof. */
+  ankunft?: boolean;
   /** Eigene Sprachaufnahme statt Computerstimme (Pfad relativ zur Folgen-Datei). */
   audio?: string;
 }
@@ -103,6 +105,8 @@ export interface Timeline {
   titel: string;
   /** TikTok-Namen der Einwohner (Index = Figur; Lücken = ohne Namen). */
   namen?: (string | null)[];
+  /** Ankunft neuer Einwohner: Figuren von..bis-1 landen ab `start` im Abstand `abstand` (Sekunden). */
+  ankunft?: { von: number; bis: number; start: number; abstand: number };
   konto: string;
   dauer: number;
   beats: TimelineBeat[];
