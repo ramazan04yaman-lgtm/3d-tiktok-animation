@@ -291,6 +291,7 @@ function surfPlace(parent, mesh, upper, t, phi, k, sx, sy, thick) {
 }
 
 // ---------- T-Rex ----------
+let EYE = null;
 function makeRex() {
   const root = new THREE.Group(); const torso = new THREE.Group(); torso.position.set(0, 3.0, 0); root.add(torso);
   const ol = outlineMat(0xffe27a, 0.07);
@@ -344,7 +345,7 @@ function makeRex() {
   const irisM = new THREE.MeshStandardMaterial({ map: irisTex, roughness: 0.25 });
   const eyeBallM = new THREE.MeshStandardMaterial({ color: 0x1d1006, roughness: 0.4 });
   const corneaM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.2 });
-  const socketM = new THREE.MeshStandardMaterial({ color: 0x24150c, roughness: 0.85 });
+  const socketM = new THREE.MeshStandardMaterial({ color: 0x24150c, roughness: 0.85 }); EYE = { irisM, eyeBallM, corneaM, socketM };
   for (const s of [-1, 1]) {
     const P = a => s > 0 ? a : Math.PI - a; const phi = P(0.8), t = 0.2;
     const sock = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), socketM); surfPlace(skin, sock, true, t, phi, 0.975, 0.078, 0.062, 0.03);
@@ -467,7 +468,7 @@ function makeTri() {
     if (geo.attributes.uv) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * us, uv.getY(i) * vs); }
     for (let i = 0; i < p.count; i++) { c.copy(A).lerp(B, clamp(n.getY(i) + 0.2)); if (n.getY(i) > 0.2 && Math.sin(p.getZ(i) * 4 + p.getX(i) * 2) > 0.55) c.lerp(D, 0.35); c.multiplyScalar(0.92 + 0.08 * Math.sin(p.getX(i) * 9 + p.getZ(i) * 7)); cols.push(c.r, c.g, c.b); }
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); return geo; };
-  const ol = outlineMat(0xff3b30, 0.06);
+  const ol = outlineMat(0xff3b30, 0.035);
   const add = (geo, parent, x, y, z, rx = 0, outline = true) => { const m = new THREE.Mesh(geo, skinM); m.position.set(x, y, z); m.rotation.x = rx; m.castShadow = true; m.receiveShadow = true; parent.add(m);
     if (outline) { const o = new THREE.Mesh(geo, ol); o.position.copy(m.position); o.rotation.copy(m.rotation); parent.add(o); } return m; };
   const seg = (parent, a, b, r1, r2, mat) => { const len = a.distanceTo(b); const geo = mat === skinM ? triCol(new THREE.CylinderGeometry(r2, r1, len, 14)) : new THREE.CylinderGeometry(r2, r1, len, 14); const m = new THREE.Mesh(geo, mat);
@@ -476,7 +477,7 @@ function makeTri() {
   const bg = new THREE.SphereGeometry(1, 56, 36); { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const hump = Math.exp(-Math.pow((z + 0.25) / 0.55, 2));
     p.setXYZ(i, x * 1.08 * (1 - 0.12 * Math.max(0, z)), y > 0 ? y * (0.9 + 0.3 * hump) : y * 0.95, z * 2.25); } }
   add(triCol(bg), body, 0, 1.85, 0);
-  const tailG = triCol(new THREE.CylinderGeometry(0.42, 0.05, 2.8, 18)); add(tailG, body, 0, 1.55, -3.2, -Math.PI / 2 - 0.22);
+  const tailG = triCol(new THREE.CylinderGeometry(0.5, 0.04, 3.2, 22, 6)); add(tailG, body, 0, 1.52, -3.35, -Math.PI / 2 - 0.2);
   add(triCol(new THREE.SphereGeometry(1, 28, 20)), body, 0, 1.78, 2.05).scale.set(0.62, 0.66, 0.6); // Hals
   const head = new THREE.Group(); head.position.set(0, 1.8, 2.35); body.add(head);
   // Schädel: zur Schnabelspitze verjüngt
@@ -491,14 +492,24 @@ function makeTri() {
     for (let k = 0; k < pts.length - 1; k++) seg(head, pts[k], pts[k + 1], rr[k], rr[k + 1], hornM);
     const tip = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.14, 10), hornM); tip.position.copy(pts[3]).add(V(0, 0.01, 0.06)); tip.rotation.x = 1.4; head.add(tip);
     const ch = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 12), hornM); ch.position.set(s * 0.5, -0.2, 0.45); ch.rotation.z = -s * 1.9; head.add(ch); // Wangenhorn
-    const e = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe8b81a, roughness: 0.2 })); e.position.set(s * 0.43, 0.2, 0.55); head.add(e);
-    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 8), darkM); pu.position.set(s * 0.48, 0.2, 0.58); head.add(pu);
+    // Augen wie beim T-Rex: Augenhöhle, Iris mit runder Pupille, Hornhaut, Lichtreflex, Lider
+    const eg = new THREE.Group(); eg.position.set(s * 0.43, 0.22, 0.55); eg.lookAt(eg.position.clone().add(V(s, 0.15, 0.35).normalize())); head.add(eg);
+    const sock = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), EYE.socketM); sock.scale.set(0.085, 0.07, 0.03); sock.position.z = -0.012; eg.add(sock);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), EYE.eyeBallM); ball.scale.set(0.058, 0.052, 0.024); eg.add(ball);
+    const iris = new THREE.Mesh(new THREE.CircleGeometry(1, 32), EYE.irisM); iris.scale.set(0.052, 0.048, 1); iris.position.z = 0.022; eg.add(iris);
+    const cornea = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), EYE.corneaM); cornea.rotation.x = Math.PI / 2; cornea.scale.set(0.06, 0.026, 0.055); cornea.position.z = 0.008; eg.add(cornea);
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.008, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); glint.position.set(-0.016 * s, 0.017, 0.032); eg.add(glint);
+    for (const [y, sx, sy] of [[0.055, 0.08, 0.028], [-0.055, 0.072, 0.022]]) { const lid = new THREE.Mesh(triCol(new THREE.SphereGeometry(1, 20, 12)), skinM); lid.scale.set(sx, sy, 0.035); lid.position.set(0, y, 0); eg.add(lid); }
+    const brow = new THREE.Mesh(triCol(new THREE.SphereGeometry(1, 18, 12)), skinM); brow.scale.set(0.15, 0.06, 0.12); brow.position.set(s * 0.4, 0.33, 0.52); head.add(brow);
+    const nos = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), beakM); nos.scale.set(0.05, 0.035, 0.07); nos.position.set(s * 0.14, 0.02, 1.35); head.add(nos);
+    const jl = new THREE.Mesh(new THREE.TorusGeometry(1, 0.04, 6, 30, Math.PI * 0.9), beakM); jl.scale.set(0.9, 0.12, 0.9); jl.rotation.set(Math.PI / 2, 0, s > 0 ? -Math.PI * 0.05 : Math.PI * 1.15); jl.position.set(s * 0.02, -0.2, 0.55); // Maullinie
+    const mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.012, 0.9, 4, 8), beakM); mouth.rotation.x = Math.PI / 2 - 0.18; mouth.position.set(s * 0.3, -0.24, 0.85); head.add(mouth);
   }
   const nh = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.42, 12), hornM); nh.position.set(0, 0.25, 1.28); nh.rotation.x = 0.5; head.add(nh);
   // Nackenschild: gebogene Platte mit Randzacken (Epokzipitalia)
-  const fs = new THREE.Shape(); const NP = 15; fs.moveTo(-0.55, -0.25);
+  const fs = new THREE.Shape(); const NP = 15; const edge = []; fs.moveTo(-0.55, -0.25);
   for (let k = 0; k <= NP; k++) { const a = Math.PI * (1.05 - 1.1 * k / NP); const rx = 1.2, ry = 1.35; const x = Math.cos(a) * rx, y = 0.15 + Math.sin(a) * ry; fs.lineTo(x, y);
-    if (k < NP) { const a2 = Math.PI * (1.05 - 1.1 * (k + 0.5) / NP); fs.lineTo(Math.cos(a2) * (rx + 0.13), 0.15 + Math.sin(a2) * (ry + 0.13)); } }
+    if (k < NP) { const a2 = Math.PI * (1.05 - 1.1 * (k + 0.5) / NP); fs.lineTo(Math.cos(a2) * (rx + 0.13), 0.15 + Math.sin(a2) * (ry + 0.13)); edge.push(a2); } }
   fs.lineTo(0.55, -0.25); fs.quadraticCurveTo(0, -0.05, -0.55, -0.25);
   const frillG = new THREE.ExtrudeGeometry(fs, { depth: 0.08, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 2, curveSegments: 6 });
   { const p = frillG.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); p.setZ(i, p.getZ(i) - 0.22 * x * x); } } // leicht gewölbt
@@ -513,6 +524,19 @@ function makeTri() {
     for (let k = 0; k < 4; k++) { const nl = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), beakM); const a = -0.6 + k * 0.4; nl.scale.set(1, 0.7, 1.2); nl.position.set(x * 0.04 + Math.sin(a) * 0.24, -1.46, 0.08 + Math.cos(a) * 0.24); l.add(nl); }
     legs.push(l);
   }
+  // Schulter-/Oberschenkelmuskeln: weicher Übergang Beine -> Rumpf
+  for (const [x, y, z, sx, sy, sz] of [[-0.62, 1.55, 1.25, 0.42, 0.62, 0.55], [0.62, 1.55, 1.25, 0.42, 0.62, 0.55], [-0.66, 1.65, -1.15, 0.5, 0.75, 0.7], [0.66, 1.65, -1.15, 0.5, 0.75, 0.7]]) add(triCol(new THREE.SphereGeometry(1, 28, 20)), body, x, y, z).scale.set(sx, sy, sz);
+  // Halsfalten
+  for (let k = 0; k < 3; k++) { const f = add(triCol(new THREE.TorusGeometry(0.5 - k * 0.03, 0.06, 10, 30)), body, 0, 1.72, 1.82 + k * 0.17, 0, false); f.scale.set(1.15, 1.1, 1); }
+  // Rückenhöcker (Osteoderme) in drei Reihen
+  { const bm = new THREE.MeshStandardMaterial({ color: 0x4d4c3c, roughness: 0.6, bumpMap: scaleTex, bumpScale: 0.8 }); const pts = [];
+    for (let zi = -0.85; zi <= 0.85; zi += 0.09) for (const x0 of [0, -0.32, 0.32]) { if (x0 && Math.abs(zi) > 0.7) continue; const y0 = Math.sqrt(Math.max(0, 1 - x0 * x0 - zi * zi)); const hump = Math.exp(-Math.pow((zi + 0.25) / 0.55, 2));
+      pts.push([x0 * 1.08 * (1 - 0.12 * Math.max(0, zi)), 1.85 + y0 * (0.9 + 0.3 * hump), zi * 2.25, x0 ? 0.055 : 0.08]); }
+    const im = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), bm, pts.length); const m4 = new THREE.Matrix4();
+    pts.forEach(([x, y, z, r0], i) => { m4.compose(V(x, y, z), new THREE.Quaternion(), V(r0, r0 * 0.6, r0 * 1.2)); im.setMatrixAt(i, m4); }); im.castShadow = true; body.add(im); }
+  // Randzacken des Nackenschilds als echte 3D-Spitzen
+  { const zm = new THREE.MeshStandardMaterial({ color: 0x6a5a45, roughness: 0.6 }); edge.forEach(a2 => { const c = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.2, 10), zm); const x = Math.cos(a2) * 1.33, y = 0.15 + Math.sin(a2) * 1.48;
+    c.position.set(x, y, 0.05 - 0.22 * x * x); c.rotation.z = a2 - Math.PI / 2; c.castShadow = true; frill.add(c); }); }
   g.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
   return { root: g, head, frill, legs, ol, body };
 }
