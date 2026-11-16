@@ -1,3 +1,4 @@
 node_modules/
 eisbaer/build/
 *.mp4
+*/build/
