@@ -1,233 +1,271 @@
-"""Baut das komplette TikTok-Video: TTS -> Timing -> Szenen -> Kamera/Schnitt -> Captions -> Musik -> MP4.
+"""Baut das TikTok-Video: Skript -> TTS -> Wort-Timing (Whisper) -> Untertitel/Cues -> SFX + Musik -> Animation -> MP4.
 
-Aufruf:  python3 build.py   (Voice: Piper de_DE-thorsten-high in VOICE_DIR)
+    python3 build.py            # komplettes Video
+    python3 build.py --audio    # nur Audio + timing.json (schnell, für Vorschau-Stills)
+
+Skript-Markup:  *wort* = gelb hervorgehoben,  !wort! = rot,  {cue} = Sound/Animations-Cue am nächsten Wort
 """
+import difflib
+import json
 import os
 import re
 import subprocess
+import sys
 import wave
-import json
 
 import numpy as np
-from PIL import Image
 
-import scenes
+import sfx
 from music import make_music
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "out")
 VOICE = os.environ.get("VOICE", "/tmp/voices/de_DE-thorsten-high.onnx")
-FPS = 30
-SR = 22050
+SR = 44100
 
-# (Szene, Satz) – Hook in Zeile 1, Twist am Ende
+# (Szene, Chip oben, Text) – Handlung wie Video #1, ausführlicher erzählt
 SCRIPT = [
-    ("bed", "Was wäre, wenn du morgen aufwachst,"),
-    ("street", "und jeder Mensch auf der Erde ist verschwunden?"),
-    ("phone", "Dein Handy zeigt null Nachrichten. Kein Netz."),
-    ("car", "Draußen stehen Autos mitten auf der Straße. Die Motoren laufen noch."),
-    ("door", "Du rennst zu deinen Nachbarn. Die Tür ist offen."),
-    ("coffee", "Der Kaffee auf dem Tisch ist noch warm."),
-    ("blackout", "Nach drei Tagen fällt der Strom aus, weil niemand mehr die Kraftwerke steuert."),
-    ("dogs", "Nach einer Woche kommen die Hunde. Hungrig. In Rudeln."),
-    ("market", "Du plünderst Supermärkte,"),
-    ("rot", "aber frisches Essen verfault in wenigen Tagen. Nur Konserven bleiben."),
-    ("corner", "Nach einem Monat hörst du nachts zum ersten Mal Stimmen,"),
-    ("eyes", "weil dein Gehirn ohne andere Menschen anfängt, sich Gesellschaft auszudenken."),
-    ("green", "Nach einem Jahr ist die Stadt grün. Pflanzen brechen durch den Asphalt."),
-    ("ring", "Und dann, an einem ganz normalen Morgen, vibriert dein Handy."),
-    ("msg", "Eine Nachricht. Von deiner eigenen Nummer."),
-    ("msg2", "Darin steht nur ein Satz:"),
-    ("behind", "Dreh dich nicht um."),
+    ("bed", "TAG 1 · 07:12", "Was wäre, wenn du morgen aufwachst, und jeder Mensch auf der Erde ist *verschwunden*?"),
+    ("phone", "TAG 1 · 07:13", "Dein Handy zeigt *null* Nachrichten. {err}Kein Netz. Kein einziger Anruf."),
+    ("street", "TAG 1 · 07:20", "Draußen stehen Autos mitten auf der Straße. Die Türen sind offen. Die Motoren *laufen* *noch*."),
+    ("door", "TAG 1 · 07:31", "Du rennst rüber zu deinen Nachbarn und {knock}klopfst. Keine Antwort. Die Tür ist nur {creak}angelehnt."),
+    ("coffee", "TAG 1 · 07:32", "Auf dem Küchentisch steht ein Kaffee. Er ist *noch* *warm*."),
+    ("blackout", "TAG 3", "*Tag* *drei.* Der Strom {powerdown}fällt aus, weil niemand mehr die Kraftwerke steuert. Die ganze Stadt wird *dunkel*."),
+    ("dogs", "TAG 7", "*Tag* *sieben.* Dann kommen die {growl}!Hunde.! Ausgehungert, und in großen Gruppen."),
+    ("market", "TAG 12", "Du plünderst die Supermärkte."),
+    ("rot", "TAG 12", "Aber Obst, Fleisch und Brot *verfaulen* in wenigen Tagen. {cans}Nur die *Konserven* bleiben."),
+    ("corner", "TAG 30 · 03:12", "*Tag* *dreißig.* Nachts hörst du zum ersten Mal {whisper}!Stimmen.!"),
+    ("eyes", "TAG 30 · 03:13", "Denn dein Gehirn hält die Einsamkeit nicht aus, und fängt an, sich *Gesellschaft* auszudenken."),
+    ("green", "TAG 365", "Nach einem Jahr ist die Stadt *grün.* Bäume brechen durch den Asphalt. Die Natur holt sich alles zurück."),
+    ("ring", "TAG 366 · 07:12", "Und dann, an einem ganz normalen Morgen, {vibrate}*vibriert* dein Handy."),
+    ("msg", "TAG 366 · 07:12", "{ping}Eine neue Nachricht. Von deiner *eigenen* *Nummer.*"),
+    ("msg2", "TAG 366 · 07:12", "{typing}Darin steht nur ein Satz:"),
+    ("behind", "", "{stinger}!Dreh! !dich! !nicht! !um.!"),
+    ("end", "", "Würdest du dich umdrehen? Schreib es in die Kommentare."),
 ]
+HOLD = {"behind": 1.9, "end": 1.4, "msg2": 0.35}
 
-# Fokuspunkt (0..1) für Punch-in-Schnitte
-FOCUS = {
-    "bed": (0.42, 0.56), "street": (0.55, 0.65), "phone": (0.52, 0.42), "car": (0.45, 0.68),
-    "door": (0.55, 0.5), "coffee": (0.5, 0.62), "blackout": (0.5, 0.36), "dogs": (0.45, 0.7),
-    "market": (0.52, 0.65), "rot": (0.35, 0.5), "corner": (0.5, 0.6), "eyes": (0.5, 0.47),
-    "green": (0.5, 0.45), "ring": (0.5, 0.45), "msg": (0.5, 0.3), "msg2": (0.5, 0.36), "behind": (0.5, 0.35),
-}
-SHAKE = {"dogs", "eyes", "ring", "behind", "blackout"}
+
+def parse(text):
+    words, cues, pending = [], {}, []
+    color = None
+    for tok in text.split():
+        m = re.match(r"^\{(\w+)\}(.*)$", tok)
+        while m:
+            pending.append(m.group(1))
+            tok = m.group(2)
+            m = re.match(r"^\{(\w+)\}(.*)$", tok)
+        c = None
+        if tok.startswith("*") or tok.startswith("!"):
+            c = "y" if tok[0] == "*" else "r"
+            tok = tok.strip("*!")
+        w = tok.replace("*", "").replace("!", "") if c else tok
+        for p in pending:
+            cues[p] = len(words)
+        pending = []
+        words.append({"w": w, "c": c})
+    clean = " ".join(x["w"] for x in words)
+    return words, cues, clean
 
 
 def tts(text, path):
-    subprocess.run(["python3", "-m", "piper", "-m", VOICE, "--length-scale", "0.86",
-                    "--sentence-silence", "0.12", "-f", path], input=text.encode(), check=True,
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    with wave.open(path) as w:
+    subprocess.run(["python3", "-m", "piper", "-m", VOICE, "--length-scale", "0.9", "--sentence-silence", "0.18", "-f", path],
+                   input=text.encode(), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc = path.replace(".wav", "_p.wav")
+    # klare Stimme: Hochpass, Präsenz, Kompressor, 44.1 kHz
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", path, "-af",
+                    "highpass=f=75,equalizer=f=3200:t=q:w=1.2:g=3,equalizer=f=200:t=q:w=1:g=1.5,acompressor=threshold=-22dB:ratio=3:attack=5:release=80,aresample=44100",
+                    "-ac", "1", proc], check=True)
+    with wave.open(proc) as w:
         a = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float32) / 32768
-    # Stille vorn/hinten abschneiden
-    env = np.convolve(np.abs(a), np.ones(256) / 256, "same")
-    idx = np.where(env > 0.01)[0]
-    return a[max(0, idx[0] - 200): idx[-1] + 600]
+    env = np.convolve(np.abs(a), np.ones(512) / 512, "same")
+    idx = np.where(env > 0.012)[0]
+    return a[max(0, idx[0] - 400): idx[-1] + 1200]
 
 
-def word_times(text, start, dur):
-    words = text.split()
-    wts = []
-    for w in words:
-        wt = len(re.sub(r"\W", "", w)) + 2.5
-        if w[-1] in ",:":
-            wt += 3
-        if w[-1] in ".?!":
-            wt += 5
-        wts.append(wt)
-    tot = sum(wts)
-    t = start
+_model = None
+
+
+def align(audio, words):
+    """Wort-Startzeiten per Whisper; Zuordnung zum bekannten Text via difflib, Lücken interpoliert."""
+    global _model
+    from faster_whisper import WhisperModel
+    if _model is None:
+        _model = WhisperModel("base", compute_type="int8")
+    a16 = audio[::1][:]  # 44.1k -> 16k
+    idx = np.arange(0, len(a16), SR / 16000).astype(int)
+    segs, _ = _model.transcribe(a16[idx].astype(np.float32), language="de", word_timestamps=True, initial_prompt=" ".join(w["w"] for w in words))
+    ww = [(x.word.strip(), x.start, x.end) for s in segs for x in s.words]
+    norm = lambda s: re.sub(r"[^a-zäöüß0-9]", "", s.lower())
+    A = [norm(w["w"]) for w in words]
+    B = [norm(w[0]) for w in ww]
+    st = [None] * len(words)
+    en = [None] * len(words)
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, A, B, autojunk=False).get_opcodes():
+        if tag in ("equal", "replace") and (i2 - i1) == (j2 - j1):
+            for k in range(i2 - i1):
+                st[i1 + k], en[i1 + k] = ww[j1 + k][1], ww[j1 + k][2]
+    dur = len(audio) / SR
+    # Interpolation fehlender Zeiten nach Zeichenlänge
+    known = [i for i in range(len(words)) if st[i] is not None]
+    if not known:
+        st[0], known = 0.0, [0]
+    if st[0] is None:
+        st[0] = 0.0
+        known = [0] + known
+    known.append(len(words))
+    tend = dur
+    for a, b in zip(known[:-1], known[1:]):
+        ta = st[a]
+        tb = st[b] if b < len(words) else tend
+        lens = [len(words[i]["w"]) + 2 for i in range(a, b)]
+        acc = 0
+        for i in range(a, b):
+            if st[i] is None or i == a:
+                st[i] = st[i] if st[i] is not None else ta + (tb - ta) * acc / sum(lens)
+            acc += lens[i - a]
+    st = [min(max(0.0, s), dur) for s in st]
+    for i in range(1, len(st)):
+        st[i] = max(st[i], st[i - 1] + 0.05)
+    return st
+
+
+def phrases_for(words, starts, t0, dur):
+    """Untertitel-Phrasen: vollständige Sinneinheiten, max. 4 Wörter / 24 Zeichen, Bruch an Satzzeichen."""
+    out, cur = [], []
+    for i, w in enumerate(words):
+        cur.append(i)
+        txt = " ".join(words[k]["w"] for k in cur)
+        nxt = words[i + 1]["w"] if i + 1 < len(words) else ""
+        end_punct = w["w"][-1] in ".,?!:"
+        too_long = len(txt) + 1 + len(nxt) > 24 or len(cur) >= 4
+        if end_punct or too_long or i == len(words) - 1:
+            # kurze Wörter nicht allein am Ende lassen
+            out.append(cur)
+            cur = []
     res = []
-    for w, wt in zip(words, wts):
-        d = dur * wt / tot
-        res.append((w, t, t + d))
-        t += d
+    for k, grp in enumerate(out):
+        a = t0 + starts[grp[0]] - 0.04
+        b = t0 + (starts[out[k + 1][0]] - 0.04 if k + 1 < len(out) else dur + 0.25)
+        res.append({"t0": round(a, 3), "t1": round(b, 3), "words": [words[i] for i in grp]})
     return res
 
 
-def ass_time(t):
-    h, t = divmod(t, 3600)
-    m, s = divmod(t, 60)
-    return f"{int(h)}:{int(m):02d}:{s:05.2f}"
-
-
-def captions(words, path):
-    # 1–2 Wörter pro Einblendung (wie Referenz), kurze Wörter werden gebündelt
-    groups = []
-    i = 0
-    while i < len(words):
-        w, s, e = words[i]
-        clean = re.sub(r"[^\wäöüÄÖÜß%-]", "", w)
-        if len(clean) <= 4 and i + 1 < len(words) and w[-1] not in ",.?!:":
-            w2, _, e2 = words[i + 1]
-            groups.append((clean + " " + re.sub(r"[^\wäöüÄÖÜß%-]", "", w2), s, e2))
-            i += 2
-        else:
-            groups.append((clean, s, e))
-            i += 1
-    head = """[Script Info]
-ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
-
-[V4+ Styles]
-Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: W,Liberation Serif,104,&H00FFFFFF,&H00FFFFFF,&H00000000,&H96000000,1,0,0,0,100,100,0,0,1,3,7,5,40,40,0,1
-
-[Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-"""
-    lines = []
-    for k, (txt, s, e) in enumerate(groups):
-        e = groups[k + 1][1] if k + 1 < len(groups) else e + 0.6
-        lines.append(f"Dialogue: 0,{ass_time(s)},{ass_time(e)},W,,0,0,0,,"
-                     f"{{\\pos(540,1060)\\blur1.5\\fscx118\\fscy118\\t(0,90,\\fscx100\\fscy100)}}{txt}")
-    open(path, "w").write(head + "\n".join(lines) + "\n")
-
-
-def cuts_for(scene, t0, t1):
-    """Teilt einen Szenenblock in ~1.4s Schnitte mit wechselnder Kameraeinstellung."""
-    d = t1 - t0
-    n = max(1, round(d / 1.5))
-    fx, fy = FOCUS[scene]
-    plans = [(1.0, 1.07, 0.5, 0.5), (1.38, 1.46, fx, fy), (1.18, 1.12, fx * 0.6 + 0.2, fy * 0.6 + 0.2), (1.55, 1.62, fx, fy)]
-    if scene == "bed":  # Hook: sofort nah aufs Gesicht, dann Totale
-        plans = [(1.7, 1.6, 0.36, 0.55), (1.0, 1.07, 0.5, 0.5)]
-    out = []
-    for k in range(n):
-        z0, z1, cx, cy = plans[k % len(plans)]
-        out.append((t0 + d * k / n, t0 + d * (k + 1) / n, z0, z1, cx, cy))
-    return out
+def write_wav(path, x, ch=1):
+    x = np.clip(x, -1, 1)
+    with wave.open(path, "w") as w:
+        w.setnchannels(ch); w.setsampwidth(2); w.setframerate(SR)
+        w.writeframes((x * 32767).astype(np.int16).tobytes())
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    fr = os.path.join(OUT, "frames")
-    os.makedirs(fr, exist_ok=True)
-
-    # 1) Voice-over
-    audio, blocks, words = [], [], []
-    t = 0.25
-    audio.append(np.zeros(int(SR * 0.25), np.float32))
-    for i, (sc, text) in enumerate(SCRIPT):
-        a = tts(text, os.path.join(fr, f"vo{i}.wav"))
+    tmp = os.path.join(OUT, "tmp")
+    os.makedirs(tmp, exist_ok=True)
+    blocks, phrases, events = [], [], []
+    voice_parts = []
+    t = 0.0
+    lead = 0.12
+    for i, (scene, chip, text) in enumerate(SCRIPT):
+        words, cues, clean = parse(text)
+        a = tts(clean, os.path.join(tmp, f"vo{i}.wav"))
+        starts = align(a, words)
+        vstart = t + (lead if i == 0 else 0.0)
+        voice_parts.append((vstart, a))
         d = len(a) / SR
-        words += word_times(text, t, d)
-        gap = 0.08
-        blocks.append((sc, t if i else 0.0, t + d + gap))
-        audio += [a, np.zeros(int(SR * gap), np.float32)]
-        t += d + gap
-    tail = 2.2  # Nachhall nach "Dreh dich nicht um."
-    audio.append(np.zeros(int(SR * tail), np.float32))
-    total = t + tail
-    blocks[-1] = (blocks[-1][0], blocks[-1][1], total)
-    vo = np.concatenate(audio)
-    vo = vo / np.abs(vo).max() * 0.9
-    with wave.open(os.path.join(OUT, "voice.wav"), "w") as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
-        w.writeframes((vo * 32767).astype(np.int16).tobytes())
-    json.dump({"blocks": blocks, "words": words, "total": total}, open(os.path.join(OUT, "timing.json"), "w"), indent=1)
-    print(f"Voice: {total:.1f}s")
+        b0 = t
+        b1 = vstart + d + HOLD.get(scene, 0.06)
+        phrases += phrases_for(words, starts, vstart, d)
+        bcues = {name: round(vstart - b0 + starts[wi], 3) for name, wi in cues.items()}
+        blocks.append({"scene": scene, "chip": chip, "t0": round(b0, 3), "t1": round(b1, 3), "cues": bcues})
+        print(f"{scene:9s} {b0:6.2f}-{b1:6.2f}  {clean}")
+        t = b1
+    total = t
+    # Untertitel der Endkarte ausblenden (Text steht groß im Bild) und Lücken schließen
+    end0 = blocks[-1]["t0"]
+    phrases = [p for p in phrases if p["t0"] < end0 - 0.01]
+    for p in phrases:
+        p["t1"] = min(p["t1"], end0)
+    json.dump({"total": round(total, 3), "blocks": blocks, "phrases": phrases}, open(os.path.join(OUT, "timing.json"), "w"), ensure_ascii=False, indent=1)
+    print(f"Gesamtlänge: {total:.1f}s")
 
-    # 2) Musik (komplett synthetisiert)
-    twist = blocks[-1][1]
-    make_music(os.path.join(OUT, "music.wav"), total, twist, tension_from=blocks[10][1])
+    # ---------------- Audio
+    n = int(SR * (total + 0.5))
+    voice = np.zeros(n)
+    for st, a in voice_parts:
+        i = int(st * SR)
+        voice[i:i + len(a)] += a[:n - i]
+    voice = voice / np.abs(voice).max() * 0.9
+    fx = np.zeros(n)
 
-    # 3) Szenen rendern
-    for k, f in scenes.SCENES.items():
-        open(os.path.join(fr, f"{k}.svg"), "w").write(f())
-    subprocess.run(["node", os.path.join(HERE, "render_svgs.js"), fr], check=True)
+    def add(tt, x, g=1.0):
+        i = int(tt * SR)
+        if i >= n:
+            return
+        fx[i:i + len(x)] += g * x[:n - i]
 
-    # 4) Captions
-    captions(words, os.path.join(OUT, "captions.ass"))
+    B = {b["scene"]: b for b in blocks}
+    cue = lambda s, c: B[s]["t0"] + B[s]["cues"][c]
+    for b in blocks[1:]:
+        if b["scene"] not in ("behind", "end", "msg2"):
+            add(b["t0"] - 0.2, sfx.whoosh(), 0.22)
+    add(0.0, sfx.boom(1.8, 55), 0.35)
+    add(0.05, sfx.vibrate(0.9), 0.25)
+    add(cue("phone", "err"), sfx.error_beep(), 0.4)
+    s = B["street"]; add(s["t0"], sfx.engine(s["t1"] - s["t0"] + 0.2), 0.35); add(s["t0"], sfx.wind(s["t1"] - s["t0"]), 0.25)
+    s = B["door"]
+    for k in range(7):
+        add(s["t0"] + 0.05 + k * 0.16, sfx.step(), 0.45)
+    for k in range(3):
+        add(cue("door", "knock") + k * 0.3, sfx.knock(), 0.7)
+    add(cue("door", "creak"), sfx.creak(1.4), 0.45)
+    s = B["coffee"]; add(s["t0"], sfx.tick(s["t1"] - s["t0"]), 0.35)
+    add(cue("blackout", "powerdown"), sfx.powerdown(), 0.6)
+    add(cue("blackout", "powerdown"), sfx.spark(), 0.5)
+    s = B["dogs"]; add(s["t0"], sfx.wind(s["t1"] - s["t0"]), 0.3)
+    add(cue("dogs", "growl"), sfx.growl(), 0.55)
+    add(cue("dogs", "growl") + 1.2, sfx.bark(), 0.45)
+    add(cue("dogs", "growl") + 1.55, sfx.bark(), 0.35)
+    s = B["market"]; add(s["t0"] + 0.1, sfx.click(), 0.4)
+    for k in range(int((s["t1"] - s["t0"]) / 0.4)):
+        add(s["t0"] + 0.2 + k * 0.4, sfx.step(), 0.3)
+    s = B["rot"]; add(s["t0"], sfx.flies(s["t1"] - s["t0"]), 0.35)
+    for k in range(5):
+        add(cue("corner", "whisper") + k * 0.45, sfx.whisper(1.3), 0.45)
+    s0 = B["corner"]["t0"]; s1 = B["eyes"]["t1"]
+    add(s0 + 0.3, sfx.heartbeat(70, B["corner"]["t1"] - s0), 0.4)
+    add(B["eyes"]["t0"], sfx.heartbeat(92, B["eyes"]["t1"] - B["eyes"]["t0"]), 0.5)
+    add(B["eyes"]["t0"], sfx.tinnitus(B["eyes"]["t1"] - B["eyes"]["t0"]), 0.5)
+    s = B["green"]; add(s["t0"], sfx.birds(s["t1"] - s["t0"]), 0.35); add(s["t0"], sfx.wind(s["t1"] - s["t0"]), 0.15)
+    v = cue("ring", "vibrate")
+    add(v, sfx.vibrate(B["ring"]["t1"] - v), 0.5)
+    add(cue("msg", "ping"), sfx.ping(), 0.55)
+    add(B["msg2"]["t0"], sfx.typing(B["msg2"]["t1"] - B["msg2"]["t0"] - 0.35), 0.4)
+    st = cue("behind", "stinger")
+    add(st - 2.2, sfx.riser(2.2), 0.35)
+    add(st, sfx.stinger(), 0.9)
+    add(B["end"]["t0"], sfx.boom(2.0, 40), 0.3)
 
-    # 5) Kamera + Schnitt -> Video
-    cuts = []
-    for sc, a, b in blocks:
-        for c in cuts_for(sc, a, b):
-            cuts.append((sc,) + c)
-    imgs = {k: Image.open(os.path.join(fr, f"{k}.png")).convert("RGB") for k in scenes.SCENES}
-    nframes = int(total * FPS)
-    silent = os.path.join(OUT, "silent.mp4")
-    ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920",
-                           "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "14",
-                           "-pix_fmt", "yuv420p", silent], stdin=subprocess.PIPE)
-    ci = 0
-    for f in range(nframes):
-        tt = f / FPS
-        while ci + 1 < len(cuts) and tt >= cuts[ci + 1][1]:
-            ci += 1
-        sc, a, b, z0, z1, cx, cy = cuts[ci]
-        u = min(1.0, max(0.0, (tt - a) / max(0.01, b - a)))
-        u = u * u * (3 - 2 * u)
-        z = z0 + (z1 - z0) * u
-        im = imgs[sc]
-        IW, IH = im.size
-        cw, ch = IW / z, IH / z
-        x0 = min(max(0, cx * IW - cw / 2), IW - cw)
-        y0 = min(max(0, cy * IH - ch / 2), IH - ch)
-        if sc in SHAKE:
-            amp = 10 if sc != "behind" else (4 + 26 * max(0, 1 - (tt - a) / 0.5))
-            x0 = min(max(0, x0 + amp * np.sin(tt * 37)), IW - cw)
-            y0 = min(max(0, y0 + amp * np.cos(tt * 29)), IH - ch)
-        # Schnitt-Punch: erster Frame leicht reingezoomt
-        if tt - a < 2 / FPS and ci > 0:
-            x0 += cw * 0.02; y0 += ch * 0.02; cw *= 0.96; ch *= 0.96
-        fr_im = im.resize((1080, 1920), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + ch))
-        arr = np.asarray(fr_im).astype(np.float32)
-        if total - tt < 0.35:  # harter Schnitt ins Schwarze am Ende
-            arr = arr * max(0, (total - tt) / 0.35)
-        ff.stdin.write(np.clip(arr, 0, 255).astype(np.uint8).tobytes())
-    ff.stdin.close(); ff.wait()
+    music = make_music(total + 0.5, stop_t=B["behind"]["t0"] - 0.1, end_t=B["end"]["t0"])
+    music = np.pad(music, (0, max(0, n - len(music))))[:n]
+    # Ducking: Musik geht runter, sobald gesprochen wird
+    env = np.convolve(np.abs(voice), np.ones(4410) / 4410, "same")
+    env = np.clip(env / (env.max() * 0.35), 0, 1)
+    duck = 1 - 0.55 * env
+    mix = voice + 0.17 * music * duck + 0.55 * fx * (1 - 0.35 * env)
+    mix = mix / np.abs(mix).max() * 0.95
+    write_wav(os.path.join(OUT, "mix.wav"), mix)
+    write_wav(os.path.join(OUT, "mix_ohne_musik.wav"), (voice + 0.55 * fx * (1 - 0.35 * env)) / np.abs(mix).max() * 0.95)
+    if "--audio" in sys.argv:
+        return
 
-    # 6) Mischen + Captions einbrennen
-    ass = os.path.join(OUT, "captions.ass")
-    for name, mus_vol in (("video_final.mp4", 0.32), ("video_ohne_musik.mp4", 0.0)):
-        subprocess.run([
-            "ffmpeg", "-v", "error", "-y", "-i", silent, "-i", os.path.join(OUT, "voice.wav"), "-i", os.path.join(OUT, "music.wav"),
-            "-filter_complex",
-            f"[0:v]ass={ass}[v];[1:a]aresample=44100,highpass=f=70,acompressor=threshold=-20dB:ratio=3,volume=1.6[vo];"
-            f"[2:a]volume={mus_vol}[m];[vo][m]amix=inputs=2:normalize=0,loudnorm=I=-14:TP=-1.5[a]",
-            "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium", "-crf", "21", "-maxrate", "8M", "-bufsize", "16M", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", os.path.join(OUT, name)], check=True)
+    # ---------------- Bild
+    subprocess.run(["node", os.path.join(HERE, "anim", "render.js"), os.path.join(OUT, "timing.json"), OUT, "4"], check=True)
+    for name, wav in (("video_final.mp4", "mix.wav"), ("video_ohne_musik.mp4", "mix_ohne_musik.wav")):
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", os.path.join(OUT, "silent.mp4"), "-i", os.path.join(OUT, wav),
+                        "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium",
+                        "-crf", "19", "-maxrate", "12M", "-bufsize", "24M", "-pix_fmt", "yuv420p", "-r", "30",
+                        "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-movflags", "+faststart", "-shortest", os.path.join(OUT, name)], check=True)
     print("fertig:", os.path.join(OUT, "video_final.mp4"))
 
 
