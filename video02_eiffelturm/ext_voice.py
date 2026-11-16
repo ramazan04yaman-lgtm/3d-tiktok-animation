@@ -18,7 +18,21 @@ else:
     ww = [(x.word.strip(), x.start, x.end) for sg in segs for x in sg.words]
     json.dump(ww, open(cache, 'w'), ensure_ascii=False)
 caps = [w for s in S for w in s['cap'].split()]
-assert len(ww) == len(caps), f'word count mismatch: whisper {len(ww)} vs script {len(caps)}'
+# align script words to whisper words (tolerates spelling/tokenisation differences like '5.000' or 'kapten')
+import difflib
+nz = lambda x: re.sub(r'[^a-zäöüß0-9]', '', x.lower())
+tm = [None] * len(caps)
+for op, a0, a1, b0, b1 in difflib.SequenceMatcher(None, [nz(w) for w in caps], [nz(w[0]) for w in ww], autojunk=False).get_opcodes():
+    if op == 'equal':
+        for k in range(a1 - a0): tm[a0 + k] = (ww[b0 + k][1], ww[b0 + k][2])
+    elif op == 'replace':
+        t0, t1 = ww[b0][1], ww[b1 - 1][2]; n = a1 - a0
+        for k in range(n): tm[a0 + k] = (t0 + (t1 - t0) * k / n, t0 + (t1 - t0) * (k + 1) / n)
+    if op != 'equal': print('align', op, caps[a0:a1], [w[0] for w in ww[b0:b1]])
+for k in range(len(tm)):  # words whisper missed: squeeze between neighbours
+    if tm[k] is None:
+        p0 = tm[k - 1][1] if k else 0.0; tm[k] = (p0, p0 + 0.2)
+ww = [(caps[k], tm[k][0], tm[k][1]) for k in range(len(caps))]
 # sentence index per word
 sid = [i for i, s in enumerate(S) for _ in s['cap'].split()]
 # shorten gaps: inside a sentence max 0.45 s, between sentences max 0.35 + pause (script pacing)
