@@ -588,8 +588,19 @@ const tri = makeTri(); scene.add(tri.root);
 const bone = new THREE.Group(); scene.add(bone);
 const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.1, 4), new THREE.MeshStandardMaterial({ color: 0x6f7c5e, roughness: 0.85, bumpMap: scaleTex, bumpScale: 0.5 })); rock.scale.set(1.2, 0.75, 1); rock.castShadow = rock.receiveShadow = true; scene.add(rock);
 const boneHalves = [];
-for (const s of [-1, 1]) { const h = new THREE.Group(); const c = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.6, 14), boneM); c.rotation.z = Math.PI / 2; c.position.x = s * 0.3; h.add(c);
-  for (const dz of [-0.09, 0.09]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 10), boneM); k.position.set(s * 0.62, 0, dz); h.add(k); } h.traverse(o => o.castShadow = true); bone.add(h); boneHalves.push(h); }
+const marrowM = new THREE.MeshStandardMaterial({ color: 0x9a2f24, roughness: 0.45 }), spongyM = new THREE.MeshStandardMaterial({ color: 0xd9b48a, roughness: 0.8 });
+for (const s of [-1, 1]) { const h = new THREE.Group(); const c = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.6, 18), boneM); c.rotation.z = Math.PI / 2; c.position.x = s * 0.3; h.add(c);
+  for (const dz of [-0.09, 0.09]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), boneM); k.position.set(s * 0.62, 0, dz); h.add(k); }
+  // Bruchfläche: Knochenmark + schwammiger Ring + gezackte Splitterkante (zeigt zur anderen Hälfte)
+  const mar = new THREE.Mesh(new THREE.CircleGeometry(0.07, 18), marrowM); mar.rotation.y = s * Math.PI / 2; mar.position.x = -s * 0.002; h.add(mar);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.1, 18), spongyM); ring.rotation.y = s * Math.PI / 2; ring.position.x = -s * 0.001; h.add(ring);
+  for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2 + (s > 0 ? 0.35 : 0); const L = 0.05 + 0.07 * ((k * 7 + (s > 0 ? 3 : 0)) % 5) / 4; const sp = new THREE.Mesh(new THREE.ConeGeometry(0.028, L, 5), boneM);
+    sp.rotation.z = s * Math.PI / 2; sp.position.set(-s * L / 2, Math.sin(a) * 0.085, Math.cos(a) * 0.085); h.add(sp); }
+  h.traverse(o => o.castShadow = true); bone.add(h); boneHalves.push(h); }
+bone.scale.setScalar(1.45);
+// Knochensplitter, die beim Bruch wegfliegen
+const boneShards = []; for (let k = 0; k < 14; k++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.035 + 0.025 * (k % 3)), k % 4 === 0 ? spongyM : boneM); m.visible = false; m.castShadow = true; scene.add(m);
+  const a = k * 2.4; m.userData.v = [Math.cos(a) * (0.8 + (k % 5) * 0.3), 1.6 + (k % 4) * 0.6, Math.sin(a) * (0.8 + (k % 3) * 0.4) + 0.6, k]; boneShards.push(m); }
 // Splitter / Zahnsplitter / Staub
 function particles(n, size, color, seed) { const p = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: dotTex, size, color, transparent: true, depthWrite: false }));
   p.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); const r = rng(seed); p.userData.v = Array.from({ length: n }, () => [(r() - .5), r(), (r() - .5), r()]); p.frustumCulled = false; scene.add(p); return p; }
@@ -672,7 +683,7 @@ function cam(pos, look, fov = 40, t = 0, shake = 0.03) {
 function resetWorld() {
   rex.root.visible = true; rex.root.position.set(0, 0, 0); rex.root.rotation.set(0, 0, 0); rex.ol.userData.u.uA.value = 0;
   tri.root.visible = false; tri.biteMark.visible = false; tri.neckBite.visible = false; tri.edgeCones.forEach(c => c.visible = true); tri.root.position.set(0, 0, 0); tri.root.rotation.set(0, 0, 0); tri.ol.userData.u.uA.value = 0; tri.frill.scale.set(1, 1, 1);
-  bone.visible = false; rock.visible = false; boneHalves.forEach(h => { h.position.set(0, 0, 0); h.rotation.set(0, 0, 0); });
+  bone.visible = false; rock.visible = false; boneHalves.forEach(h => { h.position.set(0, 0, 0); h.rotation.set(0, 0, 0); }); boneShards.forEach(m => m.visible = false);
   crumbs.visible = dust.visible = false; brokenTeeth.forEach(m => m.visible = false); frillBits.forEach(m => m.visible = false);
   macro.visible = false; seesaw.visible = false; ground.visible = world.visible = sky.visible = true;
   scene.background = null; scene.fog.near = 40; scene.fog.far = 320;
@@ -767,8 +778,11 @@ const shots = [
       bone.visible = true; rock.visible = true; rock.position.set(0, 0.6, 4.4); bone.position.set(0, 1.55, 4.4); bone.rotation.y = 0.2; sunAt(V(0, 0, 3));
       const tc = WT(5, 'knack') - 0.05; const jaw = T < tc ? 0.55 : lerp(0.55, 0.05, clamp((T - tc) / 0.1)) + (T > tc + 0.5 ? 0.3 * ease((T - tc - 0.5) / 0.3) : 0);
       poseRex(rex, { t: T, jaw, head: 0.3, pitch: 0.22, teeth: 2.3 }); alignMouth(V(0.0, 1.72, 4.4));
-      const bt = T - tc - 0.05; if (bt > 0) { boneHalves.forEach((h, i) => { const s = i ? 1 : -1; h.position.set(s * bt * 1.4, Math.max(-1.45, bt * 2.5 - 4.9 * bt * bt), 0); h.rotation.z = s * bt * 3; }); burst(crumbs, V(0, 1.6, 4.4), bt, { spread: 2.2, up: 3.5 }); }
-      cam(V(4.4, 2.4, 6.2), V(0, 1.9, 3.9), 44, T * 6, 0.02 + (bt > 0 ? 0.12 * Math.exp(-bt * 4) : 0));
+      const bt = T - tc - 0.05; if (bt > 0) { const sb = bt < 0.5 ? bt * 0.55 : 0.275 + (bt - 0.5); // kurze Zeitlupe direkt nach dem Knacken
+        boneHalves.forEach((h, i) => { const s = i ? 1 : -1; const fl = Math.min(sb, 0.55); h.position.set(s * (0.12 + fl * 0.75), Math.max(-0.2, sb * 1.4 - 4.9 * sb * sb * 0.75), 0.2 + fl * 1.0); h.rotation.set(0.25 * fl, s * Math.min(1.15, 0.45 + sb * 1.6), s * (0.2 + fl * 0.5)); });
+        boneShards.forEach(m => { const v = m.userData.v; m.visible = sb < 1.6; m.position.set(v[0] * sb, Math.max(0.05, 1.6 + v[1] * sb - 4.9 * sb * sb), 4.4 + v[2] * sb); m.rotation.set(sb * (5 + v[3]), sb * 4, v[3]); });
+        burst(crumbs, V(0, 1.6, 4.4), bt, { spread: 2.2, up: 3.5 }); }
+      const ck = ease((T - tc + 0.25) / 0.3); cam(V(4.4, 2.4, 6.2).lerp(V(0.7, 2.6, 10.0), ck), V(0, 1.9, 3.9).lerp(V(0.0, 1.55, 4.8), ck), lerp(44, 42, ck), T * 6, 0.02 + (bt > 0 ? 0.14 * Math.exp(-bt * 4) : 0));
       pill('🍪 WIE EINEN KEKS', W / 2, 520, clamp((T - WT(5, 'keks')) * 3));
     } else {
       CUT = tA; const v = T - tA; const tF = WT(5, 'gesicht') - 0.55; const f = ease((T - tF) / 0.45);
