@@ -573,8 +573,13 @@ function makeTri() {
       for (const zs of [-1, 1]) { const h = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), wm); h.scale.set(0.05, 0.07, 0.06); h.position.set(x, y, 0.05 - 0.22 * x * x + zs * 0.06); biteMark.add(h); } } }
     const wound = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), rm); wound.scale.set(0.42, 0.2, 0.12); wound.position.set(0, 1.42, 0.06); biteMark.add(wound); }
   biteMark.visible = false;
+  // Nackenbiss: Zahnlöcher + Wunde hinter dem Nackenschild (sichtbar auf der Kameraseite)
+  const neckBite = new THREE.Group(); body.add(neckBite); { const wm = new THREE.MeshStandardMaterial({ color: 0x3a0c0e, roughness: 0.4 }), rm = new THREE.MeshStandardMaterial({ color: 0x7a1618, roughness: 0.3 });
+    for (let k = 0; k < 7; k++) for (const [yy, side] of [[2.62, -1], [2.05, -1]]) { const h = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), wm); h.scale.set(0.05, 0.08, 0.06); const z = 0.75 + k * 0.13; h.position.set(side * (yy > 2.3 ? 0.42 : 0.72), yy + 0.02 * Math.sin(k), z); neckBite.add(h); }
+    const w2 = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), rm); w2.scale.set(0.05, 0.13, 0.32); w2.position.set(-0.66, 2.32, 1.15); neckBite.add(w2); }
+  neckBite.visible = false;
   g.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root: g, head, frill, legs, ol, body, biteMark, edgeCones };
+  return { root: g, head, frill, legs, ol, body, biteMark, edgeCones, neckBite };
 }
 function poseTri(tr, { phase = 0, amp = 0, t = 0 }) { tr.legs.forEach((l, i) => l.rotation.x = Math.sin(phase + (i === 0 || i === 3 ? 0 : Math.PI)) * 0.35 * amp); tr.body.position.y = Math.abs(Math.sin(phase)) * 0.05 * amp; tr.head.rotation.x = Math.sin(t * 0.8) * 0.05; }
 const tri = makeTri(); scene.add(tri.root);
@@ -666,7 +671,7 @@ function cam(pos, look, fov = 40, t = 0, shake = 0.03) {
 // ---------- Reset ----------
 function resetWorld() {
   rex.root.visible = true; rex.root.position.set(0, 0, 0); rex.root.rotation.set(0, 0, 0); rex.ol.userData.u.uA.value = 0;
-  tri.root.visible = false; tri.biteMark.visible = false; tri.edgeCones.forEach(c => c.visible = true); tri.root.position.set(0, 0, 0); tri.root.rotation.set(0, 0, 0); tri.ol.userData.u.uA.value = 0; tri.frill.scale.set(1, 1, 1);
+  tri.root.visible = false; tri.biteMark.visible = false; tri.neckBite.visible = false; tri.edgeCones.forEach(c => c.visible = true); tri.root.position.set(0, 0, 0); tri.root.rotation.set(0, 0, 0); tri.ol.userData.u.uA.value = 0; tri.frill.scale.set(1, 1, 1);
   bone.visible = false; rock.visible = false; boneHalves.forEach(h => { h.position.set(0, 0, 0); h.rotation.set(0, 0, 0); });
   crumbs.visible = dust.visible = false; brokenTeeth.forEach(m => m.visible = false); frillBits.forEach(m => m.visible = false);
   macro.visible = false; seesaw.visible = false; ground.visible = world.visible = sky.visible = true;
@@ -682,16 +687,20 @@ const shots = [
     const u = T - S[0].start; badge.style.display = T < 3.0 ? 'block' : 'none';
     tri.root.visible = true; tri.root.position.copy(TRI_POS); tri.root.rotation.y = Math.PI / 2; poseTri(tri, { t: T });
     const tBite = WT(0, 'beiß') - 0.1, tBreak = WT(0, 'brechen') - 0.05;
-    const bite = ease((T - tBite) / 0.3); const jaw = lerp(0.65, 0.12, bite) + (T > tBreak ? 0.25 * ease((T - tBreak) / 0.3) : 0);
-    rex.root.rotation.y = 0.15; poseRex(rex, { t: T, jaw, head: 0.35, pitch: 0.18, teeth: 1 });
-    alignMouth(V(0.3, 2.95 - 0.12 * bite, -0.2 - 0.2 * bite)); sunAt(V(0, 0, 0));
+    // Anlauf: T-Rex rennt von hinten heran, dann schneller Biss in den Nacken
+    const tLunge = tBite - 0.35; const run = clamp(T / tLunge); const lunge = ease((T - tLunge) / 0.35);
+    const bite = ease((T - tBite) / 0.15); const jaw = (T < tBite ? lerp(0.35, 0.85, lunge) : lerp(0.85, 0.5, bite)) + (T > tBreak ? 0.25 * ease((T - tBreak) / 0.3) : 0);
+    const NECK = V(1.0, 2.85 - 0.12 * bite, 0.75 - 0.12 * bite); const pre = V(-1.6, 3.6, -1.6);
+    const startP = V(-17.0, 3.6, -8.0); const runP = startP.clone().lerp(pre, 1 - Math.pow(1 - run, 1.6));
+    rex.root.rotation.y = lerp(1.15, 1.0, lunge); poseRex(rex, { phase: T * 7.5, amp: (1 - lunge) * (run < 1 ? 1.3 : 1), t: T, jaw, head: lerp(0.08, 0.38, lunge), pitch: lerp(0.08, 0.2, lunge), tail: 1.12, teeth: 1 });
+    alignMouth(runP.clone().lerp(NECK, lunge)); sunAt(V(0, 0, 0)); tri.neckBite.visible = T > tBite + 0.05;
     // abgebrochene Zähne
-    const tb = T - tBreak; if (tb > 0) { const top = V(0.3, 2.8, -0.2); brokenTeeth.forEach((m, i) => { const v = m.userData.v; m.visible = tb < 2; m.position.set(top.x + v[0] * tb * 0.6, Math.max(0.05, top.y + v[1] * tb - 4.9 * tb * tb), top.z + v[2] * tb * 0.6); m.rotation.set(v[3] + tb * 8, tb * 5, 0); });
+    const tb = T - tBreak; if (tb > 0) { const top = V(1.05, 2.6, -0.1); brokenTeeth.forEach((m, i) => { const v = m.userData.v; m.visible = tb < 2; m.position.set(top.x + v[0] * tb * 0.6, Math.max(0.05, top.y + v[1] * tb - 4.9 * tb * tb), top.z + v[2] * tb * 0.6); m.rotation.set(v[3] + tb * 8, tb * 5, 0); });
       rex.teeth.forEach((m, i) => { if (i % 3 === 0) m.scale.y *= 0.3; }); burst(crumbs, top, tb, { spread: 1.5, up: 3 }); }
     // Seitenprofil: Triceratops komplett sichtbar, T-Rex beißt von hinten in den Rücken; langsame Kamerafahrt nach innen
-    const camP = V(2.4, 3.0, 15.5).add(V(-u * 0.12, 0.04 * u, -u * 0.5)); const mouthP = rex.mouthMark.getWorldPosition(V(0, 0, 0));
-    const kz = ease((T - (tBite - 0.15)) / 0.5); // Profil -> Nahaufnahme der Zähne im Rücken
-    const HC = [-2.8, 1.0, 0.9, 0, -0.2, 0]; /* Seitenansicht auf den Biss */ cam(camP.clone().lerp(mouthP.clone().add(V(HC[0], HC[1], HC[2])), kz), V(1.2, 2.0, -0.4).lerp(mouthP.clone().add(V(HC[3], HC[4], HC[5])), kz), lerp(42, 38, kz), T, tb > 0 ? 0.03 + 0.15 * Math.exp(-tb * 4) : 0.03);
+    const camP = V(-2.0, 3.8, 19.5).add(V(u * 0.4, 0, -u * 1.0)); const mouthP = rex.mouthMark.getWorldPosition(V(0, 0, 0));
+    const kz = ease((T - (tBite - 0.2)) / 0.45); // Weit (Anlauf) -> Nahaufnahme des Nackenbisses
+    const HC = [1.7, 0.55, 2.9, -0.1, -0.3, 0]; /* schräg von vorne auf Nacken + Zähne */ cam(camP.clone().lerp(mouthP.clone().add(V(HC[0], HC[1], HC[2])), kz), V(-2.6, 2.2, -2.0).lerp(mouthP.clone().add(V(HC[3], HC[4], HC[5])), kz), lerp(50, 40, kz), T, tb > 0 ? 0.03 + 0.18 * Math.exp(-tb * 4) : (T > tBite ? 0.25 * Math.exp(-(T - tBite) * 5) : 0.03));
     label3('DINOSAURIER', rex.headG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.5, 0)), clamp((T - WT(0, 'dinos')) * 3), -60, -160);
     label3('TRICERATOPS', tri.head.getWorldPosition(V(0, 0, 0)).add(V(0.3, 0.6, 0)), clamp((T - WT(0, 'triceratops')) * 3), 60, -230);
     tri.ol.userData.u.uA.value = clamp((T - WT(0, 'triceratops')) * 4) * (1 - clamp((T - WT(0, 'triceratops') - 1.0) * 3)) * 0.9;
