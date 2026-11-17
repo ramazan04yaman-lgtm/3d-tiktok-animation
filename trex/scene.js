@@ -507,7 +507,7 @@ function makeTri() {
   const bg = new THREE.SphereGeometry(1, 56, 36); { const p = bg.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i); const hump = Math.exp(-Math.pow((z + 0.25) / 0.55, 2));
     p.setXYZ(i, x * 1.08 * (1 - 0.12 * Math.max(0, z)), y > 0 ? y * (0.9 + 0.3 * hump) : y * 0.95, z * 2.25); } }
   add(triCol(bg), body, 0, 1.85, 0);
-  const tailG = triCol(new THREE.CylinderGeometry(0.5, 0.04, 3.2, 22, 6)); add(tailG, body, 0, 1.52, -3.35, -Math.PI / 2 - 0.2);
+  const tailG = triCol(new THREE.CylinderGeometry(0.5, 0.05, 3.2, 22, 6)); add(tailG, body, 0, 1.55, -3.2, Math.PI / 2 - 0.22); // dickes Ende am Körper, Spitze nach hinten unten
   add(triCol(new THREE.SphereGeometry(1, 28, 20)), body, 0, 1.78, 2.05).scale.set(0.62, 0.66, 0.6); // Hals
   const head = new THREE.Group(); head.position.set(0, 1.8, 2.35); body.add(head);
   // Schädel: zur Schnabelspitze verjüngt
