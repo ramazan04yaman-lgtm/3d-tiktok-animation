@@ -5,6 +5,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 const W = 1080, H = 1920;
 const TL = await (await fetch('build/timeline.json')).json();
@@ -43,7 +45,18 @@ composer.addPass(new RenderPass(scene, camera));
 const gtao = new GTAOPass(scene, camera, W, H); gtao.blendIntensity = 0.9;
 gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.6, thickness: 1.2, scale: 1.25, samples: 12 });
 gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
-composer.addPass(gtao); composer.addPass(new OutputPass());
+composer.addPass(gtao);
+// Tiefenunschärfe für Nahaufnahmen (Fokus folgt dem Blickpunkt der Kamera)
+const bokeh = new BokehPass(scene, camera, { focus: 5, aperture: 0.00022, maxblur: 0.0065 }); composer.addPass(bokeh);
+composer.addPass(new OutputPass());
+// Color Grading: mehr Kontrast, warme Lichter, kühlere Schatten, Vignette
+const grade = new ShaderPass({ uniforms: { tDiffuse: { value: null }, uVig: { value: 1 } }, vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uVig; varying vec2 vUv;
+  void main(){ vec3 c = texture2D(tDiffuse, vUv).rgb; float l = dot(c, vec3(0.299, 0.587, 0.114));
+    c = mix(c, c * vec3(0.96, 0.99, 1.05), smoothstep(0.5, 0.0, l)); c = mix(c, c * vec3(1.05, 1.0, 0.93), smoothstep(0.45, 1.0, l));
+    c = (c - 0.5) * 1.09 + 0.5; l = dot(c, vec3(0.299, 0.587, 0.114)); c = mix(vec3(l), c, 1.1);
+    vec2 d = vUv - 0.5; d.x *= 0.5625; float v = smoothstep(0.75, 0.3, length(d) * 1.3); c *= mix(1.0, mix(0.84, 1.0, v), uVig);
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0); }` }); composer.addPass(grade);
 
 const hemi = new THREE.HemisphereLight(0xf3ede2, 0x4a5a2c, 1.5); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffd9a6, 3.1); // warme, tief stehende Sonne
@@ -392,10 +405,11 @@ function makeRex() {
   const eyeBallM = new THREE.MeshStandardMaterial({ color: 0x1d1006, roughness: 0.4 });
   const corneaM = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.02, metalness: 0.1, transparent: true, opacity: 0.2 });
   const socketM = new THREE.MeshStandardMaterial({ color: 0x24150c, roughness: 0.85 }); EYE = { irisM, eyeBallM, corneaM, socketM };
+  const eyeGs = [];
   for (const s of [-1, 1]) {
     const P = a => s > 0 ? a : Math.PI - a; const phi = P(0.8), t = 0.2;
     const sock = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), socketM); surfPlace(skin, sock, true, t, phi, 0.975, 0.078, 0.062, 0.03);
-    const ep = headSurf(true, t, phi, 0.975); const en = headNormal(true, t, phi); const eg = new THREE.Group(); eg.position.copy(ep); eg.lookAt(ep.clone().add(en.clone().add(V(0, 0.1, 0.25)).normalize())); eg.position.addScaledVector(en, 0.012); eg.scale.setScalar(1.45); headG.add(eg);
+    const ep = headSurf(true, t, phi, 0.975); const en = headNormal(true, t, phi); const eg = new THREE.Group(); eg.position.copy(ep); eg.lookAt(ep.clone().add(en.clone().add(V(0, 0.1, 0.25)).normalize())); eg.position.addScaledVector(en, 0.012); eg.scale.setScalar(1.45); headG.add(eg); eyeGs.push(eg);
     const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), eyeBallM); ball.scale.set(0.054, 0.05, 0.022); eg.add(ball);
     const iris = new THREE.Mesh(new THREE.CircleGeometry(1, 32), irisM); iris.scale.set(0.05, 0.047, 1); iris.position.z = 0.021; eg.add(iris);
     const glint = new THREE.Mesh(new THREE.SphereGeometry(0.0075, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); glint.position.set(-0.016 * s, 0.016, 0.03); eg.add(glint); // Lichtreflex
@@ -428,13 +442,18 @@ function makeRex() {
   const holeData = list => { const out = []; for (const g of list) { g.updateMatrix(); const q = g.quaternion; const N = V(0, 0, 1).applyQuaternion(q), X = V(1, 0, 0).applyQuaternion(q);
       g.children.forEach(ch => { ch.visible = false; out.push({ c: ch.position.clone().applyQuaternion(q).add(g.position), n: N, x: X, s: new THREE.Vector2(ch.scale.x, ch.scale.y) }); }); } return out; };
   const holeK = [];
-  const cutMat = list => { const m = new THREE.MeshStandardMaterial({ color: 0xf1e9d6, roughness: 0.5, side: THREE.DoubleSide }); const M = 12; const pad = a => { while (a.length < M) a.push(a[0]); return a; };
+  const cutMat = list => { const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7, side: THREE.DoubleSide, bumpMap: scaleTex, bumpScale: 0.15 }); const M = 12; const pad = a => { while (a.length < M) a.push(a[0]); return a; };
     const U = { uC: { value: pad(list.map(h => h.c)) }, uN: { value: pad(list.map(h => h.n)) }, uT: { value: pad(list.map(h => h.x)) }, uS: { value: pad(list.map(h => h.s)) }, uK: { value: 0 }, uCount: { value: list.length } }; holeK.push(U.uK);
     m.onBeforeCompile = sh => { Object.assign(sh.uniforms, U);
       sh.vertexShader = 'varying vec3 vObj;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObj = transformed;');
       sh.fragmentShader = 'uniform vec3 uC[12]; uniform vec3 uN[12]; uniform vec3 uT[12]; uniform vec2 uS[12]; uniform float uK; uniform int uCount; varying vec3 vObj;\n' + sh.fragmentShader
         .replace('void main() {', 'void main() {\n for (int i = 0; i < 12; i++) { if (i >= uCount) break; vec3 d = vObj - uC[i]; float dn = dot(d, uN[i]); if (abs(dn) < 0.2) { vec3 ty = cross(uN[i], uT[i]); float a = dot(d, uT[i]) / (uS[i].x * uK + 1e-4); float b = dot(d, ty) / (uS[i].y * uK + 1e-4); if (a * a + b * b < 1.0) discard; } }')
-        .replace('vec4 diffuseColor = vec4( diffuse, opacity );', 'vec4 diffuseColor = vec4( diffuse * (gl_FrontFacing ? 1.0 : 0.38), opacity );'); };
+        .replace('vec4 diffuseColor = vec4( diffuse, opacity );', `float hN = fract(sin(dot(floor(vObj * 55.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+          float hB = sin(vObj.x * 13.0 + vObj.y * 7.0) * sin(vObj.z * 9.0 - vObj.y * 11.0);
+          vec3 bc = mix(vec3(0.80, 0.70, 0.52), vec3(0.95, 0.90, 0.78), smoothstep(-0.25, 0.35, vObj.y) * 0.7 + 0.3 * hB * 0.5 + 0.15) * (0.94 + 0.06 * hN);
+          float sut = 1.0 - 0.55 * smoothstep(0.012, 0.0, abs(vObj.z - 0.05 + 0.025 * sin(vObj.y * 70.0) + 0.012 * sin(vObj.x * 130.0))) * step(0.05, vObj.y)
+                         - 0.45 * smoothstep(0.01, 0.0, abs(vObj.z - 0.75 + 0.02 * sin(vObj.x * 90.0 + vObj.y * 40.0))) * step(0.0, vObj.y);
+          vec4 diffuseColor = vec4( bc * sut * (gl_FrontFacing ? 1.0 : 0.38), opacity );`); };
     m.customProgramCacheKey = () => 'cut' + list.length; return m; };
   skullUp.material = cutMat(holeData(holes.slice(0, 8))); skullLo.material = cutMat(holeData(lowerHoles));
   const mouthMark = new THREE.Object3D(); mouthMark.position.set(0, -0.03, 0.9); headG.add(mouthMark);
@@ -447,24 +466,24 @@ function makeRex() {
   for (const s of [-1, 1]) {
     const hb = ell3(0.5, 0.78, 0.98); hb.position.set(s * 0.46, -0.12, 0.02); withOl(torso, hb); // Hüftmuskulatur (Übergang)
     const hip = new THREE.Group(); hip.position.set(s * 0.62, 3.0, 0.1); root.add(hip);
-    const thigh = ell3(0.5, 1.05, 0.78); thigh.position.set(0, -0.6, 0.1); thigh.rotation.x = -0.3; withOl(hip, thigh);
-    const quad = ell3(0.36, 0.72, 0.42); quad.position.set(s * 0.05, -0.85, 0.4); quad.rotation.x = -0.55; hip.add(quad); // Oberschenkelstrecker
+    const thigh = ell3(0.6, 1.1, 0.9); thigh.position.set(0, -0.6, 0.1); thigh.rotation.x = -0.3; withOl(hip, thigh);
+    const quad = ell3(0.44, 0.78, 0.5); quad.position.set(s * 0.05, -0.85, 0.4); quad.rotation.x = -0.55; hip.add(quad); // Oberschenkelstrecker
     const knee = new THREE.Group(); knee.position.set(0, -1.3, 0.45); hip.add(knee);
-    const kj = ell3(0.25, 0.25, 0.27, 20); knee.add(kj);
+    const kj = ell3(0.31, 0.3, 0.33, 20); knee.add(kj);
     const shinG = new THREE.Group(); shinG.rotation.x = 0.45; knee.add(shinG);
-    const shinGeo = colorize(new THREE.CylinderGeometry(0.21, 0.13, 1.2, 18)); shinGeo.translate(0, -0.6, 0); const shin = new THREE.Mesh(shinGeo, skinM); shin.castShadow = true; withOl(shinG, shin);
-    const calf = ell3(0.2, 0.46, 0.24); calf.position.set(0, -0.36, -0.13); withOl(shinG, calf); // Wadenmuskel
+    const shinGeo = colorize(new THREE.CylinderGeometry(0.31, 0.2, 1.2, 20)); shinGeo.translate(0, -0.6, 0); const shin = new THREE.Mesh(shinGeo, skinM); shin.castShadow = true; withOl(shinG, shin);
+    const calf = ell3(0.27, 0.55, 0.31); calf.position.set(0, -0.36, -0.13); withOl(shinG, calf); // Wadenmuskel
     const ankle = new THREE.Group(); ankle.position.set(0, -1.12, -0.55); knee.add(ankle);
-    const aj = ell3(0.15, 0.14, 0.15, 18); ankle.add(aj);
-    const metG = colorize(new THREE.CylinderGeometry(0.13, 0.1, 0.95, 14)); metG.translate(0, -0.47, 0);
+    const aj = ell3(0.2, 0.18, 0.2, 18); ankle.add(aj);
+    const metG = colorize(new THREE.CylinderGeometry(0.2, 0.16, 0.95, 16)); metG.translate(0, -0.47, 0);
     const met = new THREE.Mesh(metG, skinM); met.rotation.x = -0.35; met.castShadow = true; ankle.add(met);
     const foot = new THREE.Group(); foot.position.set(0, -0.88, 0.32); ankle.add(foot);
-    const pad = ell3(0.2, 0.08, 0.2, 18); pad.position.set(0, -0.03, -0.02); foot.add(pad);
+    const pad = ell3(0.26, 0.1, 0.25, 18); pad.position.set(0, -0.03, -0.02); foot.add(pad);
     for (const [ang, len] of [[-0.32, 0.85], [0, 1], [0.32, 0.85]]) {
       const toe = new THREE.Group(); toe.rotation.y = ang; foot.add(toe); let z = 0.04;
-      [[0.078, 0.16], [0.068, 0.13], [0.058, 0.1]].forEach(([rad, l], k) => { const seg = new THREE.Mesh(capsG(rad, l * len), skinM); seg.rotation.x = -Math.PI / 2 - 0.08 * k; seg.position.set(0, -0.02 - k * 0.012, z); seg.castShadow = true; toe.add(seg);
+      [[0.1, 0.17], [0.088, 0.14], [0.075, 0.11]].forEach(([rad, l], k) => { const seg = new THREE.Mesh(capsG(rad, l * len), skinM); seg.rotation.x = -Math.PI / 2 - 0.08 * k; seg.position.set(0, -0.02 - k * 0.012, z); seg.castShadow = true; toe.add(seg);
         const tp = ell3(rad * 0.95, rad * 0.45, l * len * 0.45, 12); tp.position.set(0, -0.065 - k * 0.01, z + l * len * 0.5); toe.add(tp); z += l * len + 0.02; });
-      const cl = new THREE.Mesh(toeClawG, clawM); cl.position.set(0, -0.04, z - 0.02); cl.castShadow = true; toe.add(cl);
+      const cl = new THREE.Mesh(toeClawG, clawM); cl.scale.setScalar(1.45); cl.position.set(0, -0.05, z - 0.03); cl.castShadow = true; toe.add(cl);
     }
     const dew = new THREE.Group(); dew.position.set(-s * 0.1, 0.16, -0.06); dew.rotation.y = -s * 1.2; foot.add(dew); const dt = new THREE.Mesh(capsG(0.035, 0.08), skinM); dt.rotation.x = -Math.PI / 2 - 0.4; dew.add(dt);
     const dc = new THREE.Mesh(toeClawG, clawM); dc.scale.setScalar(0.6); dc.position.set(0, -0.03, 0.1); dew.add(dc);
@@ -491,7 +510,7 @@ function makeRex() {
     arms.push(sh);
   }
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, torso, body, loftG, headG, jaw, skin, skull, jawSkin, jawSkull, teeth, holes, muscles, legs, arms, mouthMark, ol, palate, tongue, cheeks, holeK };
+  return { root, torso, body, loftG, headG, jaw, skin, skull, jawSkin, jawSkull, eyeGs, teeth, holes, muscles, legs, arms, mouthMark, ol, palate, tongue, cheeks, holeK };
 }
 function poseRex(r, { phase = 0, amp = 0, head = 0, jaw = 0.05, t = 0, breathe = 1, pitch = 0, tail = 1, sway = null, arm = 1, teeth = 1, skull = 0, holes = 0, muscles = 0, droop = 0 } = {}) {
   for (const l of r.legs) {
@@ -511,7 +530,7 @@ function poseRex(r, { phase = 0, amp = 0, head = 0, jaw = 0.05, t = 0, breathe =
   updateLoft(r.loftG, { tail, sway: sway === null ? Math.sin(t * 1.3) * 0.22 * (1 - amp * 0.5) + Math.sin(phase - 0.8) * 0.38 * amp : sway, droop: droop - bob * 0.6, t, breath: breathe });
   r.arms.forEach(a => { a.scale.setScalar(arm); a.rotation.x = Math.sin(t * 2 + a.position.x) * 0.1; });
   r.teeth.forEach(m => { const b = m.userData.base; const L = Math.max(0.001, teeth * b) * TOOTH_L0; const th = Math.max(0.001, b * lerp(0.8, 1.5, clamp((teeth - 0.8) / 1.5))) * TOOTH_L0; m.scale.set(th, L, th); });
-  r.skin.visible = r.jawSkin.visible = skull < 0.5; r.skull.visible = r.jawSkull.visible = skull >= 0.5;
+  r.skin.visible = r.jawSkin.visible = skull < 0.5; r.skull.visible = r.jawSkull.visible = skull >= 0.5; r.eyeGs.forEach(e => e.visible = skull < 0.5);
   r.holes.forEach(h => { h.visible = holes > 0; }); r.holeK.forEach(u => u.value = holes > 0 ? Math.max(0, back(holes * 1.3)) : 0);
   r.muscles.forEach((m, i) => { const k = back(muscles * 1.3 - i * 0.08); m.visible = muscles > 0; m.scale.set(...(m.userData.s ?? (m.userData.s = m.scale.toArray())).map(v => v * Math.max(0.001, k))); });
 }
@@ -550,6 +569,8 @@ function makeTri() {
     const pts = [V(s * 0.26, 0.3, 0.5), V(s * 0.31, 0.68, 0.78), V(s * 0.33, 0.92, 1.18), V(s * 0.3, 1.02, 1.62)]; const rr = [0.12, 0.095, 0.065, 0.03, 0.004];
     for (let k = 0; k < pts.length - 1; k++) seg(head, pts[k], pts[k + 1], rr[k], rr[k + 1], hornM);
     const tip = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.14, 10), hornM); tip.position.copy(pts[3]).add(V(0, 0.01, 0.06)); tip.rotation.x = 1.4; head.add(tip);
+    { const jm = add(triCol(new THREE.SphereGeometry(1, 22, 16)), head, s * 0.38, -0.08, 0.3, 0, false); jm.scale.set(0.2, 0.26, 0.38); } // Kaumuskel / Wange
+    { const lip = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.7, 4, 8), beakM); lip.rotation.x = Math.PI / 2 - 0.2; lip.position.set(s * 0.27, -0.2, 0.95); head.add(lip); } // Lippenkante
     const ch = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 12), hornM); ch.position.set(s * 0.5, -0.2, 0.45); ch.rotation.z = -s * 1.9; head.add(ch); // Wangenhorn
     // Augen wie beim T-Rex: Augenhöhle, Iris mit runder Pupille, Hornhaut, Lichtreflex, Lider
     const eg = new THREE.Group(); eg.position.set(s * 0.43, 0.22, 0.55); eg.lookAt(eg.position.clone().add(V(s, 0.15, 0.35).normalize())); head.add(eg);
@@ -577,10 +598,13 @@ function makeTri() {
   const legs = [];
   for (const [x, z, front] of [[-0.78, 1.25, 1], [0.78, 1.25, 1], [-0.82, -1.15, 0], [0.82, -1.15, 0]]) {
     const l = new THREE.Group(); l.position.set(x, 1.5, z); body.add(l);
-    seg(l, V(0, 0.1, 0), V(x * 0.06, -0.62, front ? 0.08 : -0.1), front ? 0.3 : 0.36, 0.25, skinM);
-    seg(l, V(x * 0.06, -0.62, front ? 0.08 : -0.1), V(x * 0.04, -1.36, 0.05), 0.24, 0.2, skinM);
-    const foot = new THREE.Mesh(triCol(new THREE.CylinderGeometry(0.22, 0.27, 0.16, 18)), skinM); foot.position.set(x * 0.04, -1.42, 0.08); foot.castShadow = true; l.add(foot);
-    for (let k = 0; k < 4; k++) { const nl = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), beakM); const a = -0.6 + k * 0.4; nl.scale.set(1, 0.7, 1.2); nl.position.set(x * 0.04 + Math.sin(a) * 0.24, -1.46, 0.08 + Math.cos(a) * 0.24); l.add(nl); }
+    const kn = V(x * 0.06, -0.62, front ? 0.12 : -0.14);
+    seg(l, V(0, 0.1, 0), kn, front ? 0.36 : 0.42, 0.3, skinM);
+    seg(l, kn, V(x * 0.04, -1.3, 0.05), 0.29, 0.25, skinM);
+    add(triCol(new THREE.SphereGeometry(1, 20, 14)), l, kn.x, kn.y, kn.z + (front ? 0.04 : -0.04), 0, false).scale.set(0.31, 0.27, 0.3); // Knie
+    for (let k = 0; k < 3; k++) { const f = add(triCol(new THREE.TorusGeometry(0.27 - k * 0.012, 0.035, 8, 22)), l, x * 0.04, -1.08 - k * 0.09, 0.05, Math.PI / 2, false); f.scale.set(1, 1, 0.7); } // Hautfalten am Fußgelenk
+    const foot = new THREE.Mesh(triCol(new THREE.CylinderGeometry(0.27, 0.33, 0.24, 22)), skinM); foot.position.set(x * 0.04, -1.38, 0.08); foot.castShadow = true; l.add(foot);
+    for (let k = 0; k < 5; k++) { const nl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 8), beakM); const a = -0.75 + k * 0.375; nl.scale.set(1, 0.8, 1.3); nl.position.set(x * 0.04 + Math.sin(a) * 0.31, -1.44, 0.08 + Math.cos(a) * 0.31); l.add(nl); } // Hufnägel
     legs.push(l);
   }
   // Schulter-/Oberschenkelmuskeln: weicher Übergang Beine -> Rumpf
@@ -652,6 +676,7 @@ const boneShards = []; for (let k = 0; k < 14; k++) { const m = new THREE.Mesh(n
 function particles(n, size, color, seed) { const p = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: dotTex, size, color, transparent: true, depthWrite: false }));
   p.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); const r = rng(seed); p.userData.v = Array.from({ length: n }, () => [(r() - .5), r(), (r() - .5), r()]); p.frustumCulled = false; scene.add(p); return p; }
 const crumbs = particles(120, 0.07, 0xf3ead7, 7), dust = particles(260, 0.9, 0xb8a27e, 9);
+const stepDust = Array.from({ length: 8 }, (_, i) => particles(90, 1.0, 0xa58c68, 200 + i)); // Staub/Erde bei jedem Schritt
 function burst(p, origin, t, { spread = 2, up = 3, g = 9.8, life = 1.5, ring = false } = {}) {
   const a = p.geometry.attributes.position.array; p.visible = t > 0 && t < life;
   p.userData.v.forEach((v, i) => { const tt = clamp(t, 0, life); if (ring) { const ang = v[0] * 20, sp = spread * (0.5 + v[3]); a[i * 3] = origin.x + Math.cos(ang) * sp * Math.sqrt(tt); a[i * 3 + 1] = origin.y + v[1] * up * tt * 0.4; a[i * 3 + 2] = origin.z + Math.sin(ang) * sp * Math.sqrt(tt); }
@@ -737,7 +762,7 @@ function resetWorld() {
   rex.root.visible = true; rex.root.position.set(0, 0, 0); rex.root.rotation.set(0, 0, 0); rex.ol.userData.u.uA.value = 0;
   tri.root.visible = false; tri.biteMark.visible = false; tri.neckBite.visible = false; tri.edgeCones.forEach(c => c.visible = true); tri.root.position.set(0, 0, 0); tri.root.rotation.set(0, 0, 0); tri.ol.userData.u.uA.value = 0; tri.frill.scale.set(1, 1, 1);
   bone.visible = false; rock.visible = false; boneHalves.forEach(h => { h.position.set(0, 0, 0); h.rotation.set(0, 0, 0); }); boneShards.forEach(m => m.visible = false);
-  crumbs.visible = dust.visible = false; brokenTeeth.forEach(m => m.visible = false); toothChips.forEach(m => m.visible = false); boneDents.visible = false; frillBits.forEach(m => m.visible = false);
+  crumbs.visible = dust.visible = false; stepDust.forEach(p => p.visible = false); brokenTeeth.forEach(m => m.visible = false); toothChips.forEach(m => m.visible = false); boneDents.visible = false; frillBits.forEach(m => m.visible = false);
   macro.visible = false; seesaw.visible = false; ground.visible = world.visible = sky.visible = true;
   scene.background = null; scene.fog.near = 40; scene.fog.far = 320;
   ui = []; svg = []; badge.style.display = 'none'; cta.style.display = 'none';
@@ -762,9 +787,16 @@ const shots = [
     const tb = T - tBreak; if (tb > 0) { const top = V(1.05, 2.6, -0.1); brokenTeeth.forEach((m, i) => { const v = m.userData.v; m.visible = tb < 2; m.position.set(top.x + v[0] * tb * 0.6, Math.max(0.05, top.y + v[1] * tb - 4.9 * tb * tb), top.z + v[2] * tb * 0.6); m.rotation.set(v[3] + tb * 8, tb * 5, 0); });
       rex.teeth.forEach((m, i) => { if (i % 3 === 0) m.scale.y *= 0.3; }); burst(crumbs, top, tb, { spread: 1.5, up: 3 }); }
     // Seitenprofil: Triceratops komplett sichtbar, T-Rex beißt von hinten in den Rücken; langsame Kamerafahrt nach innen
+    // Mitfahrende Kamera neben dem rennenden T-Rex, Staub bei jedem Schritt
+    const tTrack = tLunge - 0.55; const rotY = rex.root.rotation.y; const dir = V(Math.sin(rotY), 0, Math.cos(rotY)), side = V(-dir.z, 0, dir.x);
+    const mouthOff = rex.mouthMark.getWorldPosition(V(0, 0, 0)).sub(rex.root.position);
+    const runAt = tt => startP.clone().lerp(pre, 1 - Math.pow(1 - clamp(tt / tLunge), 1.6)).sub(mouthOff);
+    let stepK = 0, stepPulse = 0; for (let k = 0; k < 8; k++) { const tk = (k * Math.PI + Math.PI / 2) / 7.5; if (tk > tLunge + 0.1) break; const dt = T - tk; if (dt > 0 && dt < 1.4) { const ls = k % 2 ? 1 : -1; burst(stepDust[k], runAt(tk).add(side.clone().multiplyScalar(ls * 0.75)).add(dir.clone().multiplyScalar(0.3)).setY(0.25), dt, { spread: 2.0, up: 2.2, g: 2.5, life: 1.4 }); } if (dt > 0) stepPulse = Math.exp(-dt * 9); }
     const camP = V(-2.0, 3.8, 19.5).add(V(u * 0.4, 0, -u * 1.0)); const mouthP = rex.mouthMark.getWorldPosition(V(0, 0, 0));
+    if (T >= tTrack) CUT = tTrack;
     const kz = ease((T - (tBite - 0.2)) / 0.45); // Weit (Anlauf) -> Nahaufnahme des Nackenbisses
     const HC = [1.7, 0.55, 2.9, -0.1, -0.3, 0]; /* schräg von vorne auf Nacken + Zähne */ cam(camP.clone().lerp(mouthP.clone().add(V(HC[0], HC[1], HC[2])), kz), V(-2.6, 2.2, -2.0).lerp(mouthP.clone().add(V(HC[3], HC[4], HC[5])), kz), lerp(50, 40, kz), T, tb > 0 ? 0.03 + 0.18 * Math.exp(-tb * 4) : (T > tBite ? 0.25 * Math.exp(-(T - tBite) * 5) : 0.03));
+    if (T < tTrack) { const hp = rex.root.position.clone(); cam(hp.clone().add(side.clone().multiplyScalar(12.5)).add(dir.clone().multiplyScalar(5.5)).setY(2.4), hp.clone().add(dir.clone().multiplyScalar(1.6)).setY(2.5), 44, T, 0.03 + 0.2 * stepPulse); }
     label3('DINOSAURIER', rex.headG.getWorldPosition(V(0, 0, 0)).add(V(0, 0.5, 0)), clamp((T - WT(0, 'dinos')) * 3), -60, -160);
     label3('TRICERATOPS', tri.head.getWorldPosition(V(0, 0, 0)).add(V(0.3, 0.6, 0)), clamp((T - WT(0, 'triceratops')) * 3), 60, -230);
     tri.ol.userData.u.uA.value = clamp((T - WT(0, 'triceratops')) * 4) * (1 - clamp((T - WT(0, 'triceratops') - 1.0) * 3)) * 0.9;
@@ -927,6 +959,7 @@ window.renderAt = (T) => {
   resetWorld(); let i = 0; for (let k = 0; k < S.length; k++) if (T >= S[k].start - 0.05) i = k;
   CUT = 0; GT = T; GI = i; scene.updateMatrixWorld(true); shots[i](T); scene.updateMatrixWorld(true);
   { const u = T - Math.max(S[i].start, CUT); renderer.domElement.style.filter = T > 0.3 && u < 0.12 ? `blur(${((1 - u / 0.12) * 7).toFixed(1)}px)` : 'none'; }
+  { const fd = camera.position.distanceTo(LOOK); bokeh.enabled = fd < 11 && scene.background === null; bokeh.uniforms.focus.value = fd; bokeh.uniforms.aperture.value = 0.00022 * clamp((11 - fd) / 5); }
   hideNearGrass(); composer.render(); labEl.innerHTML = ui.join(''); svgEl.innerHTML = svg.join(''); caption(T); return i;
 };
 await document.fonts.load('900 50px M'); await document.fonts.load('50px "Noto Color Emoji"');
