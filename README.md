@@ -59,9 +59,11 @@ npm run sim -- undo     # letzten Eintrag löschen
 | `video-02` | 15.11.2026 | +17 | 15 | 10 | 0 | – | 150 ml + 5 L = **5,15 L** |
 | `video-03` | 15.11.2026 | ±0 | 15 | 8 | 0 | – | 150 ml + 4 L = **4,15 L** |
 | `video-04` | 16.11.2026 | +6 | 13 | 3 | – | – | 130 ml + 1,5 L = **1,63 L** |
+| `video-05` | 17.11.2026 | +10 | 18 | 10 | – | 1 | 180 ml + 5 L = **5,18 L** |
 
 Stand 15.11.2026: 21 Einwohner, 210 L pro Tag, insgesamt 260,34 L getrunken (Trinken 250 L + Aktivitäten 10,34 L).
 Stand 16.11.2026: 27 Einwohner, 270 L pro Tag, insgesamt 531,97 L getrunken (Trinken 520 L + Aktivitäten 11,97 L).
+Stand 17.11.2026: 37 Einwohner, 370 L pro Tag, insgesamt 907,15 L getrunken (Trinken 890 L + Aktivitäten 17,15 L), 3 Speicherungen.
 
 Für das nächste Video nur die **neuen** Zahlen eintragen (`add … --ref video-02`) – oder den Gesamtstand aus der App
 (`totals … --ref video-02`): Das Programm zieht die schon gezählten Werte selbst ab.

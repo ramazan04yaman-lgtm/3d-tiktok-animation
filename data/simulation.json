@@ -71,34 +71,46 @@
       "saves": 0,
       "ref": "video-04",
       "note": "Tag 4: Shares und Speicherungen nicht angegeben"
+    },
+    {
+      "id": "10f56d74-cda9-4c79-8e72-b69341c228dd",
+      "day": "2026-11-17",
+      "createdAt": "2026-11-17T11:54:55.523Z",
+      "followers": 10,
+      "likes": 18,
+      "comments": 10,
+      "shares": 0,
+      "saves": 1,
+      "ref": "video-05",
+      "note": "Tag 5: Shares nicht angegeben"
     }
   ],
-  "lastProcessedDay": "2026-11-16",
-  "lastProcessedAt": "2026-11-16T09:34:29.338Z",
+  "lastProcessedDay": "2026-11-17",
+  "lastProcessedAt": "2026-11-17T11:54:55.684Z",
   "snapshot": {
     "startDay": "2026-11-14",
-    "lastProcessedDay": "2026-11-16",
-    "lastProcessedAt": "2026-11-16T09:34:29.338Z",
-    "daysProcessed": 3,
-    "followers": "27",
-    "population": "27",
-    "likes": "47",
-    "comments": "23",
+    "lastProcessedDay": "2026-11-17",
+    "lastProcessedAt": "2026-11-17T11:54:55.684Z",
+    "daysProcessed": 4,
+    "followers": "37",
+    "population": "37",
+    "likes": "65",
+    "comments": "33",
     "shares": "0",
-    "saves": "2",
+    "saves": "3",
     "totalWaterMl": "1386000000000000000000000",
-    "remainingMl": "1385999999999999999468030",
-    "totalConsumedMl": "531970",
-    "dailyMl": "270000",
+    "remainingMl": "1385999999999999999092850",
+    "totalConsumedMl": "907150",
+    "dailyMl": "370000",
     "consumedMl": {
-      "drinking": "520000",
-      "likes": "470",
-      "comments": "11500",
+      "drinking": "890000",
+      "likes": "650",
+      "comments": "16500",
       "shares": "0"
     },
-    "daysUntilEmpty": "5133333333333333332",
+    "daysUntilEmpty": "3745945945945945944",
     "depletedOnDay": null,
-    "entryCount": 4,
+    "entryCount": 5,
     "stufe": {
       "likeMl": "10",
       "kommentarMl": "500",
@@ -269,6 +281,56 @@
       "nr": 27,
       "name": "@miss_sophie123",
       "seit": "2026-11-16T09:34:29.328Z"
+    },
+    {
+      "nr": 28,
+      "name": "@nerfsniper193",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 29,
+      "name": "@larsgamerpro",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 30,
+      "name": "@schnitti37",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 31,
+      "name": "@damiangaming67",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 32,
+      "name": "@mrsharkykitty",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 33,
+      "name": "@eli4s118",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 34,
+      "name": "@39_ita.s14",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 35,
+      "name": "@merlibiev06",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 36,
+      "name": "@quirin295",
+      "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 37,
+      "name": "@felieic",
+      "seit": "2026-11-17T11:54:55.669Z"
     }
   ]
 }

@@ -93,18 +93,21 @@ test('TikTok-Namen: exakt, eindeutig, dauerhaft, nicht mehr als Follower', () =>
   assert.equal(loadFile(p)!.einwohnerNamen!.length, 3);
 });
 
-test('Echter Spielstand: alle 27 Namen exakt wie vorgegeben, Folge 3 bleibt reproduzierbar', () => {
+test('Echter Spielstand: alle 37 Namen exakt wie vorgegeben, alte Folgen bleiben reproduzierbar', () => {
   const soll = ['@leonaprj', '@asen43013', '@nicidragoon', '@magdaa605', '@cool.shorts38', '@jaime_1234456789', '@tim.maciejewski6',
     '@bjarne.brawl.star', '@kilianott5', '@kukuwasgehor', '@thomas15361', '@ghost155151', '@king.murat21', '@theeditz477',
     '@pancake.544', '@oskorro8', '@benniiideralpha', '@leon.gas1', '@ole201156', '@ezzeeyfn', '@locskai.bence',
-    '@.45347', '@christophchaos', '@leon10202660', '@j.bln11', '@amir_78811', '@miss_sophie123'];
+    '@.45347', '@christophchaos', '@leon10202660', '@j.bln11', '@amir_78811', '@miss_sophie123',
+    '@nerfsniper193', '@larsgamerpro', '@schnitti37', '@damiangaming67', '@mrsharkykitty', '@eli4s118', '@39_ita.s14',
+    '@merlibiev06', '@quirin295', '@felieic'];
   const f = loadFile()!;
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.name), soll);
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.nr), soll.map((_, i) => i + 1));
   const z = echteZahlen(undefined, 'video-03', '2026-11-15');
   assert.equal(z.snapshot.population, '21');
   assert.equal(z.snapshot.totalConsumedMl, '260340');
-  assert.equal(z.namen.length, 27);
+  assert.equal(z.namen.length, 37);
+  assert.equal(new Set(f.einwohnerNamen!.map((n) => n.name.toLowerCase())).size, 37);   // keine doppelten Figuren
   // Tag 4: 27 Einwohner, 270 L/Tag, Aktivitäten 1,63 L, Like weiterhin 10 ml
   const v4 = echteZahlen(undefined, 'video-04', '2026-11-16');
   assert.equal(v4.snapshot.population, '27');
@@ -115,4 +118,14 @@ test('Echter Spielstand: alle 27 Namen exakt wie vorgegeben, Folge 3 bleibt repr
   assert.equal(extra(v4.snapshot) - extra(v4.seit!), 1_630n);           // 130 ml + 1,5 L
   // 260,34 L + 16.11.: 21 × 10 L + 6 × 10 L (Ankunftstag) + 1,63 L
   assert.equal(v4.snapshot.totalConsumedMl, '531970');
+  // Tag 5: +10 -> 37 Einwohner, 370 L/Tag, Aktivitäten 5,18 L, 1 Speicherung ohne Wasser
+  const v5 = echteZahlen(undefined, 'video-05', '2026-11-17');
+  assert.equal(v5.snapshot.population, '37');
+  assert.equal(v5.seit!.population, '27');
+  assert.equal(v5.snapshot.dailyMl, '370000');
+  assert.equal(v5.snapshot.stufe.likeMl, '10');
+  assert.equal(extra(v5.snapshot) - extra(v5.seit!), 5_180n);           // 180 ml + 5 L
+  assert.equal(BigInt(v5.snapshot.saves) - BigInt(v5.seit!.saves), 1n);
+  // 531,97 L + 17.11.: 27 × 10 L + 10 × 10 L (Ankunftstag) + 5,18 L
+  assert.equal(v5.snapshot.totalConsumedMl, '907150');
 });

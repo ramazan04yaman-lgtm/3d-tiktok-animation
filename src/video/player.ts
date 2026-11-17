@@ -254,7 +254,7 @@ export class StoryPlayer {
     const people = this.scene.people;
     // Nur wenn die Kamera wirklich bei den Figuren ist (nicht während des Anflugs aus dem All)
     const k0 = people.positionOf(0);
-    const nahDran = !!k0 && this.scene.camera.position.distanceTo(k0) < people.figureSize * 40;
+    const nahDran = !!k0 && this.scene.camera.position.distanceTo(k0) < people.figureSize * 75;
     const zeigen = namen.length > 0 && people.nah && nahDran && !!beat && !beat.vorschauEinwohner && !this.scene.mascotVisible;
     this.namenEl.style.display = zeigen ? '' : 'none';
     if (!zeigen) return;

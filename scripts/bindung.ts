@@ -29,7 +29,10 @@ const folge = loadFolge(folgenPfad(name));
 const z = echteZahlen(undefined, folge.seit, folge.stichtag);
 const p = platzhalter(z.snapshot, z.seit);
 const tlDatei = path.resolve(import.meta.dirname, '..', 'output', `${name}-arbeit`, 'zeitleiste.json');
-const echt = fs.existsSync(tlDatei);
+// "Echt" nur, wenn die Zeitleiste aus der eigenen Aufnahme stammt (nicht aus einer Vorschau mit Ersatzstimme)
+const aufnahme = folge.stimme?.typ === 'aufnahme' ? path.resolve(path.dirname(folgenPfad(name)), folge.stimme.datei) : null;
+const echt = !!aufnahme && fs.existsSync(aufnahme) && fs.existsSync(tlDatei) && fs.statSync(tlDatei).mtimeMs > fs.statSync(aufnahme).mtimeMs
+  && JSON.parse(fs.readFileSync(tlDatei, 'utf8')).beats?.length === folge.beats.length;
 // Ohne Aufnahme: Sprechdauer im Tempo von Felix schätzen (Tag 4: 235 Wörter in 110 s ≈ 2,15 Wörter/s + Satzpausen)
 const schaetzung = folge.beats.map((b) => { const t = plain(ersetze(b.sprache ?? b.text, p)); return t.split(/\s+/).length / 2.15 + (t.match(/[.!?…]/g)?.length ?? 1) * 0.25; });
 const tl: Timeline = echt ? JSON.parse(fs.readFileSync(tlDatei, 'utf8')) : buildTimeline({ folge, ...z, sprechdauer: schaetzung });
