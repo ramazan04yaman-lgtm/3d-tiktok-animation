@@ -197,10 +197,10 @@ function outlineMat(color, o = 0.06) {
 }
 
 // ---------- Haut ----------
-const BACK = new THREE.Color(0x8c5426), BELLY = new THREE.Color(0xe3c896), STRIPE = new THREE.Color(0x5a3216);
+const BACK = new THREE.Color(0xae8a60), BELLY = new THREE.Color(0xeadbbb), STRIPE = new THREE.Color(0x7d5a3a);
 function skinColor(ny, z, c, x = 0, y = 0) {
   const k = clamp((ny + 0.25) / 0.9); c.copy(BELLY).lerp(BACK, k);
-  if (ny > 0.15 && Math.sin(z * 2.6 + Math.sin(z * 0.7) * 1.2) > 0.55) c.lerp(STRIPE, 0.5 * clamp((ny - 0.15) * 3));
+  if (ny > 0.15 && Math.sin(z * 2.6 + Math.sin(z * 0.7) * 1.2) > 0.55) c.lerp(STRIPE, 0.22 * clamp((ny - 0.15) * 3));
   const n = Math.sin(x * 7.1 + z * 3.3) * Math.sin(y * 5.7 - z * 4.1) + 0.5 * Math.sin(x * 13 + y * 11 + z * 9);
   c.multiplyScalar(0.93 + 0.07 * n); if (ny > 0.3 && n > 0.95) c.lerp(STRIPE, 0.22);
   return c;
@@ -236,7 +236,7 @@ const darkM = new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.3 }
 
 // Loft entlang einer Wirbelsäule: keys [z, y, rx, ry]
 const KEYS = [[-7.6, 2.15, 0.025, 0.03], [-6.6, 2.32, 0.08, 0.1], [-5.5, 2.5, 0.15, 0.2], [-4.3, 2.68, 0.25, 0.33], [-3.0, 2.86, 0.38, 0.49], [-1.8, 3.0, 0.54, 0.67], [-0.6, 3.08, 0.72, 0.88],
-  [0.4, 3.02, 0.84, 1.04], [1.3, 2.9, 0.86, 1.08], [2.1, 3.0, 0.72, 0.92], [2.75, 3.28, 0.61, 0.75], [3.2, 3.58, 0.53, 0.64], [3.55, 3.82, 0.47, 0.57]];
+  [0.4, 3.0, 0.92, 1.14], [1.3, 2.88, 0.95, 1.2], [2.1, 3.02, 0.84, 1.06], [2.75, 3.3, 0.72, 0.9], [3.2, 3.6, 0.62, 0.78], [3.55, 3.84, 0.55, 0.68]];
 function cr(p0, p1, p2, p3, t) { const t2 = t * t, t3 = t2 * t; return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3); }
 function sampleKeys(u) { const n = KEYS.length - 1; const f = u * n; const i = Math.min(n - 1, Math.floor(f)); const t = f - i;
   const k = j => KEYS[Math.max(0, Math.min(n, j))]; return [0, 1, 2, 3].map(c => cr(k(i - 1)[c], k(i)[c], k(i + 1)[c], k(i + 2)[c], t)); }
@@ -275,24 +275,24 @@ function updateLoft(g, { tail = 1, sway = 0, droop = 0, t = 0, breath = 0 }) {
     sc.count = n; sc.instanceMatrix.needsUpdate = true; }
 }
 // ---------- Kopf: Loft mit Superellipsen-Querschnitten (exakte Oberflächenfunktion) ----------
-const SE = 2.6; // Superellipsen-Exponent: etwas kantiger, knöcherner Querschnitt
+const SE = 2.15; // Superellipsen-Exponent: etwas kantiger, knöcherner Querschnitt
 const sgnPow = (v, p) => Math.sign(v) * Math.pow(Math.abs(v), p);
 function headProf(upper, t) {
   let z, w, top, bot;
   if (upper) {
     z = lerp(-0.18, 1.62, t);
-    w = t < 0.3 ? lerp(0.53, 0.41, t / 0.3) : t < 0.55 ? lerp(0.41, 0.31, (t - 0.3) / 0.25) : lerp(0.31, 0.275, (t - 0.55) / 0.45);
-    top = t < 0.25 ? lerp(0.63, 0.5, t / 0.25) : lerp(0.5, 0.33, Math.pow((t - 0.25) / 0.75, 0.9));
-    if (t > 0.42 && t < 0.9) top += 0.022 * Math.max(0, Math.sin((t - 0.42) * 42)); // raue Nasenknochen
+    w = t < 0.3 ? lerp(0.56, 0.44, t / 0.3) : t < 0.55 ? lerp(0.44, 0.35, (t - 0.3) / 0.25) : lerp(0.35, 0.31, (t - 0.55) / 0.45);
+    top = t < 0.25 ? lerp(0.72, 0.6, t / 0.25) : lerp(0.6, 0.4, Math.pow((t - 0.25) / 0.75, 0.8));
+    if (t > 0.42 && t < 0.9) top += 0.01 * Math.max(0, Math.sin((t - 0.42) * 42)); // raue Nasenknochen
     bot = 0.075;
   } else {
     z = lerp(-0.1, 1.67, t);
-    w = lerp(0.48, 0.26, Math.pow(t, 0.9));
+    w = lerp(0.52, 0.3, Math.pow(t, 0.9));
     top = 0.06;
-    bot = t < 0.2 ? lerp(0.33, 0.41, t / 0.2) : lerp(0.41, 0.23, (t - 0.2) / 0.8); // massiver, tiefer Unterkiefer
+    bot = t < 0.2 ? lerp(0.38, 0.46, t / 0.2) : lerp(0.46, 0.27, (t - 0.2) / 0.8); // massiver, tiefer Unterkiefer
   }
   const eb = t < 0.13 ? Math.sqrt(1 - Math.pow((0.13 - t) / 0.13, 2)) : 1;
-  const ef = t > 0.86 ? Math.pow(Math.max(0, 1 - Math.pow((t - 0.86) / 0.14, 2)), 0.3) : 1; // stumpfe, kräftige Schnauze
+  const ef = t > 0.84 ? Math.pow(Math.max(0, 1 - Math.pow((t - 0.84) / 0.16, 2)), 0.42) : 1; // stumpfe, kräftige Schnauze
   const e = eb * ef; return { z, w: w * e, top: top * e, bot: bot * e };
 }
 function headSurf(upper, t, phi, k = 1) {
@@ -301,7 +301,7 @@ function headSurf(upper, t, phi, k = 1) {
 }
 function headNormal(upper, t, phi) { const p = headProf(upper, t); const q = headSurf(upper, t, phi); const h = q.y > 0 ? p.top : p.bot;
   return V(q.x / Math.max(1e-3, p.w * p.w), q.y / Math.max(1e-3, h * h), 0).normalize(); }
-const MOUTH = new THREE.Color(0xb34e60);
+const MOUTH = new THREE.Color(0xb34e60), HEADTOP = new THREE.Color(0x7a5537);
 function headGeo(upper) {
   const R = 56, SD = 40; const pos = [], idx = [], uv = [];
   for (let i = 0; i < R; i++) { const t = i / (R - 1); for (let j = 0; j < SD; j++) { const q = headSurf(upper, t, j / SD * Math.PI * 2); pos.push(q.x, q.y, q.z); uv.push(t * 1.1, j / SD * 1.1); } }
@@ -309,7 +309,8 @@ function headGeo(upper) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   colorize(g, 4, 1, 1); const n = g.attributes.normal, col = g.attributes.color; const c = new THREE.Color();
   for (let i = 0; i < n.count; i++) { const ny = n.getY(i); const m = upper ? clamp((-ny - 0.55) * 4) : clamp((ny - 0.55) * 4);
-    if (m > 0) { c.setRGB(col.getX(i), col.getY(i), col.getZ(i)).lerp(MOUTH, m); col.setXYZ(i, c.r, c.g, c.b); } }
+    if (m > 0) { c.setRGB(col.getX(i), col.getY(i), col.getZ(i)).lerp(MOUTH, m); col.setXYZ(i, c.r, c.g, c.b); }
+    if (upper && ny > 0.5) { c.setRGB(col.getX(i), col.getY(i), col.getZ(i)).lerp(HEADTOP, clamp((ny - 0.5) * 2.5) * 0.55); col.setXYZ(i, c.r, c.g, c.b); } }
   return g;
 }
 // ---------- Zähne: dick, D-förmig, nach hinten gebogen, mit gezackten Schneidkanten ----------
@@ -372,7 +373,7 @@ function makeRex() {
   const tongueG = new THREE.SphereGeometry(1, 28, 16); { const tp = tongueG.attributes.position; for (let i = 0; i < tp.count; i++) { const x = tp.getX(i), y = tp.getY(i), z = tp.getZ(i); tp.setXYZ(i, x * (0.75 + 0.25 * (1 - z) / 2), y + (y > 0 ? -0.35 * Math.exp(-x * x * 40) : 0), z); } tongueG.computeVertexNormals(); }
   const tongue = new THREE.Mesh(tongueG, tongueM); tongue.scale.set(0.25, 0.07, 0.62); tongue.position.set(0, 0.03, 0.82); jaw.add(tongue);
   const cheeks = [-1, 1].map(s => { const g = makeCheek(s); updateCheek(g, 0.05); const m = new THREE.Mesh(g, cheekM); m.castShadow = true; skin.add(m); return g; });
-  const neckBlend = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 28, 20)), skinM); neckBlend.scale.set(0.47, 0.5, 0.42); neckBlend.position.set(0, -0.1, -0.22); skin.add(neckBlend); // Übergang Hals -> Kopf
+  const neckBlend = new THREE.Mesh(colorize(new THREE.SphereGeometry(1, 28, 20)), skinM); neckBlend.scale.set(0.56, 0.64, 0.5); neckBlend.position.set(0, -0.1, -0.22); skin.add(neckBlend); // Übergang Hals -> Kopf
   // Zähne + Zahnfleisch
   const r = rng(321); const geos = Array.from({ length: 8 }, () => toothGeo(r)); const teeth = [];
   const addTooth = (parent, x, y, z, size, lower, s) => { const m = new THREE.Mesh(geos[(r() * geos.length) | 0], toothM); m.position.set(x, y, z);
