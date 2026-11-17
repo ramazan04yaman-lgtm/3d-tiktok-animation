@@ -174,6 +174,10 @@ export class EarthScene {
     // Blickpunkt etwas hinter den Neuen -> sie stehen in der Bildmitte statt oben
     SHOTS.neue = { label: '✨ Die neuen Einwohner', lat: lat - grad(z - 4.6), lon: lon + grad(x) / Math.cos(lat * Math.PI / 180),
       dist: r + 12 * k, tilt: grad(18), focus: r + 0.8 * k, figur: k };
+    // Nahaufnahme: Platz der ERSTEN neuen Figur (für einen Einstieg mit Wucht)
+    const [x1, z1] = gruenderPlatz(von, n);
+    SHOTS.neu1 = { label: '✨ Die erste Neue (nah)', lat: lat - grad(z1), lon: lon + grad(x1) / Math.cos(lat * Math.PI / 180),
+      dist: r + 2.2 * k, tilt: grad(4.8), focus: r + 0.95 * k, figur: k };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */

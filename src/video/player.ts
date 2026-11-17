@@ -48,6 +48,7 @@ export class StoryPlayer {
     layer.innerHTML = '<div class="namen"></div><div class="stickers"></div><div class="caption"></div>';
     this.namenEl = layer.querySelector('.namen')!;
     if (timeline.ankunft) scene.updateNeueShot(timeline.ankunft.von, timeline.ankunft.bis);
+    document.body.classList.toggle('kompakt', timeline.anzeige === 'kompakt');
     this.stickerEl = layer.querySelector('.stickers')!;
     this.captionEl = layer.querySelector('.caption')!;
   }
@@ -85,6 +86,7 @@ export class StoryPlayer {
       }
     }
     const local = t - beat.start;
+    document.body.classList.toggle('hud-aus', !!beat.anzeigeAus);
     // Ankunft der neuen Einwohner (vorher unsichtbar)
     const an = this.timeline.ankunft;
     this.scene.people.ankunft = an ? { von: an.von, bis: an.bis, abstand: an.abstand, t: t - an.start } : null;
@@ -276,7 +278,7 @@ export class StoryPlayer {
     for (let i = 0; i < this.namenSchilder.length; i++) {
       const el = this.namenSchilder[i];
       // In der Einstellung "neue" nur die Schilder der Neuen (übersichtlich)
-      const nurNeue = beat.kamera === 'neue' && this.timeline.ankunft;
+      const nurNeue = (beat.kamera === 'neue' || beat.kamera === 'neu1') && this.timeline.ankunft;
       const kopf = i < n && namen[i] && !(nurNeue && i < nurNeue.von) ? people.positionOf(i) : null;
       if (!kopf) { el.style.display = 'none'; continue; }
       // positionOf liegt ~0,25 Figuren-Einheiten über dem Scheitel -> Schild direkt auf den Kopf setzen
@@ -296,7 +298,9 @@ export class StoryPlayer {
       let y = k.y, fs = k.fs;
       const breite = () => (em * fs) / W * 100, hoehe = () => fs * 1.75;
       // am Bildrand nach innen schieben statt ausblenden
-      const mitteX = () => Math.min(99.5 - breite() / 2, Math.max(0.5 + breite() / 2, k.x));
+      // TikTok-Sicherheitsbereich: rechts (ab ~86 %) liegen zwischen 38 % und 88 % Höhe die Like-/Kommentar-Knöpfe
+      const rechts = y > 36 && y < 90 ? 86 : 99.5;
+      const mitteX = () => Math.min(rechts - breite() / 2, Math.max(0.5 + breite() / 2, k.x));
       const box = () => ({ l: mitteX() - breite() / 2, r: mitteX() + breite() / 2, o: y - hoehe(), u: y });
       const kollidiert = () => { const q = box(); return belegt.some((p) => q.l < p.r && q.r > p.l && q.o < p.u && q.u > p.o); };
       // Platz suchen: erst etwas kleiner, dann nach oben stapeln
@@ -306,7 +310,9 @@ export class StoryPlayer {
       }
       const q = box();
       // nicht unter der oberen Anzeige und nicht aus dem Bild
-      if (kollidiert() || q.o < 21 || q.l < 0.4 || q.r > 99.6 || q.u > 99) { el.style.display = 'none'; continue; }
+      // nicht unter der oberen Anzeige / TikTok-Kopfzeile und nicht unter der TikTok-Beschriftung unten (ab ~84 %)
+      const oben = document.body.classList.contains('kompakt') ? 18.5 : 21;
+      if (kollidiert() || q.o < oben || q.l < 0.4 || q.r > 99.6 || q.u > 84) { el.style.display = 'none'; continue; }
       belegt.push(q);
       el.style.display = '';
       el.style.left = `${mitteX()}%`; el.style.top = `${y}%`; el.style.fontSize = `${fs}cqh`;
@@ -314,5 +320,5 @@ export class StoryPlayer {
     }
   }
 
-  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; }
+  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; document.body.classList.remove('kompakt', 'hud-aus'); }
 }

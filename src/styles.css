@@ -235,3 +235,22 @@ body.story .h3 .hud-foot { font-size: 1.05cqh; }
 .st-zahlen .zk.gross b { font-size: 4cqh; }
 .st-zahlen .zk.lang b { font-size: 2.15cqh; }
 .st-zahlen .zk-pct { font-size: 2.3cqh; }
+
+/* Kompakte Anzeige für TikTok (Drehbuch: "anzeige": "kompakt") – unter der TikTok-Kopfzeile (≈ 8 % oben) */
+.h4 { display: none; position: absolute; top: 8.6cqh; left: 4%; right: 4%; }
+body.story.kompakt .h3 { display: none; }
+body.story.kompakt .h4 { display: block; }
+.h4-zeile { display: flex; justify-content: space-between; gap: .8cqh; background: rgba(255,255,255,.96); border: .25cqh solid #14182a;
+  border-radius: 1.4cqh; padding: .6cqh 1.2cqh; box-shadow: 0 .4cqh 0 rgba(0,0,0,.3); }
+.h4-zeile span { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.h4-zeile small { font-size: 1.5cqh; line-height: 1; }
+.h4-zeile b { font-size: 2.6cqh; font-weight: 900; color: #14182a; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.h4-zeile span:nth-child(1) b { color: #1fa84a; } .h4-zeile span:nth-child(2) b { color: #1287ff; } .h4-zeile span:nth-child(3) b { color: #ff7a2f; }
+.h4-zeile i { font-style: normal; font-size: 1.05cqh; font-weight: 900; color: #5a6380; letter-spacing: .03em; }
+.h4-ziel { margin-top: .6cqh; background: #ffd23a; border: .25cqh solid #14182a; border-radius: 1.2cqh; padding: .45cqh 1.1cqh .55cqh;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; font-weight: 900; color: #14182a; font-size: 1.45cqh; }
+.h4-ziel b { font-size: 1.75cqh; }
+.h4-ziel .bar { flex-basis: 100%; height: .8cqh; margin-top: .35cqh; background: rgba(20,24,42,.22); border-radius: 1cqh; overflow: hidden; }
+.h4-ziel .bar i { display: block; height: 100%; background: linear-gradient(90deg, #1fa84a, #63f23a); }
+/* Einstieg ohne Anzeige (Drehbuch: "anzeige": false im Beat) */
+body.story.hud-aus .h3, body.story.hud-aus .h4, body.story.hud-aus .hud-preview { opacity: 0; }

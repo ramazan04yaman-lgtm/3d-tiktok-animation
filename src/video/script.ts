@@ -302,7 +302,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
     beats.push({
       start: t, end: t + dauer, kamera, uebergang: b.uebergang ?? 0,
       sticker, wasser: { von, bis }, vorschauEinwohner: b.einwohner_vorschau,
-      strohhalm: b.strohhalm ?? false, aktion: b.aktion, sprechen: { start: t, end: t + sprech },
+      strohhalm: b.strohhalm ?? false, aktion: b.aktion, sprechen: { start: t, end: t + sprech }, ...(b.anzeige === false ? { anzeigeAus: true } : {}),
     });
     t += dauer;
   });
@@ -312,7 +312,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
   if (ab >= 0 && seit) {
     const von = Number(seit.population), bis = Number(snapshot.population);
     if (bis > von) {
-      const start = beats[ab].start + 0.4, abstand = Math.min(0.6, 3.6 / (bis - von));
+      const start = beats[ab].start + (ab === 0 ? 0.05 : 0.4), abstand = Math.min(0.6, 3.6 / (bis - von));
       ankunft = { von, bis, start, abstand };
       for (let k = 0; k < bis - von; k++) ev(start + k * abstand + 0.75, 'pop', 0.9);
       ev(start + (bis - von - 1) * abstand + 1.1, 'ding');
@@ -321,7 +321,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
   // letzter Untertitel bleibt bis zum Ende stehen
   if (captions.length) captions[captions.length - 1].end = t;
   if (!musik.length || musik[0].start > 0) musik.unshift({ start: 0, typ: 'ruhig' });
-  return { titel: folge.titel, ankunft, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
+  return { titel: folge.titel, anzeige: folge.anzeige, ankunft, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
 }
 
 function fillSticker(s: Sticker, p: Record<string, string>): Sticker {

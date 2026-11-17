@@ -56,6 +56,8 @@ export interface Beat {
   min?: number;
   /** Zuschauerbindung (nur für den Check): Einstiegs-Frage/Problem, Überraschung in der Mitte, Cliffhanger am Ende. */
   hook?: boolean;
+  /** false = Anzeige oben in diesem Satz ausblenden (z. B. freier Einstieg). */
+  anzeige?: boolean;
   ueberraschung?: boolean;
   cliffhanger?: boolean;
   /** In diesem Satz landen die neuen Einwohner (seit dem Vergleichsstand) nacheinander auf dem Hof. */
@@ -79,6 +81,8 @@ export interface Folge {
         /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
         beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  /** Anzeige oben: "kompakt" = eine schlanke Zeile + nächstes Ziel (TikTok-Format), sonst die große Anzeige. */
+  anzeige?: 'kompakt' | 'voll';
   /** Vergleichsstand für "neu seit dem letzten Video": Datum oder Referenz eines Eintrags (z. B. "video-01"). */
   seit?: string;
   /** Fester Stichtag (JJJJ-MM-TT) für die Zahlen dieses Videos. Ohne Angabe: heute. */
@@ -103,10 +107,13 @@ export interface TimelineBeat {
   strohhalm: boolean;
   aktion?: 'winken' | 'trinken';
   sprechen: { start: number; end: number };
+  /** Anzeige oben ausgeblendet. */
+  anzeigeAus?: boolean;
 }
 
 export interface Timeline {
   titel: string;
+  anzeige?: 'kompakt' | 'voll';
   /** TikTok-Namen der Einwohner (Index = Figur; Lücken = ohne Namen). */
   namen?: (string | null)[];
   /** Ankunft neuer Einwohner: Figuren von..bis-1 landen ab `start` im Abstand `abstand` (Sekunden). */

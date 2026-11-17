@@ -50,6 +50,16 @@ export class Hud {
           <div class="bar"><i data-k="zielbar"></i></div></div>
         <div class="hud-foot" data-k="foot"></div>
       </div>
+      <!-- Kompakte Anzeige (TikTok-Format): eine schlanke Zeile + echtes nächstes Ziel; liegt unter der TikTok-Kopfzeile -->
+      <div class="h4">
+        <div class="h4-zeile">
+          <span><small>👥</small><b data-k="pop">0</b><i>EINWOHNER</i></span>
+          <span><small>🥤</small><b data-k="daily">0 L</b><i>PRO TAG</i></span>
+          <span><small>💧</small><b data-k="consumed">0 L</b><i>GETRUNKEN</i></span>
+        </div>
+        <div class="h4-ziel"><div class="h4-ziel-t">🎯 <b data-k="ziel1">100</b> FOLLOWER: <span data-k="ziel1text">–</span></div>
+          <div class="h4-ziel-r">NOCH <b data-k="ziel1rest">–</b></div><div class="bar"><i data-k="ziel1bar"></i></div></div>
+      </div>
       <div class="hud-stats" data-k="stats">${statistikHTML()}</div>
       <div class="hud-preview" data-k="preview">VORSCHAU – NICHT DER ECHTE STAND</div>`;
   }
@@ -80,6 +90,17 @@ export class Hud {
       this.setAll('zielrest', groupDE(z - f));
       const zb = this.root.querySelector<HTMLElement>('[data-k="zielbar"]');
       if (zb) zb.style.width = `${Math.max(2, Number(((f - (z - schritt)) * 1000n) / schritt) / 10)}%`;
+    }
+    // Nächstes echtes Ziel (erster Meilenstein, z. B. 100 Follower -> Like 10 ml -> 110 ml)
+    const n0 = s.naechste?.[0];
+    if (n0) {
+      const f = B(s.followers), z = B(n0.follower);
+      const jetzt = n0.regel === 'like' ? s.stufe.likeMl : n0.regel === 'kommentar' ? s.stufe.kommentarMl : n0.regel === 'share' ? s.stufe.shareMl : s.stufe.trinkMl;
+      const was = n0.regel === 'like' ? 'PRO LIKE' : n0.regel === 'kommentar' ? 'PRO KOMMENTAR' : n0.regel === 'share' ? 'PRO SHARE' : 'PRO KOPF';
+      this.setAll('ziel1', groupDE(z));
+      this.setAll('ziel1rest', groupDE(z - f));
+      this.setAll('ziel1text', `${formatMenge(B(jetzt))} → ${formatMenge(B(n0.neuMl))} ${was}`);
+      this.root.querySelectorAll<HTMLElement>('[data-k="ziel1bar"]').forEach((el) => { el.style.width = `${Math.max(2, Number((f * 1000n) / z) / 10)}%`; });
     }
     this.setAll('eta', formatDuration(s.daysUntilEmpty === null ? null : B(s.daysUntilEmpty)));
     const bar = this.root.querySelector<HTMLElement>('[data-k="bar"]');
