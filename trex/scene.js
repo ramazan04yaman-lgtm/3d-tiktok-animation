@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const W = 1080, H = 1920;
 const TL = await (await fetch('build/timeline.json')).json();
@@ -15,6 +16,10 @@ const lerp = (a, b, k) => a + (b - a) * k;
 const ease = k => { k = clamp(k); return k * k * (3 - 2 * k); };
 const easeOut = k => 1 - Math.pow(1 - clamp(k), 3);
 const back = k => { k = clamp(k); const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+function vnoise(x, y, z) { const h = (i, j, k) => { let n = Math.sin(i * 127.1 + j * 311.7 + k * 74.7) * 43758.5453; return n - Math.floor(n); }; const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z); const xf = x - xi, yf = y - yi, zf = z - zi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf); const L = (a, b, t) => a + (b - a) * t;
+  return L(L(L(h(xi, yi, zi), h(xi + 1, yi, zi), u), L(h(xi, yi + 1, zi), h(xi + 1, yi + 1, zi), u), v), L(L(h(xi, yi, zi + 1), h(xi + 1, yi, zi + 1), u), L(h(xi, yi + 1, zi + 1), h(xi + 1, yi + 1, zi + 1), u), v), w); }
+function fbm(x, y, z, o = 4) { let a = 0.5, f = 1, t = 0; for (let i = 0; i < o; i++) { t += a * vnoise(x * f, y * f, z * f); a *= 0.5; f *= 2.03; } return t; }
 function rng(seed) { return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const norm = s => s.toLowerCase().replace(/[^a-zäöüß0-9]/g, '');
@@ -40,12 +45,12 @@ gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.6, thickness: 1.2, sc
 gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
 composer.addPass(gtao); composer.addPass(new OutputPass());
 
-const hemi = new THREE.HemisphereLight(0xf0f4f7, 0x4a5a2c, 1.75); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff2dc, 2.4);
+const hemi = new THREE.HemisphereLight(0xf3ede2, 0x4a5a2c, 1.5); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffd9a6, 3.1); // warme, tief stehende Sonne
 sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 120 });
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03; scene.add(sun, sun.target);
-function sunAt(p) { sun.position.copy(p).add(V(-20, 34, 22)); sun.target.position.copy(p); }
+function sunAt(p) { sun.position.copy(p).add(V(-26, 21, 24)); sun.target.position.copy(p); }
 
 // ---------- Texturen ----------
 function canvasTex(w, h, draw, rep) {
@@ -86,13 +91,13 @@ const [scaleTex, scaleColTex] = (() => {
 const dotTex = canvasTex(64, 64, (g) => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
 
 // ---------- Himmel / Landschaft ----------
-const skyU = { top: { value: new THREE.Color(0xaebdcb) }, hor: { value: new THREE.Color(0xe9ecee) } };
+const skyU = { top: { value: new THREE.Color(0x9fb7cf) }, hor: { value: new THREE.Color(0xf2e3cc) } };
 const sky = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 16), new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false, uniforms: skyU,
   vertexShader: 'varying vec3 p; void main(){p=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
   fragmentShader: 'uniform vec3 top,hor; varying vec3 p; void main(){float h=clamp(normalize(p).y*2.0,0.,1.); gl_FragColor=vec4(mix(hor,top,pow(h,0.6)),1.);}'
 })); scene.add(sky);
-scene.fog = new THREE.Fog(0xdde3e6, 40, 320);
+scene.fog = new THREE.Fog(0xe9e0cf, 40, 320);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshStandardMaterial({ color: 0xffffff, map: grassTex, roughness: 0.95 }));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 const world = new THREE.Group(); scene.add(world);
@@ -119,14 +124,27 @@ function hideNearGrass() { // Halme direkt vor der Linse ausblenden (sonst wirke
   const trunkM = new THREE.MeshStandardMaterial({ color: 0x5b4632, roughness: 0.9 });
   const leafM = new THREE.MeshStandardMaterial({ color: 0x46613a, roughness: 0.8 });
   const leafM2 = new THREE.MeshStandardMaterial({ color: 0x55703f, roughness: 0.8 });
+  // Nadelbäume: Stamm + dunkler Kern + viele hängende Nadelzweige (instanziert)
+  const needleTex = canvasTex(256, 128, (g, w, h) => { g.clearRect(0, 0, w, h); const rr = rng(11); g.strokeStyle = '#3b2e20'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 64); g.lineTo(250, 64); g.stroke();
+    for (let x = 4; x < 250; x += 2.2) { const W = 58 * Math.pow(Math.sin(Math.PI * Math.min(1, x / 240) * 0.5 + 0.2), 1.2) * (1 - x / 300); for (const sg of [-1, 1]) for (let k = 0; k < 2; k++) {
+      const L = W * (0.55 + rr() * 0.45); g.strokeStyle = ['#203a1c', '#2c4a22', '#36592a', '#476b33'][(rr() * 4) | 0]; g.lineWidth = 1.2 + rr() * 1.3; g.beginPath(); g.moveTo(x, 64); g.lineTo(x + 6 + rr() * 8, 64 + sg * L); g.stroke(); } } });
+  const needleM = new THREE.MeshStandardMaterial({ map: needleTex, alphaTest: 0.4, side: THREE.DoubleSide, roughness: 0.85 });
+  const coreM = new THREE.MeshStandardMaterial({ color: 0x23361e, roughness: 0.95 });
+  const branchG = new THREE.PlaneGeometry(1, 0.5, 6, 1); branchG.translate(0.5, 0, 0); branchG.rotateX(-Math.PI / 2); { const p = branchG.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setY(i, -0.35 * x * x); } branchG.computeVertexNormals(); }
+  const branchMs = []; const r2 = rng(4242);
   const tree = (x, z, h) => {
     const g = new THREE.Group(); g.position.set(x, 0, z);
-    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.12 * h / 10, 0.25 * h / 10, h, 7), trunkM); tr.position.y = h / 2; tr.castShadow = true; g.add(tr);
-    const n = 4 + (r() * 4 | 0);
-    for (let k = 0; k < n; k++) { const y = h * (0.45 + 0.55 * k / n); const rad = (1.6 - k / n) * h / 9; const l = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), r() < .5 ? leafM : leafM2); l.scale.set(rad, rad * 0.28, rad); l.position.y = y; l.castShadow = true; g.add(l); }
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.1 * h / 10, 0.3 * h / 10, h, 9), trunkM); tr.position.y = h / 2; tr.castShadow = true; g.add(tr);
+    const core = new THREE.Mesh(new THREE.ConeGeometry(h / 11, h * 0.72, 10), coreM); core.position.y = h * 0.62; core.castShadow = true; g.add(core);
+    { const n0 = 4 + (r() * 4 | 0); for (let k = 0; k < n0; k++) r(); } // alte Zufallsfolge beibehalten (Farne/Stämme bleiben an ihrem Platz)
+    const tiers = 11 + (r2() * 4 | 0);
+    for (let k = 0; k < tiers; k++) { const f = k / tiers; const y = h * (0.28 + 0.72 * f); const len = (1 - f) * h / 4.2 + 0.5; const nb = 6 + (r2() * 3 | 0);
+      for (let j = 0; j < nb; j++) { const yaw = j / nb * Math.PI * 2 + r2() * 0.6 + k; const droop = 0.15 + r2() * 0.35;
+        const m4 = new THREE.Matrix4().compose(V(x, y + (r2() - .5) * 0.3, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, -droop, 'YXZ')), V(len * (0.8 + r2() * 0.4), 1, len * 0.5)); branchMs.push(m4); } }
     world.add(g);
   };
   for (let i = 0; i < 90; i++) { const a = r() * Math.PI * 2, d = 26 + r() * 150; tree(Math.cos(a) * d, Math.sin(a) * d, 9 + r() * 12); }
+  { const im = new THREE.InstancedMesh(branchG, needleM, branchMs.length); branchMs.forEach((m, i) => im.setMatrixAt(i, m)); im.castShadow = true; im.receiveShadow = true; world.add(im); }
   // Büsche / Farne
   const frondTex = canvasTex(256, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.strokeStyle = '#3d5a22'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 32); g.lineTo(250, 32); g.stroke();
     for (let x = 6; x < 246; x += 7) { const L = 28 * Math.sin(Math.PI * x / 256) + 3; for (const sg of [-1, 1]) { const gr = g.createLinearGradient(x, 32, x + 6, 32 + sg * L); gr.addColorStop(0, '#47672a'); gr.addColorStop(1, '#6f8f3c'); g.fillStyle = gr; g.beginPath(); g.moveTo(x, 32); g.quadraticCurveTo(x + 8, 32 + sg * L * 0.6, x + 4, 32 + sg * L); g.quadraticCurveTo(x + 1, 32 + sg * L * 0.5, x, 32); g.fill(); } } });
@@ -182,7 +200,12 @@ function colorize(geo, zOff = 0, us = 1.3, vs = 0.8) {
 }
 function colorFlat(geo, ny = 0.75) { colorize(geo); const col = geo.attributes.color, p = geo.attributes.position; const c = new THREE.Color(); for (let i = 0; i < col.count; i++) { skinColor(ny, 4 + p.getZ(i), c, p.getX(i), p.getY(i)); col.setXYZ(i, c.r, c.g, c.b); } return geo; }
 const skinM = new THREE.MeshStandardMaterial({ vertexColors: true, map: scaleColTex, roughness: 0.48, bumpMap: scaleTex, bumpScale: 2.6 });
-const cheekM = skinM.clone(); cheekM.side = THREE.DoubleSide;
+const skinVar = sh => { sh.fragmentShader = sh.fragmentShader
+  .replace('#include <bumpmap_pars_fragment>', 'float gFine = 0.0;\nvec4 scaleSample(sampler2D t, vec2 uv) { vec4 a = texture2D(t, uv), b = texture2D(t, uv * 2.6 + vec2(0.37, 0.11)), c = texture2D(t, uv * 1.6 + vec2(0.71, 0.29)); return gFine < 0.5 ? mix(a, c, gFine * 2.0) : mix(c, b, gFine * 2.0 - 1.0); }\n' + THREE.ShaderChunk.bumpmap_pars_fragment.replaceAll('texture2D( bumpMap,', 'scaleSample( bumpMap,'))
+  .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment.replace('texture2D( map,', 'scaleSample( map,'))
+  .replace('void main() {', 'void main() {\n  gFine = smoothstep(0.30, 0.70, dot(vColor.rgb, vec3(0.333)));'); };
+skinM.onBeforeCompile = skinVar; skinM.customProgramCacheKey = () => 'skinVar';
+const cheekM = skinM.clone(); cheekM.side = THREE.DoubleSide; cheekM.onBeforeCompile = skinVar; cheekM.customProgramCacheKey = () => 'skinVar2';
 const scuteM = new THREE.MeshStandardMaterial({ color: 0x5f3f25, roughness: 0.6, bumpMap: scaleTex, bumpScale: 1.0 });
 const clawM = new THREE.MeshStandardMaterial({ color: 0x2b2520, roughness: 0.35 });
 const toothM = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.38, clearcoat: 0.7, clearcoatRoughness: 0.22, sheen: 0.3, sheenColor: new THREE.Color(0xfff2d8) }); // Zahnschmelz-Glanz
@@ -192,7 +215,10 @@ const throatM = new THREE.MeshStandardMaterial({ color: 0x2a0b0e, roughness: 0.9
 const boneM = new THREE.MeshStandardMaterial({ color: 0xf1e9d6, roughness: 0.55 });
 const skullBoneM = new THREE.MeshStandardMaterial({ color: 0xf1e9d6, roughness: 0.5, transparent: true, opacity: 0.9 }); // Röntgen: Zahnwurzeln sichtbar
 const holeM = new THREE.MeshBasicMaterial({ color: 0x15100c });
-const muscleM = new THREE.MeshStandardMaterial({ color: 0xc8202c, roughness: 0.45, emissive: 0x3a0005 });
+const muscleTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#8f1f22'; g.fillRect(0, 0, w, h); const r = rng(9);
+  for (let i = 0; i < 900; i++) { const x = r() * w; g.strokeStyle = r() < 0.5 ? 'rgba(60,8,12,0.55)' : 'rgba(205,85,80,0.45)'; g.lineWidth = 0.8 + r() * 2.2; g.beginPath(); g.moveTo(x, -5); g.bezierCurveTo(x + (r() - .5) * 14, h * 0.33, x + (r() - .5) * 14, h * 0.66, x + (r() - .5) * 10, h + 5); g.stroke(); }
+  const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(235,215,200,0.85)'); gr.addColorStop(0.1, 'rgba(235,215,200,0)'); gr.addColorStop(0.9, 'rgba(235,215,200,0)'); gr.addColorStop(1, 'rgba(235,215,200,0.85)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+const muscleM = new THREE.MeshPhysicalMaterial({ map: muscleTex, bumpMap: muscleTex, bumpScale: 2.2, roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.3, emissive: 0x1a0003 }); // Muskelfasern + Sehnen an den Enden
 const darkM = new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.3 });
 
 // Loft entlang einer Wirbelsäule: keys [z, y, rx, ry]
@@ -303,7 +329,7 @@ function updateCheek(g, ang) { const { K, M, s } = g.userData; const pos = g.att
       const i = (k * M + m) * 3; pos[i] = p.x; pos[i + 1] = p.y; pos[i + 2] = p.z; skinColor(0.15 - v * 0.7, z + 4, c, p.x, p.y); col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b; } }
   g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }
 const TOOTH_L0 = 0.12;
-const gumM = new THREE.MeshStandardMaterial({ color: 0xd9788a, roughness: 0.5, bumpMap: scaleTex, bumpScale: 0.4 });
+const gumM = new THREE.MeshPhysicalMaterial({ color: 0xcf6c7e, roughness: 0.4, clearcoat: 0.6, clearcoatRoughness: 0.35, bumpMap: scaleTex, bumpScale: 0.25 });
 function surfPlace(parent, mesh, upper, t, phi, k, sx, sy, thick) {
   const p = headSurf(upper, t, phi, k); const n = headNormal(upper, t, phi); mesh.position.copy(p); mesh.lookAt(p.clone().add(n)); mesh.scale.set(sx, sy, thick); parent.add(mesh); return mesh;
 }
@@ -353,8 +379,10 @@ function makeRex() {
       const p = headProf(false, tl); const x = s * p.w * 0.74; const kk = (0.96 - tl) / 0.7 * 12; const size = 0.45 + 0.6 * Math.exp(-Math.pow((kk - 2.5) / 3.6, 2));
       addTooth(jaw, x, 0.045, zl, size, true, s); gumLo.push(V(x, 0.035, zl)); }
     gumLo.sort((a, b) => a.z - b.z);
-    const mkGum = (pts, parent) => { const g = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.026, 8), gumM); g.scale.set(1, 0.8, 1); parent.add(g); };
-    mkGum(gumUp, skin); mkGum(gumLo, jawSkin); gumBulbsUp.forEach(g => skin.add(g)); gumBulbsLo.forEach(g => jawSkin.add(g)); gumBulbsUp.length = 0; gumBulbsLo.length = 0;
+    const mkGum = (pts, parent) => { const tg = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 0.032, 10); const p = tg.attributes.position, n = tg.attributes.normal;
+      for (let i = 0; i <= 120; i++) for (let j = 0; j <= 10; j++) { const id = i * 11 + j; const bump = 0.011 * Math.pow(0.5 + 0.5 * Math.sin(i / 120 * pts.length * Math.PI * 2), 1.5) + 0.003 * Math.sin(i * 1.7 + j); p.setXYZ(id, p.getX(id) + n.getX(id) * bump, p.getY(id) + n.getY(id) * bump, p.getZ(id) + n.getZ(id) * bump); }
+      tg.computeVertexNormals(); const g = new THREE.Mesh(tg, gumM); g.scale.set(1, 0.85, 1); parent.add(g); }; // durchgehender, gewellter Zahnfleischwulst
+    mkGum(gumUp, skin); mkGum(gumLo, jawSkin);  gumBulbsUp.length = 0; gumBulbsLo.length = 0;
   }
   // Augen: tief in der Augenhöhle, abgeflacht, Iris mit Schlitzpupille, Ober-/Unterlid, glänzende Hornhaut
   const irisTex = canvasTex(256, 256, (g) => { g.fillStyle = '#0b0703'; g.fillRect(0, 0, 256, 256); const gr = g.createRadialGradient(128, 128, 30, 128, 128, 112); gr.addColorStop(0, '#fff07a'); gr.addColorStop(0.55, '#ffd21f'); gr.addColorStop(0.9, '#e09a00'); gr.addColorStop(1, '#5a3300');
@@ -392,8 +420,8 @@ function makeRex() {
     holes.push(holeShape(skull, true, 0.05, P(0.45), 0.075, 0.15));
     holes.push(holeShape(skull, true, 0.935, P(0.95), 0.06, 0.035));
     lowerHoles.push(holeShape(jawSkull, false, 0.22, s > 0 ? -0.55 : Math.PI + 0.55, 0.13, 0.06));
-    const mu = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); surfPlace(skull, mu, true, 0.06, P(0.5), 1.0, 0.13, 0.2, 0.09); muscles.push(mu);
-    const mu2 = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), muscleM); surfPlace(jawSkull, mu2, false, 0.1, s > 0 ? -0.35 : Math.PI + 0.35, 1.0, 0.12, 0.13, 0.08); muscles.push(mu2);
+    const mu = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), muscleM); surfPlace(skull, mu, true, 0.06, P(0.5), 1.0, 0.085, 0.3, 0.065); mu.rotateZ(s * 0.35); muscles.push(mu);
+    const mu2 = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), muscleM); surfPlace(jawSkull, mu2, false, 0.1, s > 0 ? -0.35 : Math.PI + 0.35, 1.0, 0.08, 0.2, 0.06); mu2.rotateZ(-s * 0.3); muscles.push(mu2);
   }
   holes.push(...lowerHoles);
   // Öffnungen werden per Shader tatsächlich aus dem Knochen geschnitten (Blick ins Innere auf Zahnwurzeln und Muskeln)
@@ -587,20 +615,38 @@ const tri = makeTri(); scene.add(tri.root);
 
 // ---------- Requisiten ----------
 const bone = new THREE.Group(); scene.add(bone);
-const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.1, 4), new THREE.MeshStandardMaterial({ color: 0x6f7c5e, roughness: 0.85, bumpMap: scaleTex, bumpScale: 0.5 })); rock.scale.set(1.2, 0.75, 1); rock.castShadow = rock.receiveShadow = true; scene.add(rock);
+const rock = (() => { const g0 = new THREE.IcosahedronGeometry(1.1, 6); g0.deleteAttribute('normal'); g0.deleteAttribute('uv'); const g = mergeVertices(g0); const p = g.attributes.position; const cols = []; const c = new THREE.Color(), stone = new THREE.Color(0x8a8273), dark = new THREE.Color(0x4f4a42), moss = new THREE.Color(0x56692f), moss2 = new THREE.Color(0x7a8a3e);
+  for (let i = 0; i < p.count; i++) { const v = V(p.getX(i), p.getY(i), p.getZ(i)).normalize(); let r = 1 + 0.32 * (fbm(v.x * 1.4 + 3, v.y * 1.4, v.z * 1.4, 4) - 0.5) + 0.1 * (fbm(v.x * 5, v.y * 5 + 7, v.z * 5, 3) - 0.5);
+    const facet = Math.round(fbm(v.x * 2.2, v.y * 2.2 + 1, v.z * 2.2, 2) * 5) / 5; r += 0.06 * facet; // kantige Bruchflächen
+    const crack = Math.abs(v.x * 0.8 + v.z * 0.6 + 0.25 * vnoise(v.x * 6, v.y * 6, v.z * 6) - 0.1); if (crack < 0.035) r -= 0.07 * (1 - crack / 0.035); // Riss
+    if (v.y > 0.55) r -= (v.y - 0.55) * 0.35; // abgeflachte Oberseite
+    p.setXYZ(i, v.x * r * 1.1, v.y * r * 1.1, v.z * r * 1.1);
+    c.copy(stone).lerp(dark, clamp(0.25 + (fbm(v.x * 7, v.y * 7, v.z * 7, 3) - 0.5) * 1.6)); if (crack < 0.035) c.lerp(dark, 0.7);
+    const mz = clamp((v.y - 0.25 + (fbm(v.x * 4, v.y * 4 + 2, v.z * 4, 3) - 0.5) * 0.9) * 2.2); c.lerp(vnoise(v.x * 9, v.y * 9, v.z * 9) > 0.5 ? moss : moss2, mz * 0.9); cols.push(c.r, c.g, c.b); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); g.computeVertexNormals();
+  return new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92 })); })(); rock.scale.set(1.2, 0.75, 1); rock.castShadow = rock.receiveShadow = true; scene.add(rock);
 const boneHalves = [];
+const boneTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#eee5d0'; g.fillRect(0, 0, w, h); const r = rng(5);
+  for (let i = 0; i < 500; i++) { g.strokeStyle = r() < 0.6 ? 'rgba(170,150,115,0.12)' : 'rgba(255,252,240,0.3)'; g.lineWidth = 0.5 + r() * 1.5; const x = r() * w, y = r() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 4, y + 20 + r() * 50); g.stroke(); }
+  for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(${170 + r() * 30},${150 + r() * 20},${115},${0.08 + r() * 0.1})`; g.beginPath(); g.ellipse(r() * w, r() * h, 3 + r() * 14, 2 + r() * 6, r() * 3, 0, 7); g.fill(); } });
+const femurM = new THREE.MeshStandardMaterial({ map: boneTex, bumpMap: boneTex, bumpScale: 0.6, roughness: 0.6, side: THREE.DoubleSide }), meatM = new THREE.MeshPhysicalMaterial({ color: 0x7e1f1c, roughness: 0.35, clearcoat: 0.6 });
 const marrowM = new THREE.MeshStandardMaterial({ color: 0x9a2f24, roughness: 0.45 }), spongyM = new THREE.MeshStandardMaterial({ color: 0xd9b48a, roughness: 0.8 });
-for (const s of [-1, 1]) { const h = new THREE.Group(); const c = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.6, 18), boneM); c.rotation.z = Math.PI / 2; c.position.x = s * 0.3; h.add(c);
-  for (const dz of [-0.09, 0.09]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), boneM); k.position.set(s * 0.62, 0, dz); h.add(k); }
+for (const s of [-1, 1]) { const h = new THREE.Group(); const prof = []; for (let i = 0; i <= 16; i++) { const y = i / 16 * 0.64; prof.push(new THREE.Vector2(0.1 + 0.012 * Math.sin(y * 9) + 0.05 * Math.pow(y / 0.64, 4), y)); }
+  const c = new THREE.Mesh(new THREE.LatheGeometry(prof, 28), femurM); c.rotation.z = -s * Math.PI / 2; h.add(c); // Schaft, zum Gelenk hin breiter
+  if (s < 0) { const neckB = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.2, 18), femurM); neckB.position.set(-0.66, 0.1, 0); neckB.rotation.z = -0.9; h.add(neckB);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 24, 16), femurM); head.position.set(-0.74, 0.18, 0); h.add(head); // Hüftkopf
+    const tro = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), femurM); tro.scale.set(0.11, 0.1, 0.09); tro.position.set(-0.62, -0.06, 0); h.add(tro); } // Trochanter
+  else { for (const dz of [-0.075, 0.075]) { const k = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 16), femurM); k.scale.set(0.1, 0.12, 0.085); k.position.set(0.69, -0.02, dz); h.add(k); } } // Gelenkrollen
+  for (let k = 0; k < 0; k++) { const mt = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), meatM); const a = k * 2.1 + (s > 0 ? 0.6 : 0); mt.scale.set(0.09, 0.03, 0.06); mt.position.set(s * (0.46 + k * 0.07), Math.sin(a) * 0.115, Math.cos(a) * 0.115); mt.lookAt(mt.position.clone().multiply(V(0, 2, 2)).add(V(s * 0.5, 0, 0))); h.add(mt); } // Fleischreste
   // Bruchfläche: Knochenmark + schwammiger Ring + gezackte Splitterkante (zeigt zur anderen Hälfte)
   const mar = new THREE.Mesh(new THREE.CircleGeometry(0.07, 18), marrowM); mar.rotation.y = s * Math.PI / 2; mar.position.x = -s * 0.002; h.add(mar);
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.1, 18), spongyM); ring.rotation.y = s * Math.PI / 2; ring.position.x = -s * 0.001; h.add(ring);
-  for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2 + (s > 0 ? 0.35 : 0); const L = 0.05 + 0.07 * ((k * 7 + (s > 0 ? 3 : 0)) % 5) / 4; const sp = new THREE.Mesh(new THREE.ConeGeometry(0.028, L, 5), boneM);
+  for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2 + (s > 0 ? 0.35 : 0); const L = 0.05 + 0.07 * ((k * 7 + (s > 0 ? 3 : 0)) % 5) / 4; const sp = new THREE.Mesh(new THREE.ConeGeometry(0.028, L, 5), femurM);
     sp.rotation.z = s * Math.PI / 2; sp.position.set(-s * L / 2, Math.sin(a) * 0.085, Math.cos(a) * 0.085); h.add(sp); }
   h.traverse(o => o.castShadow = true); bone.add(h); boneHalves.push(h); }
 bone.scale.setScalar(1.45);
 // Knochensplitter, die beim Bruch wegfliegen
-const boneShards = []; for (let k = 0; k < 14; k++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.035 + 0.025 * (k % 3)), k % 4 === 0 ? spongyM : boneM); m.visible = false; m.castShadow = true; scene.add(m);
+const boneShards = []; for (let k = 0; k < 14; k++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.035 + 0.025 * (k % 3)), k % 4 === 0 ? spongyM : femurM); m.visible = false; m.castShadow = true; scene.add(m);
   const a = k * 2.4; m.userData.v = [Math.cos(a) * (0.8 + (k % 5) * 0.3), 1.6 + (k % 4) * 0.6, Math.sin(a) * (0.8 + (k % 3) * 0.4) + 0.6, k]; boneShards.push(m); }
 // Splitter / Zahnsplitter / Staub
 function particles(n, size, color, seed) { const p = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: dotTex, size, color, transparent: true, depthWrite: false }));

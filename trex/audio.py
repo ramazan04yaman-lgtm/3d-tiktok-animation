@@ -85,6 +85,18 @@ def roar(d=1.8):
     env = np.minimum(1, tt / 0.15) * np.minimum(1, (d - tt) / 0.5); return 0.9 * x * env / np.abs(x).max()
 def thud():
     n = int(0.6 * SR); tt = np.arange(n) / SR; return 0.9 * np.sin(2 * np.pi * (40 + 40 * np.exp(-tt * 12)) * tt) * np.exp(-tt * 6) + 0.2 * lp(rng.standard_normal(n), 0.05) * np.exp(-tt * 8)
+def step():  # schwerer Dino-Schritt: tiefer Schlag + Erdrieseln
+    n = int(0.5 * SR); tt = np.arange(n) / SR
+    return 1.0 * np.sin(2 * np.pi * (34 + 46 * np.exp(-tt * 18)) * tt) * np.exp(-tt * 9) + 0.25 * lp(rng.standard_normal(n), 0.08) * np.exp(-tt * 14)
+def flesh():  # Biss ins Fleisch: dumpfer Schlag + nasses Reißen
+    n = int(0.7 * SR); tt = np.arange(n) / SR; x = rng.standard_normal(n); wet = lp(x, 0.25) - lp(x, 0.02)
+    wob = 0.5 + 0.5 * np.sin(2 * np.pi * 23 * tt + 3 * np.sin(2 * np.pi * 5 * tt))
+    return 0.9 * wet * wob * np.exp(-tt * 5) * np.minimum(1, tt / 0.01) + 0.8 * np.sin(2 * np.pi * (55 + 60 * np.exp(-tt * 20)) * tt) * np.exp(-tt * 10)
+tBite0 = WT(0, 'beiß') - 0.1; tLunge0 = tBite0 - 0.35
+st, k = 0.05, 0
+while st < tLunge0:  # Anlauf: Schritte werden schneller und lauter
+    p = st / tLunge0; addS(step(), st, 0.35 + 0.65 * p); st += 0.42 - 0.17 * p; k += 1
+addS(whoosh(0.35), tLunge0, 0.8); addS(flesh(), tBite0, 1.0)
 for i, s in enumerate(S[1:], 1): addS(whoosh(), s['start'] - 0.2, 0.5)
 for i, pre in [(0, 'knochen'), (1, 'banan'), (2, 'knochen'), (3, 'löcher'), (4, 'stärk'), (5, 'keks'), (5, 'kippt'), (6, 'stummel'), (6, 'wippe'), (7, 'zwei'), (8, 'nacken'), (9, 'trex')]:
     addS(pop(), WT(i, pre))
