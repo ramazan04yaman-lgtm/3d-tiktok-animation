@@ -660,6 +660,12 @@ function burst(p, origin, t, { spread = 2, up = 3, g = 9.8, life = 1.5, ring = f
 }
 // abgebrochene Zähne
 const brokenTeeth = []; { const r = rng(15); for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.12, 7), boneM); m.userData.v = [(r() - .5) * 2.5, 1 + r() * 2.5, (r() - .5) * 2.5, r() * 10]; m.castShadow = true; scene.add(m); brokenTeeth.push(m); } }
+// abgebrochene Zahnspitzen (echte Zahnform) + Zahneinstiche im Knochen
+const toothChips = []; { const r = rng(31); for (let i = 0; i < 8; i++) { const m = new THREE.Mesh(toothGeo(r), toothM); m.scale.setScalar(0.12 * (1.1 + r() * 0.6)); m.userData.v = [(r() - .5) * 1.6, 0.8 + r() * 1.8, 0.6 + r() * 1.4, r() * 10]; m.castShadow = true; m.visible = false; scene.add(m); toothChips.push(m); } }
+const boneDents = new THREE.Group(); bone.add(boneDents); { const dm = new THREE.MeshStandardMaterial({ color: 0x5a4632, roughness: 0.9 }); const r = rng(41);
+  for (let k = 0; k < 6; k++) for (const yy of [1, -1]) { const d = new THREE.Mesh(new THREE.SphereGeometry(1, 10, 8), dm); const x = -0.2 + k * 0.08 + (r() - .5) * 0.05; const a = (yy > 0 ? 0.75 : -0.75) + (r() - .5) * 0.7;
+    d.position.set(x, Math.sin(a) * 0.103, Math.cos(a) * 0.103); d.scale.set(0.008 + r() * 0.008, 0.02 + r() * 0.025, 0.008); d.rotateZ((r() - .5) * 0.8); d.lookAt(d.position.clone().multiply(V(0, 2, 2)).add(V(x, 0, 0))); boneDents.add(d); } }
+boneDents.visible = false;
 // Frill-Bruchstücke
 const frillBits = []; { const r = rng(25); for (let i = 0; i < 10; i++) { const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.12 + r() * 0.12), new THREE.MeshStandardMaterial({ color: 0x77735c, flatShading: true })); m.userData.v = [(r() - .5) * 3, 1 + r() * 3, (r() - .5) * 3, r() * 10]; scene.add(m); frillBits.push(m); } }
 
@@ -731,7 +737,7 @@ function resetWorld() {
   rex.root.visible = true; rex.root.position.set(0, 0, 0); rex.root.rotation.set(0, 0, 0); rex.ol.userData.u.uA.value = 0;
   tri.root.visible = false; tri.biteMark.visible = false; tri.neckBite.visible = false; tri.edgeCones.forEach(c => c.visible = true); tri.root.position.set(0, 0, 0); tri.root.rotation.set(0, 0, 0); tri.ol.userData.u.uA.value = 0; tri.frill.scale.set(1, 1, 1);
   bone.visible = false; rock.visible = false; boneHalves.forEach(h => { h.position.set(0, 0, 0); h.rotation.set(0, 0, 0); }); boneShards.forEach(m => m.visible = false);
-  crumbs.visible = dust.visible = false; brokenTeeth.forEach(m => m.visible = false); frillBits.forEach(m => m.visible = false);
+  crumbs.visible = dust.visible = false; brokenTeeth.forEach(m => m.visible = false); toothChips.forEach(m => m.visible = false); boneDents.visible = false; frillBits.forEach(m => m.visible = false);
   macro.visible = false; seesaw.visible = false; ground.visible = world.visible = sky.visible = true;
   scene.background = null; scene.fog.near = 40; scene.fog.far = 320;
   ui = []; svg = []; badge.style.display = 'none'; cta.style.display = 'none';
@@ -782,19 +788,27 @@ const shots = [
       label3('SÄGEKANTE', MAC.clone().add(V(-0.25, 0.6, 0.3)), clamp((T - WT(1, 'säge')) * 3), -180, -220);
     }
   },
-  // 2: durch Knochen – aber Biss zu schwach
+  // 2: Zähne schlagen in den Knochen – aber Biss zu schwach: Zähne brechen ab
   (T) => {
-    const u = T - S[2].start; const tA = WT(2, 'aber');
+    const u = T - S[2].start; const tA = WT(2, 'aber'), tBr = WT(2, 'nichts') - 0.08;
     bone.visible = true; rock.visible = true; rock.position.set(0, 0.6, 4.4); bone.position.set(0, 1.55, 4.4); bone.rotation.y = 0.2; sunAt(V(0, 0, 3));
-    let jaw, head;
-    if (T < tA) { const b = ease((u - 0.2) / 0.5); jaw = lerp(0.6, 0.1, b); head = 0.95; }
-    else { CUT = tA; const s = (T - tA); jaw = 0.32 + Math.sin(s * 22) * 0.04 * clamp(s * 2); head = 0.95; }
+    let jaw; const tb = T - tBr;
+    if (T < tA) { const b = ease((u - 0.25) / 0.35); jaw = lerp(0.62, 0.2, b); }
+    else if (tb < 0) { const s = T - tA; jaw = 0.2 - 0.03 * clamp(s * 1.5) + Math.sin(s * 38) * 0.012 * clamp(s * 3); } // presst, zittert – zu schwach
+    else jaw = 0.17 + 0.3 * ease((tb - 0.25) / 0.6); // Maul geht auf: Stümpfe sichtbar
     poseRex(rex, { t: T, jaw, head: 0.3, pitch: 0.22, teeth: 2.3 });
-    alignMouth(V(0.0, 1.72, 4.4));
-    if (T < tA) cam(V(4.4, 2.4, 6.2 - u * 0.1), V(0, 1.9, 3.9), 44, T, 0.02); else { const v = T - tA; cam(V(2.3 - v * 0.08, 1.95, 5.6 - v * 0.05), V(0, 1.72, 4.25), 40, T, 0.015); } // Detail: Zähne im Knochen
+    alignMouth(V(0.0, 1.72 + (tb > 0 ? 0.04 * ease(tb / 0.6) : 0), 4.4));
+    boneDents.visible = u > 0.55;
+    if (tb > 0) { rex.teeth.forEach((m, i) => { if (i % 3 === 0 || i % 7 === 2) m.scale.y *= 0.32; }); // abgebrochene Zähne
+      const o = V(0.15, 1.62, 4.75); toothChips.forEach(m => { const v = m.userData.v; m.visible = tb < 2.5; m.position.set(o.x + v[0] * tb * 0.7, Math.max(0.12, o.y + v[1] * tb - 4.9 * tb * tb), o.z + v[2] * tb * 0.7); m.rotation.set(v[3] + tb * 9, tb * 6, tb * 4); });
+      burst(crumbs, o, tb, { spread: 1.6, up: 2.5 }); }
+    // 3/4-Ansicht von vorne: Knochen liegt frei vor dem Maul; nach dem Bruch Nahaufnahme der Stümpfe
+    const kz = ease((T - tA + 0.1) / 0.5);
+    cam(V(2.9, 2.1, 8.4 - u * 0.12).lerp(V(3.0, 1.8, 6.0), kz), V(0.1, 1.7, 4.5).lerp(V(0.1, 1.66, 4.55), kz), lerp(40, 36, kz), T, 0.015 + (tb > 0 ? 0.16 * Math.exp(-tb * 4) : 0));
     const kk = clamp((T - WT(2, 'biss') + 0.2) * 3);
     gauge(W / 2, 430, lerp(0, 0.18, ease((T - WT(2, 'biss')) / 0.8)) + Math.sin(T * 20) * 0.01, kk, 'SCHWACH', '#ff4d4d');
-    if (T < tA) pill('✅ DURCH KNOCHEN', W / 2, 1460, clamp((u - 0.4) * 3), '#3ddc84');
+    label3('ZÄHNE BRECHEN', o2(), clamp((tb - 0.3) * 3) * (1 - clamp((T - WT(2, 'biss') + 0.3) * 3)), 140, 260);
+    function o2() { return V(0.25, 1.55, 4.8); }
   },
   // 3: Schädel voller Löcher + Kiefermuskeln
   (T) => {
