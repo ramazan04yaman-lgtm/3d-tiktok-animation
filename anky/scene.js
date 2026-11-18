@@ -882,7 +882,7 @@ const shots = [
     poseAnky(anky, { yaw, pitch: REST_P, armor: 0, t: T, xray: 1, win: [0.0, 0.42], winW: 1.15, fuse: 1, fused: true, tendon: 1, gapK: 1 });
     if (T < tP - 0.3) { const m = tailPt(4); cam(m.clone().add(V(1.6, 4.0, 1.4)), m.clone().add(V(0, -0.2, -0.3)), 44, T, 0.015);
       label3('LOCKERE WIRBEL', tailPt(3), clamp((T - WT(5, 'locker')) * 3), 0, -330); label3('SCHARNIER', tailPt(6), clamp((T - WT(5, 'scharnier')) * 3), 0, 330); }
-    else { CUT = tP - 0.3; cam(V(0, 10.5, -6.5), V(0, 0.5, -3.6), 50, T, 0.02); label3('LINKS', V(-3.2, 1, -5.2), clamp((T - WT(5, 'links')) * 3), -60, -200); label3('RECHTS', V(3.2, 1, -5.2), clamp((T - WT(5, 'rechts')) * 3), 60, -200); }
+    else { CUT = tP - 0.3; cam(V(0, 10.5, -6.5), V(0, 0.5, -3.6), 50, T, 0.02); label3('LINKS', V(-1.9, 1, -5.0), clamp((T - WT(5, 'links')) * 3), -60, -200); label3('RECHTS', V(1.9, 1, -5.0), clamp((T - WT(5, 'rechts')) * 3), 60, -200); }
   },
   // 6: Panzer aus Knochenplatten mit Stacheln
   (T) => {
