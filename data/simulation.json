@@ -83,34 +83,46 @@
       "saves": 1,
       "ref": "video-05",
       "note": "Tag 5: Shares nicht angegeben"
+    },
+    {
+      "id": "12210598-de4b-4aa8-bb09-c542b3499e39",
+      "day": "2026-11-18",
+      "createdAt": "2026-11-18T11:41:37.354Z",
+      "followers": 4,
+      "likes": 8,
+      "comments": 2,
+      "shares": 0,
+      "saves": 0,
+      "ref": "video-06",
+      "note": "Tag 6: Shares und Speicherungen nicht angegeben"
     }
   ],
-  "lastProcessedDay": "2026-11-17",
-  "lastProcessedAt": "2026-11-17T11:54:55.684Z",
+  "lastProcessedDay": "2026-11-18",
+  "lastProcessedAt": "2026-11-18T11:41:37.573Z",
   "snapshot": {
     "startDay": "2026-11-14",
-    "lastProcessedDay": "2026-11-17",
-    "lastProcessedAt": "2026-11-17T11:54:55.684Z",
-    "daysProcessed": 4,
-    "followers": "37",
-    "population": "37",
-    "likes": "65",
-    "comments": "33",
+    "lastProcessedDay": "2026-11-18",
+    "lastProcessedAt": "2026-11-18T11:41:37.573Z",
+    "daysProcessed": 5,
+    "followers": "41",
+    "population": "41",
+    "likes": "73",
+    "comments": "35",
     "shares": "0",
     "saves": "3",
     "totalWaterMl": "1386000000000000000000000",
-    "remainingMl": "1385999999999999999092850",
-    "totalConsumedMl": "907150",
-    "dailyMl": "370000",
+    "remainingMl": "1385999999999999998681770",
+    "totalConsumedMl": "1318230",
+    "dailyMl": "410000",
     "consumedMl": {
-      "drinking": "890000",
-      "likes": "650",
-      "comments": "16500",
+      "drinking": "1300000",
+      "likes": "730",
+      "comments": "17500",
       "shares": "0"
     },
-    "daysUntilEmpty": "3745945945945945944",
+    "daysUntilEmpty": "3380487804878048778",
     "depletedOnDay": null,
-    "entryCount": 5,
+    "entryCount": 6,
     "stufe": {
       "likeMl": "10",
       "kommentarMl": "500",
@@ -331,6 +343,26 @@
       "nr": 37,
       "name": "@felieic",
       "seit": "2026-11-17T11:54:55.669Z"
+    },
+    {
+      "nr": 38,
+      "name": "@romeoweinstein",
+      "seit": "2026-11-18T11:41:37.552Z"
+    },
+    {
+      "nr": 39,
+      "name": "@tom.e048",
+      "seit": "2026-11-18T11:41:37.552Z"
+    },
+    {
+      "nr": 40,
+      "name": "@cr7.goat547",
+      "seit": "2026-11-18T11:41:37.552Z"
+    },
+    {
+      "nr": 41,
+      "name": "@chab531",
+      "seit": "2026-11-18T11:41:37.552Z"
     }
   ]
 }

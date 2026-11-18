@@ -93,21 +93,21 @@ test('TikTok-Namen: exakt, eindeutig, dauerhaft, nicht mehr als Follower', () =>
   assert.equal(loadFile(p)!.einwohnerNamen!.length, 3);
 });
 
-test('Echter Spielstand: alle 37 Namen exakt wie vorgegeben, alte Folgen bleiben reproduzierbar', () => {
+test('Echter Spielstand: alle 41 Namen exakt wie vorgegeben, alte Folgen bleiben reproduzierbar', () => {
   const soll = ['@leonaprj', '@asen43013', '@nicidragoon', '@magdaa605', '@cool.shorts38', '@jaime_1234456789', '@tim.maciejewski6',
     '@bjarne.brawl.star', '@kilianott5', '@kukuwasgehor', '@thomas15361', '@ghost155151', '@king.murat21', '@theeditz477',
     '@pancake.544', '@oskorro8', '@benniiideralpha', '@leon.gas1', '@ole201156', '@ezzeeyfn', '@locskai.bence',
     '@.45347', '@christophchaos', '@leon10202660', '@j.bln11', '@amir_78811', '@miss_sophie123',
     '@nerfsniper193', '@larsgamerpro', '@schnitti37', '@damiangaming67', '@mrsharkykitty', '@eli4s118', '@39_ita.s14',
-    '@merlibiev06', '@quirin295', '@felieic'];
+    '@merlibiev06', '@quirin295', '@felieic', '@romeoweinstein', '@tom.e048', '@cr7.goat547', '@chab531'];
   const f = loadFile()!;
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.name), soll);
   assert.deepEqual(f.einwohnerNamen!.map((n) => n.nr), soll.map((_, i) => i + 1));
   const z = echteZahlen(undefined, 'video-03', '2026-11-15');
   assert.equal(z.snapshot.population, '21');
   assert.equal(z.snapshot.totalConsumedMl, '260340');
-  assert.equal(z.namen.length, 37);
-  assert.equal(new Set(f.einwohnerNamen!.map((n) => n.name.toLowerCase())).size, 37);   // keine doppelten Figuren
+  assert.equal(z.namen.length, 41);
+  assert.equal(new Set(f.einwohnerNamen!.map((n) => n.name.toLowerCase())).size, 41);   // keine doppelten Figuren
   // Tag 4: 27 Einwohner, 270 L/Tag, Aktivitäten 1,63 L, Like weiterhin 10 ml
   const v4 = echteZahlen(undefined, 'video-04', '2026-11-16');
   assert.equal(v4.snapshot.population, '27');
@@ -128,4 +128,11 @@ test('Echter Spielstand: alle 37 Namen exakt wie vorgegeben, alte Folgen bleiben
   assert.equal(BigInt(v5.snapshot.saves) - BigInt(v5.seit!.saves), 1n);
   // 531,97 L + 17.11.: 27 × 10 L + 10 × 10 L (Ankunftstag) + 5,18 L
   assert.equal(v5.snapshot.totalConsumedMl, '907150');
+  // Tag 6: +4 -> 41, 410 L/Tag, 8 Likes + 2 Kommentare = 1,08 L; 907,15 + 370 + 40 + 1,08 = 1.318,23 L
+  const v6 = echteZahlen(undefined, 'video-06', '2026-11-18');
+  assert.equal(v6.snapshot.population, '41');
+  assert.equal(v6.snapshot.dailyMl, '410000');
+  assert.equal(extra(v6.snapshot) - extra(v6.seit!), 1_080n);
+  assert.equal(v6.snapshot.totalConsumedMl, '1318230');
+  assert.equal(v6.snapshot.naechste[0].follower, '100');
 });
