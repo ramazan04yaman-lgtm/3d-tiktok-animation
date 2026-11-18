@@ -35,7 +35,7 @@ const echt = !!aufnahme && fs.existsSync(aufnahme) && fs.existsSync(tlDatei) && 
   && JSON.parse(fs.readFileSync(tlDatei, 'utf8')).beats?.length === folge.beats.length;
 // Ohne Aufnahme: Sprechdauer im Tempo von Felix schätzen (Tag 4: 235 Wörter in 110 s ≈ 2,15 Wörter/s + Satzpausen)
 const schaetzung = folge.beats.map((b) => { const t = plain(ersetze(b.sprache ?? b.text, p)); return t.split(/\s+/).length / 2.15 + (t.match(/[.!?…]/g)?.length ?? 1) * 0.25; });
-const tl: Timeline = echt ? JSON.parse(fs.readFileSync(tlDatei, 'utf8')) : buildTimeline({ folge, ...z, sprechdauer: schaetzung });
+const tl: Timeline = echt ? JSON.parse(fs.readFileSync(tlDatei, 'utf8')) : buildTimeline({ folge, ...z, sprechdauer: schaetzung, amStueck: folge.ton === 'nur-stimme' });
 
 const fehler: string[] = [], hinweise: string[] = [];
 const ok = (b: boolean, gut: string, schlecht: string, nurHinweis = false) => {

@@ -204,6 +204,8 @@ const kurzDauer = (t: number) => t % 365 === 0 ? `${groupDE(t / 365)} ${t === 36
 
 export interface BuildInput {
   folge: Folge;
+  /** Aufnahme läuft am Stück: Satzdauer = Abstand bis zum nächsten Satz, ohne Pausen/Mindestdauer. */
+  amStueck?: boolean;
   /** TikTok-Namen der Einwohner (Index = Figur). */
   namen?: (string | null | undefined)[];
   snapshot: Snapshot;
@@ -217,7 +219,7 @@ export interface BuildInput {
 /** Pause nach jedem Satz (Sekunden) – kurz für ein flottes TikTok-Tempo. */
 export const PAUSE = 0.08;
 
-export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, namen }: BuildInput): Timeline {
+export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, namen, amStueck }: BuildInput): Timeline {
   const p = platzhalter(snapshot, seit);
   const beats: TimelineBeat[] = [];
   const captions: Caption[] = [];
@@ -230,7 +232,8 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
     const text = ersetze(b.text, p);
     const words = parseWords(text);
     const sprech = sprechdauer?.[i] ?? schaetzeDauer(plain(ersetze(b.sprache ?? b.text, p)));
-    const dauer = Math.max(b.min ?? 0, sprech + PAUSE);
+    // Aufnahme am Stück: der Satz dauert genau bis zum nächsten Satz der Aufnahme (keine eingefügten Pausen)
+    const dauer = amStueck ? sprech : Math.max(b.min ?? 0, sprech + PAUSE);
     kamera = b.kamera ?? kamera;
     // Untertitel proportional zur Wortlänge über die Sprechzeit verteilen
     const chunks = b.untertitel === false ? [] : chunk(words);

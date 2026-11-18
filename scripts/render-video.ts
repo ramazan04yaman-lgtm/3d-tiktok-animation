@@ -51,12 +51,25 @@ const sprechText = (b: { text: string; sprache?: string }) => plain(ersetze(b.sp
   .replace(/(\d) L\b/g, '$1 Liter').replace(/(\d) ml\b/g, '$1 Milliliter').replace(/\s+/g, ' ').trim();
 let wortzeiten: ({ start: number; end: number }[] | undefined)[] | undefined;
 let geschnitten: string[] | null = null;
+/**
+ * AUFNAHME AM STÜCK (bei "ton": "nur-stimme" oder --am-stueck): die Aufnahme läuft unverändert durch,
+ * die Bilder richten sich nach der Stimme (keine eingefügten Pausen -> die Stimme stockt nie).
+ */
+let amStueck: { beginn: number[]; gesamt: number; wav: string } | null = null;
 if (stimme.typ === 'aufnahme') {
   const datei = path.resolve(args.aufnahme ? process.cwd() : path.dirname(folgePfad), stimme.datei);
   const genau = zerschneideMitText(datei, folge.beats.map((b) => sprechText(b)), work, path.join(root, 'tools'));
   if (genau) {
     geschnitten = genau.dateien;
     wortzeiten = genau.woerter;
+    if (folge.ton === 'nur-stimme' || args['am-stueck']) {
+      const wav = path.join(work, 'stimme-ganz.wav');
+      execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', datei, '-af', 'highpass=f=70,loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '44100', '-ac', '1', wav]);
+      amStueck = { beginn: genau.beginn, gesamt: genau.gesamt, wav };
+      // Satz 1 beginnt bei 0 s: seine Wortzeiten um den Vorlauf verschieben
+      wortzeiten[0] = (wortzeiten[0] ?? []).map((w) => ({ start: w.start + genau.beginn[0], end: w.end + genau.beginn[0] }));
+      console.log('🎧 Aufnahme läuft am Stück – keine eingefügten Pausen.');
+    }
     console.log(`✂️  Aufnahme wortgenau in ${geschnitten.length} Sätze geschnitten (Spracherkennung).`);
   } else {
     geschnitten = zerschneide(datei, folge.beats.length, work);
@@ -105,8 +118,12 @@ folge.beats.forEach((b, i) => {
   dauer.push(f ? sec(f) : undefined);
 });
 
+if (amStueck) {
+  const b = amStueck.beginn, n = b.length;
+  for (let i = 0; i < n; i++) dauer[i] = (i + 1 < n ? b[i + 1] : amStueck.gesamt + 0.6) - (i === 0 ? 0 : b[i]);
+}
 // ---------- 2. Zeitleiste ----------
-const timeline = buildTimeline({ folge, ...zahlen, sprechdauer: dauer, wortzeiten });
+const timeline = buildTimeline({ folge, ...zahlen, sprechdauer: dauer, wortzeiten, amStueck: !!amStueck });
 const total = Math.min(timeline.dauer, args.bis ? Number(args.bis) : Infinity);
 const frames = Math.ceil(total * FPS);
 fs.writeFileSync(path.join(work, 'zeitleiste.json'), JSON.stringify(timeline, null, 2));
@@ -200,7 +217,8 @@ const plan = {
   dauer: total,
   abschnitte: timeline.musik.filter((m) => m.start < total - 0.5).map((m) => ({ start: m.start, typ: m.typ })),
   events: timeline.events.filter((e) => e.t < total),
-  stimme: timeline.beats.map((b, i) => ({ t: b.start, datei: audioFiles[i] })).filter((v) => v.datei && v.t < total),
+  stimme: amStueck ? [{ t: 0, datei: amStueck.wav }]
+    : timeline.beats.map((b, i) => ({ t: b.start, datei: audioFiles[i] })).filter((v) => v.datei && v.t < total),
 };
 fs.writeFileSync(path.join(work, 'ton-plan.json'), JSON.stringify(plan, null, 2));
 const [mus, sfx, voc] = ['musik', 'effekte', 'stimme'].map((n) => path.join(work, `${n}.wav`));

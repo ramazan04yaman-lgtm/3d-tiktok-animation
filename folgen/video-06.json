@@ -41,7 +41,7 @@
       "sticker": [{ "typ": "zahl", "label": "NÄCHSTES ZIEL", "von": 0, "bis": "100", "einheit": "FOLLOWER", "farbe": "gelb" }] },
     { "text": "wird jeder Like {rot:elfmal teurer.}", "kamera": "orbit", "uebergang": 1.4,
       "sticker": [{ "typ": "schild", "text": "❤️ {like_ml} → 110 ml PRO LIKE", "farbe": "rot", "y": 14, "drehung": 2 }] },
-    { "text": "Noch {gelb:{fehlende_follower}.} Schaffen wir das?", "kamera": "gemeinschaft", "uebergang": 1.6, "min": 2.6,
+    { "text": "Noch {gelb:{fehlende_follower}.} Schaffen wir das?", "kamera": "gemeinschaft", "uebergang": 0, "min": 2.6,
       "sticker": [{ "typ": "zahl", "label": "ES FEHLEN NOCH", "von": 0, "bis": "{fehlende_follower}", "einheit": "FOLLOWER", "farbe": "gelb" }] },
     { "text": "Und wer fällt als Nächstes {gruen:vom Himmel?}", "kamera": "neu1", "uebergang": 1.6, "cliffhanger": true, "min": 3,
       "sticker": [{ "typ": "profil" }] }

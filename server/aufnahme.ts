@@ -62,7 +62,7 @@ export interface AusgerichteterSatz { start: number; end: number; woerter: { wor
  * Gibt null zurück, wenn die Spracherkennung nicht installiert ist.
  */
 export function zerschneideMitText(datei: string, saetze: string[], zielOrdner: string, werkzeuge: string):
-  { dateien: string[]; woerter: { start: number; end: number }[][] } | null {
+  { dateien: string[]; woerter: { start: number; end: number }[][]; beginn: number[]; gesamt: number } | null {
   const sj = path.join(zielOrdner, 'saetze.json'), aj = path.join(zielOrdner, 'ausrichtung.json');
   writeFileSync(sj, JSON.stringify(saetze));
   try {
@@ -70,7 +70,7 @@ export function zerschneideMitText(datei: string, saetze: string[], zielOrdner: 
   } catch { return null; }
   const erg = JSON.parse(readFileSync(aj, 'utf8')) as { saetze: AusgerichteterSatz[] };
   const gesamt = dauer(datei);
-  const dateien: string[] = [], woerter: { start: number; end: number }[][] = [];
+  const dateien: string[] = [], woerter: { start: number; end: number }[][] = [], beginn: number[] = [];
   erg.saetze.forEach((s, i) => {
     const naechster = erg.saetze[i + 1]?.start ?? gesamt;
     const von = Math.max(0, s.start - 0.06), bis = Math.min(gesamt, Math.max(s.end + 0.12, Math.min(naechster - 0.02, s.end + 0.25)));
@@ -78,9 +78,10 @@ export function zerschneideMitText(datei: string, saetze: string[], zielOrdner: 
     execFileSync('ffmpeg', ['-y', '-v', 'error', '-ss', von.toFixed(3), '-to', bis.toFixed(3), '-i', datei,
       '-af', 'highpass=f=70,loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '44100', '-ac', '1', out]);
     dateien.push(out);
+    beginn.push(von);
     woerter.push(s.woerter.map((w) => ({ start: Math.max(0, w.start - von), end: Math.max(0, w.end - von) })));
   });
-  return { dateien, woerter };
+  return { dateien, woerter, beginn, gesamt };
 }
 
 /** Schneidet die Aufnahme in n Satz-Dateien (WAV) und gibt die Pfade zurück. */
