@@ -81,6 +81,8 @@ export interface Folge {
         /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
         beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  /** Ton: "nur-stimme" = ohne Musik und Soundeffekte. */
+  ton?: 'nur-stimme' | 'voll';
   /** Anzeige oben: "kompakt" = eine schlanke Zeile + nächstes Ziel (TikTok-Format), sonst die große Anzeige. */
   anzeige?: 'kompakt' | 'voll';
   /** Vergleichsstand für "neu seit dem letzten Video": Datum oder Referenz eines Eintrags (z. B. "video-01"). */

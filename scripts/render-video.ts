@@ -5,6 +5,7 @@
  *   npm run video -- --folge folge-01 --demo          (Probevideo mit Beispielzahlen)
  *   npm run video -- --folge folge-01 --aufnahme meine-stimme.m4a   (DEINE Stimme am Stück)
  *   --ki-stimme: Ersatz-Stimme aus "stimme_ki" (z. B. für eine Vorschau, solange die Aufnahme fehlt)
+ *   --nur-stimme: nur die Erzählstimme, keine Musik und keine Soundeffekte (oder im Drehbuch "ton": "nur-stimme")
  *   Optionen: --leicht (schneller, für Rechner ohne Grafikkarte) --hoehe 1920 --fps 30 --seit 2026-11-12 --musik pfad.mp3 --bis 5 (nur die ersten 5 s)
  *
  * Ablauf: 1) Stimme je Satz erzeugen (oder eigene Aufnahme)  2) Zeitleiste berechnen
@@ -205,6 +206,15 @@ fs.writeFileSync(path.join(work, 'ton-plan.json'), JSON.stringify(plan, null, 2)
 const [mus, sfx, voc] = ['musik', 'effekte', 'stimme'].map((n) => path.join(work, `${n}.wav`));
 execFileSync('python3', [path.join(root, 'tools/sound.py'), path.join(work, 'ton-plan.json'), mus, sfx, voc], { stdio: 'inherit' });
 const musikDatei = args.musik ? path.resolve(args.musik) : mus;
+// Nur Stimme (ohne Musik und Soundeffekte): --nur-stimme oder im Drehbuch "ton": "nur-stimme"
+const nurStimme = !!args['nur-stimme'] || folge.ton === 'nur-stimme';
+if (nurStimme) {
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', voc, '-i', silent,
+    '-filter_complex', `[0:a]aformat=channel_layouts=stereo,loudnorm=I=-14:TP=-1.5:LRA=11,atrim=0:${total.toFixed(3)}[out]`,
+    '-map', '1:v', '-map', '[out]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-shortest', '-movflags', '+faststart', out]);
+  console.log(`✅ Fertig (nur Stimme, ohne Musik/Effekte): ${out}  (${total.toFixed(1)} s, ${W}x${H}, ${FPS} fps)`);
+  process.exit(0);
+}
 const mix = [
   `[0:a]aformat=channel_layouts=stereo,volume=1.0,asplit=2[v][vs]`,
   `[1:a]aformat=channel_layouts=stereo,volume=${args.musik ? 0.25 : 0.55}[m0]`,
