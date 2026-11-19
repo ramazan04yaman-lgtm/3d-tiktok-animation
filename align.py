@@ -13,7 +13,7 @@ W = [[w.word.strip(), round(w.start, 2), round(w.end, 2)] for s in segs for w in
 json.dump(W, open('words.json', 'w'), ensure_ascii=False)
 n = lambda s: re.sub(r'[^0-9a-zäöüß]', '', s.lower())
 num = {'zwanzig': '20', 'zehn': '10', 'sechzig': '60', 'dreiundzwanzig': '23'}
-w = [n(x[0]) for x in W]
+w = [num.get(n(x[0]), n(x[0])) for x in W]
 i = 0; starts = []
 for sc in S:
     st = []
