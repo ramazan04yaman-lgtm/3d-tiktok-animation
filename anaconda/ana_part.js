@@ -247,7 +247,7 @@ function poseAna(a, o) {
     for (let i = 0; i <= a.SV; i++) { const z = lerp(Z0s, Z1s, i / a.SV); const w = wrap(z); const R = sackR(w); const gapK = clamp((z + 0.26) / 0.1); const sw = skullW(clamp(z, -HL, HL)) * 0.9;
       const aU = Math.atan2(-0.012 - w.cy, sw), dU = Math.hypot(sw, -0.012 - w.cy); const ph0 = lerp(Math.PI / 2, aU, gapK), ph1 = -Math.PI - ph0;
       // Seiten offen: vor dem Kiefergelenk keine Haut zwischen Ober- und Unterkiefer (nur schmale Lippen)
-      const kO = Math.pow(clamp((z - zh) / 0.32), 0.8); kRow.push(kO); const lipQ = lerp(1, 0.04, kO); const rm = s => s <= 0.5 ? s * lipQ : 1 - (1 - s) * lipQ;
+      const kO = ease(clamp((z - zh) / 0.07)); /* Mundwinkel direkt am Kiefergelenk */ kRow.push(kO); const lipQ = lerp(1, 0.04, kO); const rm = s => s <= 0.5 ? s * lipQ : 1 - (1 - s) * lipQ;
       const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); const L = mp(s, clamp(kk)); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return kk < -0.05 || kk > 1.05 ? [aJ, null] : [aJ, Math.hypot(L.x, L.y - w.cy)]; });
       const aR = jw[1][0], aL = jw[0][0];
       for (let j = 0; j <= SU; j++) { let ph, e = 0;
@@ -266,12 +266,12 @@ function poseAna(a, o) {
       lm.visible = pts.length > 3; if (lm.visible) { lm.geometry.dispose(); lm.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 0.009, 8, false); } });
     // Mundwinkel: fleischige rosa Falte zwischen Ober- und Unterlippe, nach innen eingezogen
     a.cfill.forEach((m, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const i0 = kRow.findIndex(k => k > 0.001); m.visible = i0 > 0; if (!m.visible) return;
-      let i1 = i0; while (i1 < a.SV && kRow[i1] < 0.3) i1++; const g = m.geometry, gp = g.attributes.position.array, gc = g.attributes.color.array; const cA = new THREE.Color(0xd98a8f), cB = new THREE.Color(0x6a1a20), cc = new THREE.Color();
+      let i1 = i0; while (i1 < a.SV && lerp(Z0s, Z1s, i1 / a.SV) < zh + 0.12) i1++; const g = m.geometry, gp = g.attributes.position.array, gc = g.attributes.color.array; const cA = new THREE.Color(0xd98a8f), cB = new THREE.Color(0x6a1a20), cc = new THREE.Color();
       const P = k => V(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]);
       for (let r = 0; r <= 12; r++) { const fi = lerp(i0 - 1, i1, r / 12), ia = Math.floor(fi), ib = Math.min(a.SV, ia + 1), ft = fi - ia;
         const U = P(ia * (SU + 1) + cU).lerp(P(ib * (SU + 1) + cU), ft), L = P(ia * (SU + 1) + cL).lerp(P(ib * (SU + 1) + cL), ft); const zz = U.z; const w = wrap(zz);
-        const dep = (r / 12) * (1 - r / 12) * 4 * 0.06; // Falte zieht sich zur Mitte hin ein
-        for (let q = 0; q <= 8; q++) { const t = q / 8; const X = U.clone().lerp(L, t); const toC = V(-X.x, w.cy - X.y, 0); const dl = toC.length(); if (dl > 1e-4) X.addScaledVector(toC, Math.min(dep * Math.sin(Math.PI * t), dl * 0.5) / dl); X.z -= 0.03 * Math.sin(Math.PI * t) * (1 - r / 12);
+        const dep = 0.05 + 0.12 * (r / 12); // Falte zieht sich zur Mitte hin ein
+        for (let q = 0; q <= 8; q++) { const t = q / 8; const X = U.clone().lerp(L, t); const toC = V(-X.x, w.cy - X.y, 0); const dl = toC.length(); if (dl > 1e-4) X.addScaledVector(toC, Math.min(dep * Math.pow(Math.sin(Math.PI * t), 0.6), dl * 0.6) / dl); X.z -= 0.03 * Math.sin(Math.PI * t) * (1 - r / 12);
           const k = r * 9 + q; gp[k * 3] = X.x; gp[k * 3 + 1] = X.y; gp[k * 3 + 2] = X.z; cc.copy(cA).lerp(cB, 0.55 * Math.sin(Math.PI * t) * (1 - r / 12)); gc[k * 3] = cc.r; gc[k * 3 + 1] = cc.g; gc[k * 3 + 2] = cc.b; } }
       g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); });
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
