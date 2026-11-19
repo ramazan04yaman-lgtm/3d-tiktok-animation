@@ -1,0 +1,19 @@
+[
+ {"say": "Ein Blatt Papier ist weicher als deine Haut. Trotzdem schneidet es dich wie ein Messer.", "cap": "Ein Blatt Papier ist weicher als deine Haut. Trotzdem schneidet es dich wie ein Messer.", "shots": ["h_cut", "h_finger", "h_ouch"], "pause": 0.25},
+ {"say": "Aber wie kann das sein?", "cap": "Aber wie kann das sein?", "shots": ["why_face"], "pause": 0.2},
+ {"say": "Drück ein Blatt gerade auf deinen Finger, und es knickt einfach weg.", "cap": "Drück ein Blatt gerade auf deinen Finger, und es knickt einfach weg.", "shots": ["press_straight", "press_buckle"]},
+ {"say": "Gefährlich wird es erst, wenn dein Finger in einem flachen Winkel an der Kante entlangrutscht.", "cap": "Gefährlich wird es erst, wenn dein Finger in einem flachen Winkel an der Kante entlangrutscht.", "shots": ["slide_wide", "slide_angle"]},
+ {"say": "Dann bleibt das Papier steif, und deine ganze Kraft landet auf einer Kante, die so dünn ist wie ein Haar.", "cap": "Dann bleibt das Papier steif, und deine ganze Kraft landet auf einer Kante, die so dünn ist wie ein Haar.", "shots": ["edge_force", "hair_compare"]},
+ {"say": "Und unter dem Mikroskop ist diese Kante alles andere als glatt.", "cap": "Und unter dem Mikroskop ist diese Kante alles andere als glatt.", "shots": ["microscope", "micro_zoom"], "pause": 0.2},
+ {"say": "Sie besteht aus ausgefransten Fasern, wie die Zähne einer winzigen Säge.", "cap": "Sie besteht aus ausgefransten Fasern, wie die Zähne einer winzigen Säge.", "shots": ["fibers", "saw_teeth"]},
+ {"say": "Rutschst du daran entlang, sägen sie sich durch die oberste Hautschicht.", "cap": "Rutschst du daran entlang, sägen sie sich durch die oberste Hautschicht.", "shots": ["skin_section", "skin_cut"], "pause": 0.3},
+ {"say": "Forscher der Technischen Universität Dänemark haben das zweitausendvierundzwanzig genau untersucht.", "cap": "Forscher der Technischen Universität Dänemark haben das 2024 genau untersucht.", "shots": ["lab_wide", "lab_scientists"]},
+ {"say": "Sie drückten Papier in künstliche Haut aus Gel.", "cap": "Sie drückten Papier in künstliche Haut aus Gel.", "shots": ["gel_press"]},
+ {"say": "Zu dünnes Papier verbiegt sich. Zu dickes macht nur eine Delle.", "cap": "Zu dünnes Papier verbiegt sich. Zu dickes macht nur eine Delle.", "shots": ["too_thin", "too_thick"]},
+ {"say": "Am gefährlichsten war Papier mit etwa null Komma null sechs fünf Millimetern. Genau wie eine Seite aus einer Zeitschrift.", "cap": "Am gefährlichsten war Papier mit etwa 0,065 Millimetern. Genau wie eine Seite aus einer Zeitschrift.", "shots": ["just_right", "magazine"], "pause": 0.35},
+ {"say": "Und warum tut das so höllisch weh? In deinen Fingerspitzen sitzen extrem viele Nerven.", "cap": "Und warum tut das so höllisch weh? In deinen Fingerspitzen sitzen extrem viele Nerven.", "shots": ["why_pain", "nerves"]},
+ {"say": "Der Schnitt ist so flach, dass er kaum blutet. Aber die Nerven liegen offen.", "cap": "Der Schnitt ist so flach, dass er kaum blutet. Aber die Nerven liegen offen.", "shots": ["shallow_cut", "guy_pain"], "pause": 0.3},
+ {"say": "Die Forscher bauten sogar ein Messer aus Papier und schnitten damit Hähnchen.", "cap": "Die Forscher bauten sogar ein Messer aus Papier und schnitten damit Hähnchen.", "shots": ["paper_knife", "chicken_cut"], "pause": 0.35},
+ {"say": "Das ist echte Wissenschaft. Such nach der Papierschnitt-Studie.", "cap": "Das ist echte Wissenschaft. Such nach der Papierschnitt-Studie.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? Was war dein schlimmster Papierschnitt? Schreib es in die Kommentare!", "cap": "Und du? Was war dein schlimmster Papierschnitt? Schreib es in die Kommentare!", "shots": ["question"]}
+]
