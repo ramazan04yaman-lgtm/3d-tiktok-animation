@@ -44,7 +44,7 @@ const trachM = new THREE.MeshPhysicalMaterial({ color: 0xe6a5aa, roughness: 0.35
 const HL = 0.34; // halbe Kopflänge
 const skullW = z => 0.14 * (1 - 0.42 * Math.pow(clamp((z + HL) / (2 * HL)), 1.6)); // halbe Breite entlang z
 function headColor(x, y, z, ny, c) { // oliv, schwarzer Streifen hinter dem Auge, gelbliche Unterseite
-  c.set(0x434b20); if (ny < -0.2 || y < 0.012) c.set(0x9a8a3a); const st = Math.abs(Math.abs(x) - (0.13 - 0.1 * clamp((z + 0.34) / 0.6))) < 0.025 && y < 0.07 && y > 0.0 && z < 0.06; if (st) c.set(0x221f10);
+  c.set(0x434b20); if (ny < -0.2 || y < 0.012) c.set(0x9a8a3a); if (y < 0.022 && y > -0.012 && Math.abs(x) > skullW(z) * 0.72) { c.set(0xcdb862); if ((z * 22 + 10) % 1 < 0.14) c.set(0x3b3115); } const st = Math.abs(Math.abs(x) - (0.13 - 0.1 * clamp((z + 0.34) / 0.6))) < 0.025 && y < 0.07 && y > 0.0 && z < 0.06; if (st) c.set(0x221f10);
   if (y > 0.07 && Math.abs(x) < 0.07 && z < 0.1) c.lerp(new THREE.Color(0x1d1d0e), 0.6 * clamp(Math.sin(z * 30) + 0.3)); c.multiplyScalar(0.9 + 0.2 * fbm(x * 20, y * 20, z * 20, 2)); return c; }
 function colGeo(geo, fn) { geo.computeVertexNormals(); const p = geo.attributes.position, n = geo.attributes.normal, cols = [], c = new THREE.Color(); for (let i = 0; i < p.count; i++) { fn(p.getX(i), p.getY(i), p.getZ(i), n.getY(i), c); cols.push(c.r, c.g, c.b); } geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); return geo; }
 function makeAna() {
@@ -66,35 +66,63 @@ function makeAna() {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.024, 18, 14), new THREE.MeshPhysicalMaterial({ color: 0x5e4c1e, roughness: 0.05, clearcoat: 1 })); eg.add(eye);
     const pup = new THREE.Mesh(new THREE.SphereGeometry(0.0245, 18, 14, 0, Math.PI * 2, 0, 0.5), new THREE.MeshBasicMaterial({ color: 0x050403 })); pup.rotation.x = -Math.PI / 2 - 0.2; pup.rotation.z = s * 0.6; pup.scale.set(0.35, 1, 1); eg.add(pup);
     const lid = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.008, 8, 20), headSkinM); colGeo(lid.geometry, (x, y, z, ny, c) => c.set(0x353b19)); lid.rotation.set(Math.PI / 2 - 0.4, s * 0.5, 0); lid.position.y = 0.004; eg.add(lid);
-    const nos = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), new THREE.MeshBasicMaterial({ color: 0x0b0b06 })); nos.position.set(s * 0.034, 0.05, 0.3); nos.scale.set(1, 0.6, 1.3); head.add(nos); }
-  // Oberkiefer-Zahnreihen (Kiefer + Gaumen), zeigen nach unten und nach hinten
-  const fangG = (() => { const c = new THREE.CatmullRomCurve3([V(0, 0, 0), V(0, -0.5, -0.12), V(0, -0.9, -0.45), V(0, -1.0, -0.75)]); const g = new THREE.TubeGeometry(c, 10, 1, 8, false); const p = g.attributes.position; // spitz zulaufender Haken
-    for (let i = 0; i < p.count; i++) { const k = Math.floor(i / 9) / 10; const cp = c.getPoint(k); p.setXYZ(i, cp.x + (p.getX(i) - cp.x) * 0.16 * (1 - k * 0.92), cp.y + (p.getY(i) - cp.y) * 0.16 * (1 - k * 0.92), cp.z + (p.getZ(i) - cp.z) * 0.16 * (1 - k * 0.92)); } g.computeVertexNormals(); return g; })();
-  const upTeeth = []; for (const s of [-1, 1]) for (const row of [0.93, 0.55]) for (let k = 0; k < 9; k++) { const z = -0.22 + k * 0.058; if (row < 0.9 && k > 6) continue; const m = new THREE.Mesh(fangG, fangM); m.position.set(s * skullW(z) * row, -0.004, z); m.userData.s = 0.045 * (row > 0.9 ? 1 : 0.8); head.add(m); upTeeth.push(m); }
-  // Unterkieferhälften: Gelenk hinten (Quadratum), Spitze vorn am Kinn
+    const nos = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), new THREE.MeshBasicMaterial({ color: 0x0b0b06 })); nos.position.set(s * 0.03, 0.036, 0.27); nos.scale.set(1, 0.6, 1.3); head.add(nos); }
+  // ---- Zähne: kurz, kräftig an der Basis, nach hinten gebogen (Widerhaken) ----
+  const fangG = (() => { const c = new THREE.CatmullRomCurve3([V(0, 0.25, 0.02), V(0, -0.45, -0.04), V(0, -0.85, -0.3), V(0, -1.0, -0.62)]); const SEG = 12, RAD = 8; const g = new THREE.TubeGeometry(c, SEG, 1, RAD, false); const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const k = Math.floor(i / (RAD + 1)) / SEG; const cp = c.getPoint(k); const r = 0.24 * Math.pow(1 - k, 0.85) + 0.004; p.setXYZ(i, cp.x + (p.getX(i) - cp.x) * r * 0.8, cp.y + (p.getY(i) - cp.y) * r, cp.z + (p.getZ(i) - cp.z) * r); }
+    g.computeVertexNormals(); const col = []; for (let i = 0; i < p.count; i++) { const k = Math.floor(i / (RAD + 1)) / SEG; const cc = new THREE.Color(0xe9dcc0).lerp(new THREE.Color(0xfffcf2), clamp(k * 1.4)); col.push(cc.r, cc.g, cc.b); } g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return g; })();
+  const toothM = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.15, sheen: 0.3 });
+  const gumM = new THREE.MeshPhysicalMaterial({ color: 0xb8606a, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.2, bumpMap: muscleTex, bumpScale: 0.25 });
+  const tRnd = rng(77); const upTeeth = [];
+  const palY = (u, z) => { const rho2 = Math.max(0, 1 - (z / HL) ** 2); const X = Math.pow(Math.min(1, Math.abs(u)), 4 / 3); return -0.035 * Math.sqrt(Math.max(0, rho2 - X * X)) - 0.003; }; // Gaumen direkt unter dem Schädel
+  for (const s of [-1, 1]) {
+    const gp = []; for (let k = 0; k <= 16; k++) { const z = lerp(-0.27, 0.3, k / 16); gp.push(V(s * skullW(z) * (0.9 - 0.25 * clamp((z - 0.22) / 0.1)), -0.006, z)); }
+    const gum = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(gp), 60, 0.008, 8, false), gumM); head.add(gum);
+    const pp = []; for (let k = 0; k <= 10; k++) { const z = lerp(-0.25, 0.16, k / 10); pp.push(V(s * skullW(z) * 0.5, palY(0.5 / 0.95, z) - 0.002, z)); }
+    head.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp), 40, 0.005, 6, false), gumM));
+    for (let k = 0; k < 15; k++) { const z = lerp(-0.25, 0.27, k / 14); const m = new THREE.Mesh(fangG, toothM); const xf = 0.9 - 0.25 * clamp((z - 0.22) / 0.1); m.position.set(s * skullW(z) * xf, -0.008, z); m.rotation.set(0, 0, s * 0.12); m.userData.s = 0.026 * (0.8 + 0.35 * clamp((z + 0.25) / 0.35)) * (0.85 + 0.3 * tRnd()); head.add(m); upTeeth.push(m); }
+    for (let k = 0; k < 9; k++) { const z = lerp(-0.23, 0.15, k / 8); const m = new THREE.Mesh(fangG, toothM); m.position.set(s * skullW(z) * 0.5, palY(0.5 / 0.95, z) - 0.006, z); m.userData.s = 0.022 * (0.85 + 0.3 * tRnd()); head.add(m); upTeeth.push(m); }
+  }
+  // ---- Unterkieferhälften: flache Knochenspange mit Lippenschuppen außen, Zahnfleisch oben ----
   const mandibles = []; const JL = 0.6;
   for (const s of [-1, 1]) {
     const mg = new THREE.Group(); mg.position.set(s * 0.125, 0.0, -0.3); head.add(mg);
-    const path = [V(0, 0, 0), V(-s * 0.02, -0.02, 0.2), V(-s * 0.06, -0.03, 0.42), V(-s * 0.105, -0.025, JL)];
-    const curve = new THREE.CatmullRomCurve3(path); const tg = new THREE.TubeGeometry(curve, 40, 1, 16, false); { const p = tg.attributes.position; for (let i = 0; i < p.count; i++) { const k = Math.floor(i / 17) / 40; const cp = curve.getPoint(k); const rr = lerp(0.034, 0.018, k); const dx = p.getX(i) - cp.x, dy = p.getY(i) - cp.y, dz = p.getZ(i) - cp.z; p.setXYZ(i, cp.x + dx * rr * 1.0, cp.y + dy * rr * 1.25, cp.z + dz * rr); } }
-    const skinG = colGeo(tg, (x, y, z, ny, c) => { c.set(ny > 0.3 ? 0x434b20 : 0xa8963e); c.multiplyScalar(0.9 + 0.2 * fbm(x * 30, y * 30, z * 30, 2)); });
-    const jaw = new THREE.Mesh(skinG, headSkinM); jaw.castShadow = true; mg.add(jaw); const jol = new THREE.Mesh(skinG, ol); mg.add(jol);
-    const bone = new THREE.Mesh(tg, aBoneM); bone.visible = false; mg.add(bone);
-    const teeth = []; for (let k = 0; k < 9; k++) { const u = 0.08 + k * 0.1; const p = curve.getPoint(u); const m = new THREE.Mesh(fangG, fangM); m.position.copy(p).add(V(0, 0.02, 0)); m.rotation.x = Math.PI; m.userData.s = 0.042; mg.add(m); teeth.push(m); }
+    const path = [V(0, 0, 0), V(-s * 0.02, -0.01, 0.2), V(-s * 0.06, -0.015, 0.42), V(-s * 0.105, -0.012, JL)];
+    const curve = new THREE.CatmullRomCurve3(path); const NS = 48, NR = 20; const mpos = [], muv = [], mcol = [], midx = []; const c = new THREE.Color();
+    for (let i = 0; i <= NS; i++) { const k = i / NS; const cp = curve.getPoint(k); const T = curve.getTangent(k); const B = T.clone().cross(V(0, 1, 0)).normalize(); if (B.x * s < 0) B.negate(); const N = B.clone().cross(T).normalize(); if (N.y < 0) N.negate();
+      const hh = lerp(0.03, 0.016, Math.pow(k, 0.8)) * (k > 0.93 ? Math.sqrt(1 - (k - 0.93) / 0.075 * 0.6) : 1), ww = lerp(0.017, 0.011, k) * (k < 0.05 ? 0.6 + 8 * k : 1);
+      for (let j = 0; j <= NR; j++) { const an = j / NR * Math.PI * 2; const ca = Math.cos(an), sa = Math.sin(an); const ex = Math.sign(ca) * Math.pow(Math.abs(ca), 0.8), ey = Math.sign(sa) * Math.pow(Math.abs(sa), 0.8);
+        const P = cp.clone().addScaledVector(N, -hh + ey * hh).addScaledVector(B, ex * ww); mpos.push(P.x, P.y, P.z); muv.push(k * 5, j / NR);
+        if (sa > 0.75) c.set(0xb8656c); // Zahnfleisch oben
+        else if (ca < -0.3) c.set(sa > 0.1 ? 0xa86068 : 0x9b8a40); // Innenseite
+        else if (sa > -0.35) { if (sa > 0.55) { c.set(0xb9a655); if ((k * 13 + 0.3 + 0.15 * Math.sin(k * 40)) % 1 < 0.16 && k < 0.95) c.set(0x3b3115); } else { c.set(0x434b20); if (fbm(k * 9, sa * 2, s, 2) > 0.62) c.set(0x23240f); } } // Lippenschuppen
+        else c.set(sa < -0.8 ? 0x9c8f42 : 0x434b20);
+        c.multiplyScalar(0.88 + 0.24 * fbm(P.x * 40, P.y * 40, P.z * 40, 2)); mcol.push(c.r, c.g, c.b); } }
+    for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++) { const a = i * (NR + 1) + j, b = a + 1, cc = a + NR + 1, d = cc + 1; midx.push(a, cc, b, b, cc, d); }
+    const jg = new THREE.BufferGeometry(); jg.setIndex(midx); jg.setAttribute('position', new THREE.Float32BufferAttribute(mpos, 3)); jg.setAttribute('uv', new THREE.Float32BufferAttribute(muv, 2)); jg.setAttribute('color', new THREE.Float32BufferAttribute(mcol, 3)); jg.computeVertexNormals();
+    const jaw = new THREE.Mesh(jg, headSkinM); jaw.castShadow = true; mg.add(jaw); const jol = new THREE.Mesh(jg, ol); mg.add(jol);
+    const bone = new THREE.Mesh(jg, aBoneM); bone.visible = false; mg.add(bone);
+    const teeth = []; for (let k = 0; k < 15; k++) { const u = 0.07 + k * 0.061; const p = curve.getPoint(u); const m = new THREE.Mesh(fangG, toothM); m.position.copy(p).add(V(0, 0.004, 0)); m.rotation.set(0, 0, Math.PI - s * 0.15); m.userData.s = 0.024 * (1.15 - 0.35 * u) * (0.85 + 0.3 * tRnd()); mg.add(m); teeth.push(m); }
     mandibles.push({ g: mg, s, jaw, jol, bone, teeth, curve });
   }
-  const chin = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 10), aBoneM); chin.rotation.z = Math.PI / 2; chin.visible = false; head.add(chin); // verwachsenes Kinn (Röntgen)
+  const chin = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 1, 10), aBoneM); chin.rotation.z = Math.PI / 2; chin.visible = false; head.add(chin); // verwachsenes Kinn (Röntgen)
   const lig = new THREE.Mesh(new THREE.BufferGeometry(), ligM); lig.frustumCulled = false; head.add(lig); // dehnbares Band
-  // Mundschleimhaut (dynamisch)
-  const LK = 22, LS = 48; const lg = new THREE.BufferGeometry(); const lpos = new Float32Array((LK + 1) * (LS + 1) * 3); const lidx = [];
-  for (let i = 0; i < LK; i++) for (let j = 0; j < LS; j++) { const a = i * (LS + 1) + j, b = a + 1, c = a + LS + 1, d = c + 1; lidx.push(a, b, c, b, d, c); }
-  lg.setIndex(lidx); lg.setAttribute('position', new THREE.BufferAttribute(lpos, 3)); const lining = new THREE.Mesh(lg, liningM); lining.frustumCulled = false; head.add(lining);
+  // ---- Mundraum: Gaumen -> Rachen -> Mundboden (innen rosa, außen Kehlhaut) + Mundwinkel-Häute ----
+  const mkSheet = (NU, NV, flip) => { const g = new THREE.BufferGeometry(); const n = (NU + 1) * (NV + 1); const idx = [];
+    for (let i = 0; i < NV; i++) for (let j = 0; j < NU; j++) { const a = i * (NU + 1) + j, b = a + 1, c2 = a + NU + 1, d = c2 + 1; if (flip) idx.push(a, c2, b, b, c2, d); else idx.push(a, b, c2, b, d, c2); }
+    g.setIndex(idx); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); const uvs = new Float32Array(n * 2);
+    for (let i = 0; i <= NV; i++) for (let j = 0; j <= NU; j++) { const k = i * (NU + 1) + j; uvs[k * 2] = j / NU * 1.5; uvs[k * 2 + 1] = i / NV * 3; } g.setAttribute('uv', new THREE.BufferAttribute(uvs, 2)); return g; };
+  const innerM = new THREE.MeshPhysicalMaterial({ vertexColors: true, emissive: 0x3a0c10, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.22, bumpMap: muscleTex, bumpScale: 0.35, side: THREE.FrontSide });
+  const outerM = new THREE.MeshStandardMaterial({ color: 0x8f8a40, roughness: 0.45, bumpMap: scaleTex, bumpScale: 0.9, side: THREE.BackSide });
+  const MU = 26, MV = 70; const lg = mkSheet(MU, MV, true); const lining = new THREE.Group(); head.add(lining);
+  lining.add(new THREE.Mesh(lg, innerM)); const lgo = new THREE.Mesh(lg, outerM); lgo.castShadow = true; lining.add(lgo);
+  const corners = [-1, 1].map(s => { const g = mkSheet(12, 10, s < 0); lining.add(new THREE.Mesh(g, innerM)); const o = new THREE.Mesh(g, outerM); o.castShadow = true; lining.add(o); return { s, g }; });
   // Luftröhre (Glottis) – Schnorchel mit Knorpelringen
   const trach = new THREE.Group(); head.add(trach); const tt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 1, 16, 1, true), trachM); tt.rotation.x = Math.PI / 2; trach.add(tt);
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, chin, lig, lining, lg, LK, LS, trach, tt, rings, trTip, ol, JL };
+  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, chin, lig, lining, lg, MU, MV, corners, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -171,14 +199,29 @@ function poseAna(a, o) {
   a.chin.visible = chinK >= 0; if (chinK >= 0) { const mid = tL.clone().add(tR).multiplyScalar(0.5); const len = tL.distanceTo(tR) + 0.04; a.chin.position.copy(mid); a.chin.scale.set(1, Math.max(0.05, len * (chinK > 0 ? 0.5 : 1)), 1); a.chin.rotation.set(0, 0, Math.PI / 2); }
   // Band
   a.lig.visible = lig > 0.01; if (a.lig.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5).add(V(0, -0.02 - 0.03 * clamp(tL.distanceTo(tR) * 3), 0.0)); const c = new THREE.CatmullRomCurve3([tL, mid, tR]); const th = 0.026 / Math.sqrt(1 + tL.distanceTo(tR) * 6); a.lig.geometry.dispose(); a.lig.geometry = new THREE.TubeGeometry(c, 20, th * lig, 10, false); }
-  // Schleimhaut zwischen Oberkiefer und Unterkiefern
-  { const lp = a.lg.attributes.position.array; for (let i = 0; i <= a.LK; i++) { const u = i / a.LK; const z = lerp(-0.28, 0.27, u);
-      const mL = a.mandibles[0].curve.getPoint(clamp((z + 0.3) / 0.62)).applyMatrix4(a.mandibles[0].g.matrix), mR = a.mandibles[1].curve.getPoint(clamp((z + 0.3) / 0.62)).applyMatrix4(a.mandibles[1].g.matrix);
-      const w = skullW(z) * 0.86; const mid = mL.clone().add(mR).multiplyScalar(0.5); const sep = mR.distanceTo(mL);
-      const ctrl = [V(0, 0.012, z), V(w, -0.004, z), V(w * 1.05 + (mR.x - w) * 0.5 + 0.02, (mR.y - 0.004) * 0.55, z), mR.clone().add(V(-0.012, 0.012, 0)), mid.clone().add(V(0, -0.02 - 0.05 * sep, 0)), mL.clone().add(V(0.012, 0.012, 0)), V(-w * 1.05 + (mL.x + w) * 0.5 - 0.02, (mL.y - 0.004) * 0.55, z), V(-w, -0.004, z)];
-      const crv = new THREE.CatmullRomCurve3(ctrl, true, 'centripetal');
-      for (let j = 0; j <= a.LS; j++) { const q = crv.getPoint(j / a.LS); const k3 = (i * (a.LS + 1) + j) * 3; lp[k3] = q.x; lp[k3 + 1] = q.y; lp[k3 + 2] = q.z; } }
-    a.lg.attributes.position.needsUpdate = true; a.lg.computeVertexNormals(); a.lining.visible = gape > 0.06 || spread > 0.02; }
+  // Mundraum
+  a.lining.visible = gape > 0.06 || spread > 0.02; if (a.lining.visible) {
+    const M = a.mandibles.map(m => m.g.matrix); const mp = (i, k, out) => { const m = a.mandibles[i]; const p = m.curve.getPoint(clamp(k)).applyMatrix4(M[i]); return p; };
+    const sepAt = k => mp(0, k).distanceTo(mp(1, k));
+    const pal = (u, z) => { const w = skullW(z) * 0.93 * (1 - 0.25 * clamp((z - 0.22) / 0.1)); return V(u * w, a.palY(u, z) - 0.004, z); };
+    const flo = (u, k) => { const L = mp(0, k), R = mp(1, k); const mid = L.clone().add(R).multiplyScalar(0.5); const inL = mid.clone().sub(L).normalize(); L.addScaledVector(inL, 0.012); R.addScaledVector(inL, -0.012); L.y -= 0.012; R.y -= 0.012;
+      const sep = L.distanceTo(R); const sag = Math.min(0.13, 0.012 + 0.2 * sep * sep); const f = (u + 1) / 2; const P = L.lerp(R, f); P.y -= sag * (1 - u * u) - 0.007 * Math.exp(-((u / 0.18) ** 2)) * clamp((k - 0.3) / 0.2) * clamp((0.85 - k) / 0.1); return P; };
+    const KF0 = 0.08, KF1 = 0.92, Z0 = -0.22;
+    const pos = a.lg.attributes.position.array, col = a.lg.attributes.color.array; const cP = new THREE.Color(0xe8a0a4), cF = new THREE.Color(0xe39399), cT = new THREE.Color(0x3a090e), cS = new THREE.Color(0xc4ad58), cO = new THREE.Color(0x4f5424), c = new THREE.Color();
+    for (let i = 0; i <= a.MV; i++) { const v = i / a.MV; for (let j = 0; j <= a.MU; j++) { const u = j / a.MU * 2 - 1; let P;
+        if (v < 0.4) P = pal(u, lerp(0.29, Z0, v / 0.4));
+        else if (v > 0.6) P = flo(u, lerp(KF0, KF1, (v - 0.6) / 0.4));
+        else { const t = (v - 0.4) / 0.2; const P0 = pal(u, Z0), P2 = flo(u, KF0); const C = P0.clone().add(P2).multiplyScalar(0.5).add(V(0, 0, -0.16)); C.x *= 0.7;
+          P = P0.multiplyScalar((1 - t) ** 2).addScaledVector(C, 2 * t * (1 - t)).addScaledVector(P2, t * t); }
+        const k = i * (a.MU + 1) + j; pos[k * 3] = P.x; pos[k * 3 + 1] = P.y; pos[k * 3 + 2] = P.z;
+        const dk = Math.exp(-(((v - 0.5) / 0.13) ** 2)); c.copy(v < 0.5 ? cP : cF).lerp(cT, dk * 0.92); c.multiplyScalar((1 - 0.22 * clamp((Math.abs(u) - 0.7) / 0.3)) * (v > 0.6 ? (0.86 + 0.14 * Math.cos(u * 22)) * (1 - 0.25 * Math.exp(-((u / 0.25) ** 2))) * (0.8 + 0.2 * clamp((v - 0.6) / 0.3)) : 1)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
+    a.lg.attributes.position.needsUpdate = a.lg.attributes.color.needsUpdate = true; a.lg.computeVertexNormals();
+    a.corners.forEach(({ s, g }) => { const i = s < 0 ? 0 : 1; const Ub = V(s * skullW(-0.27) * 0.92, -0.008, -0.27), Uf = V(s * skullW(-0.1) * 0.92, -0.008, -0.1); const Lb = mp(i, 0.03), Lf = mp(i, 0.32); Lb.y -= 0.01; Lf.y -= 0.01;
+      const A = Ub.clone().add(Lb).multiplyScalar(0.5); const p = g.attributes.position.array, cc = g.attributes.color.array;
+      for (let ii = 0; ii <= 10; ii++) { const b = ii / 10; for (let j = 0; j <= 12; j++) { const t = j / 12; const S = Ub.clone().lerp(Lb, t); const mid = Uf.clone().add(Lf).multiplyScalar(0.5).lerp(A, 0.55);
+          const E = Uf.clone().multiplyScalar((1 - t) ** 2).addScaledVector(mid, 2 * t * (1 - t)).addScaledVector(Lf, t * t); const P = S.lerp(E, b); P.x += s * 0.012 * Math.sin(Math.PI * t) * Math.sin(Math.PI * b * 0.8);
+          const k = ii * 13 + j; p[k * 3] = P.x; p[k * 3 + 1] = P.y; p[k * 3 + 2] = P.z; c.copy(cF).lerp(cT, 0.35 * (1 - b)); cc[k * 3] = c.r; cc[k * 3 + 1] = c.g; cc[k * 3 + 2] = c.b; } }
+      g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); const base = V(0, mid.y * 0.5 + 0.01, -0.12); const tipP = V(0, mid.y + 0.02, lerp(0.0, 0.42, trach) + mid.z * 0.4); const len = base.distanceTo(tipP);
     a.trach.position.copy(base).lerp(tipP, 0.5); a.trach.quaternion.setFromUnitVectors(V(0, 0, 1), tipP.clone().sub(base).normalize()); a.tt.scale.set(1, len, 1);
