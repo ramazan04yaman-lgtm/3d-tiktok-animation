@@ -11,6 +11,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 3. **„Wie funktioniert eine Mikrowelle?“** — `--project microwave`
 4. **„Wie funktioniert das menschliche Herz?“** — `--project heart`
 5. **„Warum und wie furzen Menschen?“** — `--project gut`
+6. **„Warum schneidet Papier?“** — `--project papercut`
 
 ```bash
 npm install
@@ -207,3 +208,7 @@ slowed down. LV volume in the HUD: typical values (EDV ≈ 120 ml, ESV ≈ 50 ml
 Construction: full-figure mannequin (heart-episode torso + legs, arms, head via Surface Nets), organ tubes with parallel-transport frames (`tube.ts`) and a tissue shader with peristaltic contraction rings, longitudinal section and mucosa back faces (`materials.ts`); gas pockets, bubbles and contents are pure functions of time (`gas.ts`, `Contents.tsx`).
 
 Simplifications: procedural model (no medical scan); small intestine strongly shortened; motility hugely accelerated; bacteria, molecules and bubbles magnified; neutral mannequin without sex characteristics.
+
+## Episode 6 — Papierschnitt (papercut)
+
+Narration `audio/papercut-voice.json` (Felix, natural speed). Hook: edge slides over the fingertip and opens a cut (0–3 s); microscope dive into the fibre edge; pressure on a line (1 N on 1 cm × 0.065 mm ≈ 15 bar, ≈ 150× a flat finger); textbook skin section (epidermis, dermis with capillary loops, fat, free nerve endings; shallow V cut, severed endings send pain signals); surprise: 2024 DTU study — ≈ 65 µm paper slices, thinner buckles, thicker dents (thicknesses exaggerated on screen).
