@@ -28,9 +28,11 @@ function engulf(p, T, extra = {}) {
   const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const cz = 1.06 - (hx - PREY_X0); const cMouth = 1.06 - (hx + 0.2 - PREY_X0);
   const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const inside = p > 0.02 && rc > 0.01;
   const cyH = capyY(cz); const hy = inside ? cyH + rc * 0.95 + 0.01 : 0.13; const drop = inside ? hy - (cyH - rc * 0.55) : 0; const jl = 0.6;
-  const gape = inside ? Math.asin(clamp(drop / jl, 0, 0.98)) : 0.05; const spread = inside ? Math.atan(rc * 0.9 / jl) * 0.85 : 0;
+  const gape = inside ? Math.asin(clamp(drop / jl, 0, 0.98)) : 0.05; const spread = inside ? Math.atan(rc * 1.15 / jl) : 0;
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: inside ? clamp(rc * 1.2) : 0, pitch: inside ? -0.08 : 0 }, extra);
+  if (inside && rc > 0.12) { const xt = hx + 0.3, cz2 = 1.06 - (xt - PREY_X0), rt = Math.max(0.12, capyR(cz2)), yt = capyY(cz2); const czb = 1.06 - (hx - 0.26 - PREY_X0), rb = Math.max(capyR(czb), 0.15), yb = capyY(czb);
+    const jx = rb * 1.0 + 0.04, jy = (yb - rb * 0.3) - hy; o.jawJ = [V(-jx, jy, -0.26), V(jx, jy, -0.26)]; o.jawTW = [V(xt, yt - rt * 0.35, rt + 0.04), V(xt, yt - rt * 0.35, -rt - 0.04)]; o.floorSag = Math.max(rb, rt) * 0.95; }
   poseAna(ana, o);
   // Beine des Capybaras verschwinden, sobald sie im Schlangenkörper stecken
   capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx - 0.3 > lzW + 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
@@ -110,8 +112,8 @@ const shots = [
   },
   // 6: Luftröhre schiebt sich nach vorn – wie ein Schnorchel
   (T) => {
-    sunAt(V(0, 0, 0)); const tL = WT(6, 'luftröhre') - 0.2; const k = ease((T - tL) / 0.9); engulf(0.72, T, { trach: k });
-    const hp = headW(); cam(hp.clone().add(V(1.5, -0.5, 1.15)), hp.clone().add(V(0.15, -0.4, 0)), 40, T, 0.004);
+    sunAt(V(0, 0, 0)); const tL = WT(6, 'luftröhre') - 0.2; const k = ease((T - tL) / 0.9); engulf(0.72, T, { trach: k, trachSide: 9 });
+    const hp = headW(); cam(hp.clone().add(V(0.75, -0.1, 1.45)), hp.clone().add(V(0.3, -0.28, 0)), 40, T, 0.004);
     ana.trach.updateMatrixWorld(true); const tip = ana.trTip.getWorldPosition(V(0, 0, 0)), base = ana.trach.localToWorld(V(0, 0, -0.1));
     if (k > 0.8) airFlow(airP, tip.clone().add(V(0.25, 0.05, 0)), base, T);
     label3('LUFTRÖHRE', tip, clamp((T - tL - 0.4) / 0.3), 60, 260); label3('SCHNORCHEL 🤿', tip.clone().add(V(0.1, 0, 0)), clamp((T - WT(6, 'schnorchel')) / 0.3), -40, -380);

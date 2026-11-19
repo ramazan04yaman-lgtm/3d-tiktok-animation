@@ -162,7 +162,7 @@ function capyY(z) { const b = z > -0.66 && z < 0.66 ? 0.43 * Math.sqrt(1 - Math.
 // ---- Pose ----
 // opt: head (Vector3, Weltposition Kopfmitte), dir (Blickrichtung), trail(d) -> Kurs-Winkel, gape, spread, slide [L,R], teeth, xray, lig, trach, prey {x0 (Welt-x der Capybara-Nase), cy}, bulge (0..1 Radiuszuschlag), stretchK
 function poseAna(a, o) {
-  const { headPos, heading = 0, curve = d => 0, gape = 0.05, spread = 0, slide = [0, 0], teeth = 1, xray = 0, chinK = -1, lig = 0, trach = 0, trachAir = 0, preyX0 = null, cy = CAPY_CY, t = 0, quad = 0, pitch = 0, rest = false, bulgeScale = 1 } = o;
+  const { headPos, heading = 0, curve = d => 0, gape = 0.05, spread = 0, slide = [0, 0], teeth = 1, xray = 0, chinK = -1, lig = 0, trach = 0, trachAir = 0, trachX = 0, trachY = 0, jawJ = null, jawTW = null, floorSag = 0, trachSide = -1, preyX0 = null, cy = CAPY_CY, t = 0, quad = 0, pitch = 0, rest = false, bulgeScale = 1 } = o;
   // Kopf ausrichten
   const fwd = V(Math.cos(heading) * Math.cos(pitch), Math.sin(pitch), -Math.sin(heading) * Math.cos(pitch)); // heading 0 -> +x
   a.head.position.copy(headPos); a.head.quaternion.setFromUnitVectors(V(0, 0, 1), fwd);
@@ -188,7 +188,9 @@ function poseAna(a, o) {
       uvA[k * 2] = i * step / 4.8; uvA[k * 2 + 1] = j / a.RS; stA[k] = strs[i]; } }
   a.bg.attributes.position.needsUpdate = a.bg.attributes.uv.needsUpdate = a.bg.attributes.aStretch.needsUpdate = true; a.bg.computeVertexNormals();
   // Unterkiefer
+  if (jawTW) a.head.updateMatrixWorld(true);
   a.mandibles.forEach((m, i) => { const s = m.s; m.g.position.set(s * (0.125 + spread * 0.25 * 0), -quad * 0.12, -0.3 + (slide[i] || 0)); m.g.rotation.set(gape, s * spread, 0);
+    if (jawTW) { m.g.position.copy(jawJ[i]).add(V(0, 0, slide[i] || 0)); const tl = a.head.worldToLocal(jawTW[i].clone()).add(V(0, 0, slide[i] || 0)).sub(m.g.position).normalize(); m.g.quaternion.setFromUnitVectors(m.curve.getPoint(1).normalize(), tl); }
     m.jaw.visible = m.jol.visible = !xray; m.bone.visible = !!xray; m.teeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth))); });
   a.upTeeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth)));
   a.head.updateMatrixWorld(true);
@@ -205,7 +207,7 @@ function poseAna(a, o) {
     const sepAt = k => mp(0, k).distanceTo(mp(1, k));
     const pal = (u, z) => { const w = skullW(z) * 0.93 * (1 - 0.25 * clamp((z - 0.22) / 0.1)); return V(u * w, a.palY(u, z) - 0.004, z); };
     const flo = (u, k) => { const L = mp(0, k), R = mp(1, k); const mid = L.clone().add(R).multiplyScalar(0.5); const inL = mid.clone().sub(L).normalize(); L.addScaledVector(inL, 0.012); R.addScaledVector(inL, -0.012); L.y -= 0.012; R.y -= 0.012;
-      const sep = L.distanceTo(R); const sag = Math.min(0.13, 0.012 + 0.2 * sep * sep); const f = (u + 1) / 2; const P = L.lerp(R, f); P.y -= sag * (1 - u * u) - 0.007 * Math.exp(-((u / 0.18) ** 2)) * clamp((k - 0.3) / 0.2) * clamp((0.85 - k) / 0.1); return P; };
+      const sep = L.distanceTo(R); const sag = Math.max(floorSag * (1 - 0.75 * clamp((k - 0.35) / 0.5)), Math.min(0.13, 0.012 + 0.2 * sep * sep)); const f = (u + 1) / 2; const P = L.lerp(R, f); P.y -= sag * (1 - u * u) - 0.007 * Math.exp(-((u / 0.18) ** 2)) * clamp((k - 0.3) / 0.2) * clamp((0.85 - k) / 0.1); return P; };
     const KF0 = 0.08, KF1 = 0.92, Z0 = -0.22;
     const pos = a.lg.attributes.position.array, col = a.lg.attributes.color.array; const cP = new THREE.Color(0xe8a0a4), cF = new THREE.Color(0xe39399), cT = new THREE.Color(0x3a090e), cS = new THREE.Color(0xc4ad58), cO = new THREE.Color(0x4f5424), c = new THREE.Color();
     for (let i = 0; i <= a.MV; i++) { const v = i / a.MV; for (let j = 0; j <= a.MU; j++) { const u = j / a.MU * 2 - 1; let P;
@@ -223,7 +225,9 @@ function poseAna(a, o) {
           const k = ii * 13 + j; p[k * 3] = P.x; p[k * 3 + 1] = P.y; p[k * 3 + 2] = P.z; c.copy(cF).lerp(cT, 0.35 * (1 - b)); cc[k * 3] = c.r; cc[k * 3 + 1] = c.g; cc[k * 3 + 2] = c.b; } }
       g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
-  a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); const base = V(0, mid.y * 0.5 + 0.01, -0.12); const tipP = V(0, mid.y + 0.02, lerp(0.0, 0.42, trach) + mid.z * 0.4); const len = base.distanceTo(tipP);
+  a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
+    if (trachSide === 9) { base.set(0, -0.045, 0.06); tipP = base.clone().addScaledVector(V(0, 0.32, 1).normalize(), 0.06 + 0.46 * trach); }
+    if (trachSide >= 0 && trachSide < 9) { const m = a.mandibles[trachSide]; base.copy(m.curve.getPoint(0.4).applyMatrix4(m.g.matrix)).add(V(-m.s * 0.03, 0.03, 0)); tipP = base.clone().addScaledVector(V(m.s * 0.85, 0.45, 0.3).normalize(), 0.03 + 0.4 * trach); } const len = base.distanceTo(tipP);
     a.trach.position.copy(base).lerp(tipP, 0.5); a.trach.quaternion.setFromUnitVectors(V(0, 0, 1), tipP.clone().sub(base).normalize()); a.tt.scale.set(1, len, 1);
     a.rings.forEach((r, k) => { const f = (k + 0.5) / a.rings.length - 0.5; r.position.set(0, 0, f * len); r.visible = true; }); a.trTip.position.set(0, 0, len / 2); }
 }
