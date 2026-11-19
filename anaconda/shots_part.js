@@ -3,6 +3,7 @@
 { const sandTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#b39a72'; g.fillRect(0, 0, w, h); const r = rng(8); for (let i = 0; i < 14000; i++) { const v = r(); g.fillStyle = v < .4 ? 'rgba(90,70,45,0.25)' : v < .8 ? 'rgba(220,200,160,0.25)' : 'rgba(60,50,35,0.35)'; g.fillRect(r() * w, r() * h, 1 + r() * 2, 1 + r() * 2); } }, 6);
   const sand = new THREE.Mesh(new THREE.CircleGeometry(7, 64), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
   { const p = sand.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); const a = Math.atan2(y, x); const rr = 1 + 0.18 * Math.sin(a * 5) + 0.1 * Math.sin(a * 11); p.setXY(i, x * rr, y * rr); } }
+  ground.material.polygonOffset = true; ground.material.polygonOffsetFactor = 2; ground.material.polygonOffsetUnits = 8; // Gras nie über den Sand flackern lassen
   sand.rotation.x = -Math.PI / 2; sand.position.set(0.5, 0.012, -0.5); sand.receiveShadow = true; world.add(sand);
   const river = new THREE.Mesh(new THREE.PlaneGeometry(80, 9), new THREE.MeshStandardMaterial({ color: 0x6f8f86, roughness: 0.06, metalness: 0.3 })); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.025, -9.5); world.add(river);
   const mud = new THREE.Mesh(new THREE.PlaneGeometry(80, 1.6), new THREE.MeshStandardMaterial({ color: 0x5e4c36, roughness: 0.5 })); mud.rotation.x = -Math.PI / 2; mud.position.set(0, 0.02, -4.6); world.add(mud);
@@ -25,14 +26,15 @@ function resetWorld() {
 const restCurve = d => 0.75 * Math.sin((d - 1.6) * 0.75) * clamp((d - 1.2) / 1.2); // S-Kurve hinter der Beute
 // Kopf über der Beute: Fortschritt p (0 = Nase berührt, 1 = ganz verschluckt)
 function engulf(p, T, extra = {}) {
-  const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const cz = 1.06 - (hx - PREY_X0); const cMouth = 1.06 - (hx + 0.2 - PREY_X0);
-  const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const inside = p > 0.02 && rc > 0.01;
-  const cyH = capyY(cz); const hy = inside ? cyH + rc * 0.95 + 0.01 : 0.13; const drop = inside ? hy - (cyH - rc * 0.55) : 0; const jl = 0.6;
-  const gape = inside ? Math.asin(clamp(drop / jl, 0, 0.98)) : 0.05; const spread = inside ? Math.atan(rc * 1.15 / jl) : 0;
+  const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const kIn = ease(clamp((p + 0.12) / 0.14)); const openK = extra.openK === undefined ? 1 : extra.openK; delete extra.openK;
+  const hc = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, Math.max(p, 0.06)); const cz = 1.06 - (hc - PREY_X0), cMouth = 1.06 - (hc + 0.2 - PREY_X0);
+  const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const cyH = capyY(cz); const jl = 0.6;
+  const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 0.95 + 0.01, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
-  const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: inside ? clamp(rc * 1.2) : 0, pitch: inside ? -0.08 : 0 }, extra);
-  if (inside && rc > 0.12) { const xt = hx + 0.3, cz2 = 1.06 - (xt - PREY_X0), rt = Math.max(0.12, capyR(cz2)), yt = capyY(cz2); const czb = 1.06 - (hx - 0.26 - PREY_X0), rb = Math.max(capyR(czb), 0.15), yb = capyY(czb);
-    const jx = rb * 1.0 + 0.04, jy = (yb - rb * 0.3) - hy; o.jawJ = [V(-jx, jy, -0.26), V(jx, jy, -0.26)]; o.jawTW = [V(xt, yt - rt * 0.35, rt + 0.04), V(xt, yt - rt * 0.35, -rt - 0.04)]; o.floorSag = Math.max(rb, rt) * 0.95; o.wrap = z => { const cz3 = 1.06 - (hx + z - PREY_X0); return { cy: capyY(cz3) - hy - z * Math.sin(o.pitch || 0), r: capyR(cz3) }; }; }
+  const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
+  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const cz3 = Math.min(1.06 - (hx + z - PREY_X0), 1.0); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: Math.max(capyR(cz3), rc * 0.85) }; };
+    const th = 0.35, at = (z, s) => { const w = o.wrap(z), R = sackR(w) + 0.016; return V(s * R * Math.cos(th), w.cy - R * Math.sin(th), z); };
+    o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.06)); }
   poseAna(ana, o);
   // Beine des Capybaras verschwinden, sobald sie im Schlangenkörper stecken
   capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx + 0.28 > lzW && p > 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
@@ -79,9 +81,9 @@ const shots = [
   // 2: Maul klappt riesig auf – aber ohne Arme rutscht das Capybara wieder raus
   (T) => {
     sunAt(V(0, 0, 0)); const tA = WT(2, 'aber'), tR = WT(2, 'rutscht');
-    let p; if (T < tA) p = lerp(0.0, 0.22, ease((T - S[2].start - 0.2) / (tA - S[2].start - 0.4))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.12, ease((T - tR) / 0.9));
-    engulf(p, T, { gape: p < 0.03 ? lerp(0.05, 0.9, clamp((T - S[2].start) / 0.4)) * (p < -0.05 ? clamp(1 - (T - tR - 0.9) / 0.5) * 0.9 + 0.05 : 1) : undefined });
-    if (p <= 0.02) { const o = { headPos: V(lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p), 0.2 + 0.25 * clamp(p * 20 + 1), 0), heading: 0, curve: restCurve, gape: 0.85, spread: 0.18, t: T, pitch: 0.1 }; if (T > tR + 0.9) o.gape = lerp(0.85, 0.05, clamp((T - tR - 0.9) / 0.4)); poseAna(ana, o); }
+    let p; if (T < tA) p = lerp(-0.16, 0.22, ease((T - S[2].start - 0.1) / (tA - S[2].start - 0.3))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.14, ease((T - tR) / 1.0));
+    const openK = Math.min(ease((T - S[2].start) / 0.45), T > tR + 1.0 ? 1 - ease((T - tR - 1.0) / 0.5) : 1);
+    engulf(p, T, { openK });
     const hp = headW(); cam(V(PREY_X0 - 0.6, 1.05, 2.5), V(PREY_X0 + 0.15, 0.5, 0), 38, T, 0.006);
     if (T > tR - 0.1) capy.root.position.x += 0.0;
     label3('KEINE ARME 🙅', hp.clone().add(V(0, 0.15, 0)), clamp((T - WT(2, 'arme') + 0.1) / 0.3) * clamp(1 - (T - tR - 0.2) / 0.3), -80, -300);

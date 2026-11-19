@@ -582,6 +582,8 @@ const fangM = new THREE.MeshPhysicalMaterial({ color: 0xf6f1e4, roughness: 0.25,
 const trachM = new THREE.MeshPhysicalMaterial({ color: 0xe6a5aa, roughness: 0.35, clearcoat: 0.6 });
 // ---- Kopf ----
 const HL = 0.34; // halbe Kopflänge
+const SACK_FLIP = true;
+const sackR = w => Math.max(0.08, w.r * 1.1 + 0.035);
 const skullW = z => 0.14 * (1 - 0.42 * Math.pow(clamp((z + HL) / (2 * HL)), 1.6)); // halbe Breite entlang z
 function headColor(x, y, z, ny, c) { // oliv, schwarzer Streifen hinter dem Auge, gelbliche Unterseite
   c.set(0x434b20); if (ny < -0.2 || y < 0.012) c.set(0x9a8a3a); if (y < 0.022 && y > -0.012 && Math.abs(x) > skullW(z) * 0.72) { c.set(0xcdb862); if ((z * 22 + 10) % 1 < 0.14) c.set(0x3b3115); } const st = Math.abs(Math.abs(x) - (0.13 - 0.1 * clamp((z + 0.34) / 0.6))) < 0.025 && y < 0.07 && y > 0.0 && z < 0.06; if (st) c.set(0x221f10);
@@ -655,14 +657,17 @@ function makeAna() {
   const innerM = new THREE.MeshPhysicalMaterial({ vertexColors: true, emissive: 0x3a0c10, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.22, bumpMap: muscleTex, bumpScale: 0.35, side: THREE.FrontSide });
   const outerM = snakeM.clone(); outerM.side = THREE.BackSide; outerM.onBeforeCompile = snakeShader; outerM.customProgramCacheKey = () => 'snakeB';
   const MU = 26, MV = 70; const lg = mkSheet(MU, MV, true, 0.8, 0.3); const lining = new THREE.Group(); head.add(lining);
-  lining.add(new THREE.Mesh(lg, innerM)); const lgo = new THREE.Mesh(lg, outerM); lgo.castShadow = true; lining.add(lgo);
-  const corners = [-1, 1].map(s => { const g = mkSheet(12, 24, s < 0, 0.45, 0.13); lining.add(new THREE.Mesh(g, innerM)); const o = new THREE.Mesh(g, outerM); o.castShadow = true; lining.add(o); return { s, g }; });
+  lining.add(new THREE.Mesh(lg, innerM)); var lgo = new THREE.Mesh(lg, outerM); lgo.castShadow = true; lining.add(lgo);
+  const corners = [-1, 1].map(s => { const g = mkSheet(12, 24, s < 0, 0.45, 0.13); const mi = new THREE.Mesh(g, innerM); lining.add(mi); const o = new THREE.Mesh(g, outerM); o.castShadow = true; lining.add(o); return { s, g, mi, o }; });
+  // Gedehnter Hautsack um die Beute (eine durchgehende Fläche vom Hals bis zu den Kieferspitzen)
+  const SU = 64, SV = 44; const sackG = mkSheet(SU, SV, SACK_FLIP, 1, 1); const sinM = innerM.clone(); sinM.side = THREE.BackSide;
+  const sack = new THREE.Group(); head.add(sack); const sko = new THREE.Mesh(sackG, snakeM); sko.castShadow = true; sack.add(sko); sack.add(new THREE.Mesh(sackG, sinM)); sack.visible = false;
   // Luftröhre (Glottis) – Schnorchel mit Knorpelringen
   const trach = new THREE.Group(); head.add(trach); const tt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 1, 16, 1, true), trachM); tt.rotation.x = Math.PI / 2; trach.add(tt);
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, chin, lig, lining, lg, MU, MV, corners, palY, trach, tt, rings, trTip, ol, JL };
+  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, chin, lig, lining, lg, MU, MV, corners, lgo, sack, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -702,7 +707,7 @@ function capyY(z) { const b = z > -0.66 && z < 0.66 ? 0.43 * Math.sqrt(1 - Math.
 // ---- Pose ----
 // opt: head (Vector3, Weltposition Kopfmitte), dir (Blickrichtung), trail(d) -> Kurs-Winkel, gape, spread, slide [L,R], teeth, xray, lig, trach, prey {x0 (Welt-x der Capybara-Nase), cy}, bulge (0..1 Radiuszuschlag), stretchK
 function poseAna(a, o) {
-  const { headPos, heading = 0, curve = d => 0, gape = 0.05, spread = 0, slide = [0, 0], teeth = 1, xray = 0, chinK = -1, lig = 0, trach = 0, trachAir = 0, trachX = 0, trachY = 0, jawJ = null, jawTW = null, floorSag = 0, trachSide = -1, wrap = null, preyX0 = null, cy = CAPY_CY, t = 0, quad = 0, pitch = 0, rest = false, bulgeScale = 1 } = o;
+  const { headPos, heading = 0, curve = d => 0, gape = 0.05, spread = 0, slide = [0, 0], teeth = 1, xray = 0, chinK = -1, lig = 0, trach = 0, trachAir = 0, trachX = 0, trachY = 0, jawJ = null, jawTW = null, floorSag = 0, trachSide = -1, wrap = null, jawK = 1, preyX0 = null, cy = CAPY_CY, t = 0, quad = 0, pitch = 0, rest = false, bulgeScale = 1 } = o;
   // Kopf ausrichten
   const fwd = V(Math.cos(heading) * Math.cos(pitch), Math.sin(pitch), -Math.sin(heading) * Math.cos(pitch)); // heading 0 -> +x
   a.head.position.copy(headPos); a.head.quaternion.setFromUnitVectors(V(0, 0, 1), fwd);
@@ -716,6 +721,7 @@ function poseAna(a, o) {
     let cyA = cy; if (preyX0 !== null) { const lz = (p.x - preyX0); const cz = 1.06 - lz; const pr = cz > -0.7 && cz < 1.12 ? capyR(cz) * 1.08 * bulgeScale : 0; if (pr > r) r = pr; cyA = capyY(cz); } // Beule (Capybara-Koordinate, Nase = +1.06)
     const inPrey = preyX0 !== null && r > rb * 1.05; y = inPrey && !rest ? cyA : r * 0.92;
     if (d < 1.3 && !inPrey) y = Math.max(y, lerp(back0.y, y, ease(d / 1.3)));
+    if (wrap && d < 0.8) { const zl = -HL * 0.85 - d; const w = wrap(Math.max(zl, -0.62)); const e = ease(clamp((d - 0.2) / 0.6)); const rS = lerp(sackR(w) * 1.04, r, e); if (rS > r) r = rS; y = lerp(headPos.y + w.cy + zl * Math.sin(pitch), y, e); }
     pts.push(V(p.x, y, p.z)); rads.push(r); strs.push(clamp((r / rb - 1) / 1.3));
     hd = heading + curve(d); const dir = V(-Math.cos(hd), 0, Math.sin(hd)); p.addScaledVector(dir, step); }
   // Höhe glätten (sanfte Übergänge an der Beule)
@@ -728,9 +734,9 @@ function poseAna(a, o) {
       uvA[k * 2] = i * step / 4.8; uvA[k * 2 + 1] = j / a.RS; stA[k] = strs[i]; } }
   a.bg.attributes.position.needsUpdate = a.bg.attributes.uv.needsUpdate = a.bg.attributes.aStretch.needsUpdate = true; a.bg.computeVertexNormals();
   // Unterkiefer
-  if (jawTW) a.head.updateMatrixWorld(true);
   a.mandibles.forEach((m, i) => { const s = m.s; m.g.position.set(s * (0.125 + spread * 0.25 * 0), -quad * 0.12, -0.3 + (slide[i] || 0)); m.g.rotation.set(gape, s * spread, 0);
-    if (jawTW) { m.g.position.copy(jawJ[i]).add(V(0, 0, slide[i] || 0)); const tl = a.head.worldToLocal(jawTW[i].clone()).add(V(0, 0, slide[i] || 0)).sub(m.g.position).normalize(); m.g.quaternion.setFromUnitVectors(m.curve.getPoint(1).normalize(), tl); }
+    if (jawTW) { const p0 = m.g.position.clone(), q0 = m.g.quaternion.clone(); m.g.position.copy(jawJ[i]).add(V(0, 0, slide[i] || 0)); const tl = jawTW[i].clone().add(V(0, 0, slide[i] || 0)).sub(m.g.position).normalize(); m.g.quaternion.setFromUnitVectors(m.curve.getPoint(1).normalize(), tl);
+      if (jawK < 1) { m.g.position.lerpVectors(p0, m.g.position, jawK); m.g.quaternion.slerpQuaternions(q0, m.g.quaternion.clone(), jawK); } }
     m.jaw.visible = m.jol.visible = !xray; m.bone.visible = !!xray; m.teeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth))); });
   a.upTeeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth)));
   a.head.updateMatrixWorld(true);
@@ -748,7 +754,7 @@ function poseAna(a, o) {
     const pal = (u, z) => { const w = skullW(z) * 0.93 * (1 - 0.25 * clamp((z - 0.22) / 0.1)); return V(u * w, a.palY(u, z) - 0.004, z); };
     const flo = (u, k) => { const L = mp(0, k), R = mp(1, k); const mid = L.clone().add(R).multiplyScalar(0.5); const inL = mid.clone().sub(L).normalize(); L.addScaledVector(inL, 0.012); R.addScaledVector(inL, -0.012); L.y -= 0.012; R.y -= 0.012;
       if (wrap) { const z = (L.z + R.z) / 2, w = wrap(z); const f = (u + 1) / 2; let tL = Math.atan2(L.y - w.cy, L.x), tR = Math.atan2(R.y - w.cy, R.x); if (tL > 0) tL -= Math.PI * 2; if (tR > Math.PI / 2) tR -= Math.PI * 2;
-        let rad = lerp(Math.hypot(L.x, L.y - w.cy), Math.hypot(R.x, R.y - w.cy), f); rad += Math.max(0, w.r * 1.1 + 0.045 - rad) * Math.pow(Math.sin(Math.PI * f), 0.35); const an = lerp(tL, tR, f); return V(rad * Math.cos(an), w.cy + rad * Math.sin(an), lerp(L.z, R.z, f)); }
+        let rad = lerp(Math.hypot(L.x, L.y - w.cy), Math.hypot(R.x, R.y - w.cy), f); rad += Math.max(0, w.r * 1.06 + 0.01 - rad) * Math.pow(Math.sin(Math.PI * f), 0.35); const an = lerp(tL, tR, f); return V(rad * Math.cos(an), w.cy + rad * Math.sin(an), lerp(L.z, R.z, f)); }
       const sep = L.distanceTo(R); const sag = Math.max(floorSag * (1 - 0.75 * clamp((k - 0.35) / 0.5)), Math.min(0.13, 0.012 + 0.2 * sep * sep)); const f = (u + 1) / 2; const P = L.lerp(R, f); P.y -= sag * (1 - u * u) - 0.007 * Math.exp(-((u / 0.18) ** 2)) * clamp((k - 0.3) / 0.2) * clamp((0.85 - k) / 0.1); return P; };
     const KF0 = 0.08, KF1 = 0.92, Z0 = -0.22;
     const pos = a.lg.attributes.position.array, col = a.lg.attributes.color.array; const cP = new THREE.Color(0xe8a0a4), cF = new THREE.Color(0xe39399), cT = new THREE.Color(0x3a090e), cS = new THREE.Color(0xc4ad58), cO = new THREE.Color(0x4f5424), c = new THREE.Color();
@@ -771,6 +777,17 @@ function poseAna(a, o) {
           const E = Uf.clone().multiplyScalar((1 - t) ** 2).addScaledVector(mid, 2 * t * (1 - t)).addScaledVector(Lf, t * t); P = S.lerp(E, b); P.x += s * 0.012 * Math.sin(Math.PI * t) * Math.sin(Math.PI * b * 0.8); }
           const k = ii * 13 + j; p[k * 3] = P.x; p[k * 3 + 1] = P.y; p[k * 3 + 2] = P.z; c.copy(cF).lerp(cT, wrap ? 0.2 : 0.35 * (1 - b)); cc[k * 3] = c.r; cc[k * 3 + 1] = c.g; cc[k * 3 + 2] = c.b; } }
       g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }); }
+  const sk = !!wrap && a.lining.visible; a.sack.visible = sk; a.lgo.visible = !sk; a.corners.forEach(c => { c.mi.visible = c.o.visible = !sk; });
+  if (sk) { const M = a.mandibles.map(m => m.g.matrix); const mp = (i, k) => a.mandibles[i].curve.getPoint(clamp(k)).applyMatrix4(M[i]); const jz = [0, 1].map(i => [mp(i, 0).z, mp(i, 1).z]);
+    const pos = a.sg.attributes.position.array, uvA = a.sg.attributes.uv.array, col = a.sg.attributes.color.array; const cI = new THREE.Color(0xd98a8f), cD = new THREE.Color(0x5a1418), c = new THREE.Color(); const Z0s = -0.62, Z1s = 0.3;
+    for (let i = 0; i <= a.SV; i++) { const z = lerp(Z0s, Z1s, i / a.SV); const w = wrap(z); const R = sackR(w); const gapK = clamp((z + 0.31) / 0.1); const sw = skullW(clamp(z, -HL, HL)) * 0.9;
+      const aU = Math.atan2(-0.012 - w.cy, sw), dU = Math.hypot(sw, -0.012 - w.cy); const ph0 = lerp(Math.PI / 2, aU, gapK), ph1 = -Math.PI - ph0;
+      const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); if (kk < -0.05 || kk > 1.05) return null; const L = mp(s, kk); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return [aJ, Math.hypot(L.x, L.y - w.cy)]; });
+      for (let j = 0; j <= a.SU; j++) { const f = j / a.SU, ph = lerp(ph0, ph1, f); let e = Math.max(1 - clamp(f / 0.14), 1 - clamp((1 - f) / 0.14)); e = e * e * (3 - 2 * e); let rad = Math.max(lerp(R, dU, e * gapK), w.r * 1.06 + 0.014);
+        for (const J of jw) if (J) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
+        const k = i * (a.SU + 1) + j; pos[k * 3] = rad * Math.cos(ph); pos[k * 3 + 1] = w.cy + rad * Math.sin(ph); pos[k * 3 + 2] = z;
+        uvA[k * 2] = (-HL * 0.85 - z) / 4.8; uvA[k * 2 + 1] = 0.75 - (ph - ph1) / (Math.PI * 2) ; c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
+    a.sg.attributes.position.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
     if (trachSide === 9) { base.set(0, -0.045, 0.06); tipP = base.clone().addScaledVector(V(0, 0.32, 1).normalize(), 0.06 + 0.46 * trach); }
@@ -823,6 +840,7 @@ function cam(pos, look, fov = 40, t = 0, shake = 0.03) {
 { const sandTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#b39a72'; g.fillRect(0, 0, w, h); const r = rng(8); for (let i = 0; i < 14000; i++) { const v = r(); g.fillStyle = v < .4 ? 'rgba(90,70,45,0.25)' : v < .8 ? 'rgba(220,200,160,0.25)' : 'rgba(60,50,35,0.35)'; g.fillRect(r() * w, r() * h, 1 + r() * 2, 1 + r() * 2); } }, 6);
   const sand = new THREE.Mesh(new THREE.CircleGeometry(7, 64), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
   { const p = sand.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); const a = Math.atan2(y, x); const rr = 1 + 0.18 * Math.sin(a * 5) + 0.1 * Math.sin(a * 11); p.setXY(i, x * rr, y * rr); } }
+  ground.material.polygonOffset = true; ground.material.polygonOffsetFactor = 2; ground.material.polygonOffsetUnits = 8; // Gras nie über den Sand flackern lassen
   sand.rotation.x = -Math.PI / 2; sand.position.set(0.5, 0.012, -0.5); sand.receiveShadow = true; world.add(sand);
   const river = new THREE.Mesh(new THREE.PlaneGeometry(80, 9), new THREE.MeshStandardMaterial({ color: 0x6f8f86, roughness: 0.06, metalness: 0.3 })); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.025, -9.5); world.add(river);
   const mud = new THREE.Mesh(new THREE.PlaneGeometry(80, 1.6), new THREE.MeshStandardMaterial({ color: 0x5e4c36, roughness: 0.5 })); mud.rotation.x = -Math.PI / 2; mud.position.set(0, 0.02, -4.6); world.add(mud);
@@ -845,14 +863,15 @@ function resetWorld() {
 const restCurve = d => 0.75 * Math.sin((d - 1.6) * 0.75) * clamp((d - 1.2) / 1.2); // S-Kurve hinter der Beute
 // Kopf über der Beute: Fortschritt p (0 = Nase berührt, 1 = ganz verschluckt)
 function engulf(p, T, extra = {}) {
-  const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const cz = 1.06 - (hx - PREY_X0); const cMouth = 1.06 - (hx + 0.2 - PREY_X0);
-  const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const inside = p > 0.02 && rc > 0.01;
-  const cyH = capyY(cz); const hy = inside ? cyH + rc * 0.95 + 0.01 : 0.13; const drop = inside ? hy - (cyH - rc * 0.55) : 0; const jl = 0.6;
-  const gape = inside ? Math.asin(clamp(drop / jl, 0, 0.98)) : 0.05; const spread = inside ? Math.atan(rc * 1.15 / jl) : 0;
+  const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const kIn = ease(clamp((p + 0.12) / 0.14)); const openK = extra.openK === undefined ? 1 : extra.openK; delete extra.openK;
+  const hc = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, Math.max(p, 0.06)); const cz = 1.06 - (hc - PREY_X0), cMouth = 1.06 - (hc + 0.2 - PREY_X0);
+  const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const cyH = capyY(cz); const jl = 0.6;
+  const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 0.95 + 0.01, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
-  const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: inside ? clamp(rc * 1.2) : 0, pitch: inside ? -0.08 : 0 }, extra);
-  if (inside && rc > 0.12) { const xt = hx + 0.3, cz2 = 1.06 - (xt - PREY_X0), rt = Math.max(0.12, capyR(cz2)), yt = capyY(cz2); const czb = 1.06 - (hx - 0.26 - PREY_X0), rb = Math.max(capyR(czb), 0.15), yb = capyY(czb);
-    const jx = rb * 1.0 + 0.04, jy = (yb - rb * 0.3) - hy; o.jawJ = [V(-jx, jy, -0.26), V(jx, jy, -0.26)]; o.jawTW = [V(xt, yt - rt * 0.35, rt + 0.04), V(xt, yt - rt * 0.35, -rt - 0.04)]; o.floorSag = Math.max(rb, rt) * 0.95; o.wrap = z => { const cz3 = 1.06 - (hx + z - PREY_X0); return { cy: capyY(cz3) - hy - z * Math.sin(o.pitch || 0), r: capyR(cz3) }; }; }
+  const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
+  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const cz3 = Math.min(1.06 - (hx + z - PREY_X0), 1.0); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: Math.max(capyR(cz3), rc * 0.85) }; };
+    const th = 0.35, at = (z, s) => { const w = o.wrap(z), R = sackR(w) + 0.016; return V(s * R * Math.cos(th), w.cy - R * Math.sin(th), z); };
+    o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.06)); }
   poseAna(ana, o);
   // Beine des Capybaras verschwinden, sobald sie im Schlangenkörper stecken
   capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx + 0.28 > lzW && p > 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
@@ -899,9 +918,9 @@ const shots = [
   // 2: Maul klappt riesig auf – aber ohne Arme rutscht das Capybara wieder raus
   (T) => {
     sunAt(V(0, 0, 0)); const tA = WT(2, 'aber'), tR = WT(2, 'rutscht');
-    let p; if (T < tA) p = lerp(0.0, 0.22, ease((T - S[2].start - 0.2) / (tA - S[2].start - 0.4))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.12, ease((T - tR) / 0.9));
-    engulf(p, T, { gape: p < 0.03 ? lerp(0.05, 0.9, clamp((T - S[2].start) / 0.4)) * (p < -0.05 ? clamp(1 - (T - tR - 0.9) / 0.5) * 0.9 + 0.05 : 1) : undefined });
-    if (p <= 0.02) { const o = { headPos: V(lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p), 0.2 + 0.25 * clamp(p * 20 + 1), 0), heading: 0, curve: restCurve, gape: 0.85, spread: 0.18, t: T, pitch: 0.1 }; if (T > tR + 0.9) o.gape = lerp(0.85, 0.05, clamp((T - tR - 0.9) / 0.4)); poseAna(ana, o); }
+    let p; if (T < tA) p = lerp(-0.16, 0.22, ease((T - S[2].start - 0.1) / (tA - S[2].start - 0.3))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.14, ease((T - tR) / 1.0));
+    const openK = Math.min(ease((T - S[2].start) / 0.45), T > tR + 1.0 ? 1 - ease((T - tR - 1.0) / 0.5) : 1);
+    engulf(p, T, { openK });
     const hp = headW(); cam(V(PREY_X0 - 0.6, 1.05, 2.5), V(PREY_X0 + 0.15, 0.5, 0), 38, T, 0.006);
     if (T > tR - 0.1) capy.root.position.x += 0.0;
     label3('KEINE ARME 🙅', hp.clone().add(V(0, 0.15, 0)), clamp((T - WT(2, 'arme') + 0.1) / 0.3) * clamp(1 - (T - tR - 0.2) / 0.3), -80, -300);
