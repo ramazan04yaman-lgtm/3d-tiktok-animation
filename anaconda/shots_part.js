@@ -29,7 +29,7 @@ function engulf(p, T, extra = {}) {
   const hx = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, p); const kIn = ease(clamp((p + 0.12) / 0.14)); const openK = extra.openK === undefined ? 1 : extra.openK; delete extra.openK;
   const hc = lerp(PREY_X0 - 0.3, PREY_X0 + 2.12, Math.max(p, 0.06)); const cz = 1.06 - (hc - PREY_X0), cMouth = 1.06 - (hc + 0.2 - PREY_X0);
   const rc = Math.max(capyR(cz), capyR(cMouth), capyR(cz - 0.2)); const cyH = capyY(cz); const jl = 0.6;
-  const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 0.95 + 0.01, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
+  const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 1.05 + 0.04, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
   if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const cz3 = Math.min(1.06 - (hx + z - PREY_X0), 1.0); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: Math.max(capyR(cz3), rc * 0.85) }; };
