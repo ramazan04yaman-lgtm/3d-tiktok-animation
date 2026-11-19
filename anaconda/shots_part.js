@@ -32,10 +32,10 @@ function engulf(p, T, extra = {}) {
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: inside ? clamp(rc * 1.2) : 0, pitch: inside ? -0.08 : 0 }, extra);
   if (inside && rc > 0.12) { const xt = hx + 0.3, cz2 = 1.06 - (xt - PREY_X0), rt = Math.max(0.12, capyR(cz2)), yt = capyY(cz2); const czb = 1.06 - (hx - 0.26 - PREY_X0), rb = Math.max(capyR(czb), 0.15), yb = capyY(czb);
-    const jx = rb * 1.0 + 0.04, jy = (yb - rb * 0.3) - hy; o.jawJ = [V(-jx, jy, -0.26), V(jx, jy, -0.26)]; o.jawTW = [V(xt, yt - rt * 0.35, rt + 0.04), V(xt, yt - rt * 0.35, -rt - 0.04)]; o.floorSag = Math.max(rb, rt) * 0.95; }
+    const jx = rb * 1.0 + 0.04, jy = (yb - rb * 0.3) - hy; o.jawJ = [V(-jx, jy, -0.26), V(jx, jy, -0.26)]; o.jawTW = [V(xt, yt - rt * 0.35, rt + 0.04), V(xt, yt - rt * 0.35, -rt - 0.04)]; o.floorSag = Math.max(rb, rt) * 0.95; o.wrap = z => { const cz3 = 1.06 - (hx + z - PREY_X0); return { cy: capyY(cz3) - hy - z * Math.sin(o.pitch || 0), r: capyR(cz3) }; }; }
   poseAna(ana, o);
   // Beine des Capybaras verschwinden, sobald sie im Schlangenkörper stecken
-  capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx - 0.3 > lzW + 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
+  capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx + 0.28 > lzW && p > 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
   return { hx, hy, rc };
 }
 const headW = () => { ana.head.updateMatrixWorld(true); return ana.head.getWorldPosition(V(0, 0, 0)); };
