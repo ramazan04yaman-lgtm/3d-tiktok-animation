@@ -1,0 +1,5 @@
+video*/frames/
+video*/still_*
+video*/*contact.png
+video*/log*
+video*/*.wav
