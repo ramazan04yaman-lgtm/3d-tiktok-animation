@@ -656,16 +656,17 @@ function makeAna() {
   const outerM = snakeM.clone(); outerM.side = THREE.BackSide; outerM.onBeforeCompile = snakeShader; outerM.customProgramCacheKey = () => 'snakeB';
   const MU = 26, MV = 70; const lg = mkSheet(MU, MV, true, 0.8, 0.3); const lining = new THREE.Group(); head.add(lining);
   lining.add(new THREE.Mesh(lg, innerM)); var lgo = new THREE.Mesh(lg, outerM); lgo.castShadow = true; lining.add(lgo);
-  const corners = [-1, 1].map(s => { const g = mkSheet(12, 24, s < 0, 0.45, 0.13); const mi = new THREE.Mesh(g, innerM); lining.add(mi); const o = new THREE.Mesh(g, outerM); o.castShadow = true; lining.add(o); return { s, g, mi, o }; });
+  const cornM = innerM.clone(); cornM.side = THREE.BackSide; // Mundwinkel: beidseitig rosa Schleimhaut, keine grüne Haut
+  const corners = [-1, 1].map(s => { const g = mkSheet(12, 24, s < 0, 0.45, 0.13); const mi = new THREE.Mesh(g, innerM); lining.add(mi); const o = new THREE.Mesh(g, cornM); lining.add(o); return { s, g, mi, o }; });
   // Gedehnter Hautsack um die Beute (eine durchgehende Fläche vom Hals bis zu den Kieferspitzen)
   const SU = 64, SV = 44; const sackG = mkSheet(SU, SV, SACK_FLIP, 1, 1); const sinM = innerM.clone(); sinM.side = THREE.BackSide;
-  const sack = new THREE.Group(); head.add(sack); const sko = new THREE.Mesh(sackG, snakeM); sko.castShadow = true; sack.add(sko); sack.add(new THREE.Mesh(sackG, sinM)); sack.visible = false; const lipM = new THREE.MeshPhysicalMaterial({ color: 0xd88a90, emissive: 0x3a0c10, roughness: 0.35, clearcoat: 0.6 }); const lips = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.BufferGeometry(), lipM); sack.add(m); return m; });
+  const sack = new THREE.Group(); head.add(sack); const sko = new THREE.Mesh(sackG, snakeM); sko.castShadow = true; sack.add(sko); sack.add(new THREE.Mesh(sackG, sinM)); sack.visible = false; const lipM = new THREE.MeshPhysicalMaterial({ color: 0xd88a90, emissive: 0x3a0c10, roughness: 0.35, clearcoat: 0.6 }); const lips = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.BufferGeometry(), lipM); sack.add(m); return m; }); const cfill = [0, 1].map(() => { const g = mkSheet(8, 12, false, 0.3, 0.3); const m = new THREE.Mesh(g, new THREE.MeshPhysicalMaterial({ vertexColors: true, emissive: 0x3a0c10, roughness: 0.3, clearcoat: 0.8, side: THREE.DoubleSide })); sack.add(m); return m; });
   // Luftröhre (Glottis) – Schnorchel mit Knorpelringen
   const trach = new THREE.Group(); head.add(trach); const tt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 1, 16, 1, true), trachM); tt.rotation.x = Math.PI / 2; trach.add(tt);
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, lips, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
+  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, lips, cfill, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -783,7 +784,7 @@ function poseAna(a, o) {
     for (let i = 0; i <= a.SV; i++) { const z = lerp(Z0s, Z1s, i / a.SV); const w = wrap(z); const R = sackR(w); const gapK = clamp((z + 0.26) / 0.1); const sw = skullW(clamp(z, -HL, HL)) * 0.9;
       const aU = Math.atan2(-0.012 - w.cy, sw), dU = Math.hypot(sw, -0.012 - w.cy); const ph0 = lerp(Math.PI / 2, aU, gapK), ph1 = -Math.PI - ph0;
       // Seiten offen: vor dem Kiefergelenk keine Haut zwischen Ober- und Unterkiefer (nur schmale Lippen)
-      const kO = Math.pow(clamp((z - zh) / 0.32), 0.8); kRow.push(kO); const lipQ = lerp(1, 0.14, kO); const rm = s => s <= 0.5 ? s * lipQ : 1 - (1 - s) * lipQ;
+      const kO = Math.pow(clamp((z - zh) / 0.32), 0.8); kRow.push(kO); const lipQ = lerp(1, 0.04, kO); const rm = s => s <= 0.5 ? s * lipQ : 1 - (1 - s) * lipQ;
       const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); const L = mp(s, clamp(kk)); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return kk < -0.05 || kk > 1.05 ? [aJ, null] : [aJ, Math.hypot(L.x, L.y - w.cy)]; });
       const aR = jw[1][0], aL = jw[0][0];
       for (let j = 0; j <= SU; j++) { let ph, e = 0;
@@ -800,6 +801,16 @@ function poseAna(a, o) {
     a.lips.forEach((lm, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const P = k => V(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]); const pts = []; let i0 = kRow.findIndex(k => k > 0.001);
       if (i0 > 0) { for (let i = a.SV; i >= i0; i--) pts.push(P(i * (SU + 1) + cU)); pts.push(P((i0 - 1) * (SU + 1) + cU).lerp(P((i0 - 1) * (SU + 1) + cL), 0.5)); for (let i = i0; i <= a.SV; i++) pts.push(P(i * (SU + 1) + cL)); }
       lm.visible = pts.length > 3; if (lm.visible) { lm.geometry.dispose(); lm.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 0.009, 8, false); } });
+    // Mundwinkel: fleischige rosa Falte zwischen Ober- und Unterlippe, nach innen eingezogen
+    a.cfill.forEach((m, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const i0 = kRow.findIndex(k => k > 0.001); m.visible = i0 > 0; if (!m.visible) return;
+      let i1 = i0; while (i1 < a.SV && kRow[i1] < 0.3) i1++; const g = m.geometry, gp = g.attributes.position.array, gc = g.attributes.color.array; const cA = new THREE.Color(0xd98a8f), cB = new THREE.Color(0x6a1a20), cc = new THREE.Color();
+      const P = k => V(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]);
+      for (let r = 0; r <= 12; r++) { const fi = lerp(i0 - 1, i1, r / 12), ia = Math.floor(fi), ib = Math.min(a.SV, ia + 1), ft = fi - ia;
+        const U = P(ia * (SU + 1) + cU).lerp(P(ib * (SU + 1) + cU), ft), L = P(ia * (SU + 1) + cL).lerp(P(ib * (SU + 1) + cL), ft); const zz = U.z; const w = wrap(zz);
+        const dep = (r / 12) * (1 - r / 12) * 4 * 0.06; // Falte zieht sich zur Mitte hin ein
+        for (let q = 0; q <= 8; q++) { const t = q / 8; const X = U.clone().lerp(L, t); const toC = V(-X.x, w.cy - X.y, 0); const dl = toC.length(); if (dl > 1e-4) X.addScaledVector(toC, Math.min(dep * Math.sin(Math.PI * t), dl * 0.5) / dl); X.z -= 0.03 * Math.sin(Math.PI * t) * (1 - r / 12);
+          const k = r * 9 + q; gp[k * 3] = X.x; gp[k * 3 + 1] = X.y; gp[k * 3 + 2] = X.z; cc.copy(cA).lerp(cB, 0.55 * Math.sin(Math.PI * t) * (1 - r / 12)); gc[k * 3] = cc.r; gc[k * 3 + 1] = cc.g; gc[k * 3 + 2] = cc.b; } }
+      g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); });
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
@@ -883,7 +894,7 @@ function engulf(p, T, extra = {}) {
   const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 1.05 + 0.04, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
-  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const cz3 = Math.min(1.06 - (hx + z - PREY_X0), 1.0); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: Math.max(capyR(cz3), rc * 0.85) }; };
+  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const czr = 1.06 - (hx + z - PREY_X0), cz3 = Math.min(czr, 1.0); const rP = Math.max(capyR(cz3), rc * 0.85); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: czr > 1.0 ? lerp(rP, AR0 * 0.5, ease(clamp((czr - 1.0) / 0.3))) : rP }; }; // hinter der Beute: Hals wieder schlank
     const th = 0.35, at = (z, s) => { const w = o.wrap(z), R = sackR(w) + 0.016; return V(s * R * Math.cos(th), w.cy - R * Math.sin(th), z); };
     o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.06)); }
   poseAna(ana, o);

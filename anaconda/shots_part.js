@@ -33,7 +33,7 @@ function engulf(p, T, extra = {}) {
   const hy = lerp(lerp(0.14, 0.4, openK), cyH + rc * 1.05 + 0.04, kIn); const gape = lerp(lerp(0.05, 0.85, openK), Math.asin(clamp(rc * 1.5 / jl, 0, 0.98)), kIn); const spread = lerp(0.2 * openK, Math.atan(rc * 1.15 / jl), kIn);
   for (const k in extra) if (extra[k] === undefined) delete extra[k];
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
-  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const cz3 = Math.min(1.06 - (hx + z - PREY_X0), 1.0); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: Math.max(capyR(cz3), rc * 0.85) }; };
+  if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const czr = 1.06 - (hx + z - PREY_X0), cz3 = Math.min(czr, 1.0); const rP = Math.max(capyR(cz3), rc * 0.85); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: czr > 1.0 ? lerp(rP, AR0 * 0.5, ease(clamp((czr - 1.0) / 0.3))) : rP }; }; // hinter der Beute: Hals wieder schlank
     const th = 0.35, at = (z, s) => { const w = o.wrap(z), R = sackR(w) + 0.016; return V(s * R * Math.cos(th), w.cy - R * Math.sin(th), z); };
     o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.06)); }
   poseAna(ana, o);
