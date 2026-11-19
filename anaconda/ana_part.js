@@ -29,7 +29,7 @@ function snakeShader(sh) {
     .replace('#include <map_fragment>', `#include <map_fragment>
     { vec4 s = scl(vMapUv); float gap = 1.0 - s.y; diffuseColor.rgb *= mix(1.0, 0.72, s.z * s.y) * (0.92 + 0.16 * s.w);
       vec3 skin = mix(vec3(0.16, 0.14, 0.12), vec3(0.42, 0.36, 0.31), uFold); float fo = uFold * (0.5 + 0.5 * sin(vMapUv.x * uScaleN.x * 6.2831 * 2.5)); skin *= 1.0 - 0.35 * fo;
-      float tear = uTear * smoothstep(0.25, 0.6, vStretch) * step(0.55, hsh(floor(vMapUv * uScaleN * vec2(1.0, 0.5)))) ;
+      float tear = uTear * smoothstep(0.25, 0.6, vStretch) * step(0.68, hsh(floor(vMapUv * uScaleN * vec2(1.0, 0.5)))) ;
       diffuseColor.rgb = mix(diffuseColor.rgb, mix(skin, vec3(0.55, 0.04, 0.05), tear), gap * smoothstep(0.02, 0.15, vStretch * uGapK + uFold * 0.3)); }`);
 }
 const snakeM = new THREE.MeshStandardMaterial({ map: snakeTex, bumpMap: snakeTex, bumpScale: 1.6, roughness: 0.42, metalness: 0.0 });
