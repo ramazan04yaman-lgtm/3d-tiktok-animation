@@ -1,16 +1,17 @@
 
 // ---------- Uferstelle: sandiger Platz am Wasser ----------
 { const sandTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#b39a72'; g.fillRect(0, 0, w, h); const r = rng(8); for (let i = 0; i < 14000; i++) { const v = r(); g.fillStyle = v < .4 ? 'rgba(90,70,45,0.25)' : v < .8 ? 'rgba(220,200,160,0.25)' : 'rgba(60,50,35,0.35)'; g.fillRect(r() * w, r() * h, 1 + r() * 2, 1 + r() * 2); } }, 6);
-  const sand = new THREE.Mesh(new THREE.CircleGeometry(7, 64), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
+  const sand = new THREE.Mesh(new THREE.CircleGeometry(9.5, 96), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
   { const p = sand.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); const a = Math.atan2(y, x); const rr = 1 + 0.18 * Math.sin(a * 5) + 0.1 * Math.sin(a * 11); p.setXY(i, x * rr, y * rr); } }
+  ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(1400, 1400, 280, 280); ground.position.y = -0.02;
   ground.material.polygonOffset = true; ground.material.polygonOffsetFactor = 2; ground.material.polygonOffsetUnits = 8; // Gras nie über den Sand flackern lassen
   sand.rotation.x = -Math.PI / 2; sand.position.set(0.5, 0.012, -0.5); sand.receiveShadow = true; world.add(sand);
   const river = new THREE.Mesh(new THREE.PlaneGeometry(80, 9), new THREE.MeshStandardMaterial({ color: 0x6f8f86, roughness: 0.06, metalness: 0.3 })); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.025, -9.5); world.add(river);
   const mud = new THREE.Mesh(new THREE.PlaneGeometry(80, 1.6), new THREE.MeshStandardMaterial({ color: 0x5e4c36, roughness: 0.5 })); mud.rotation.x = -Math.PI / 2; mud.position.set(0, 0.02, -4.6); world.add(mud);
-  const Z0 = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < GRASS_BASE.length; i++) { const e = GRASS_BASE[i].elements; const dx = e[12] - 0.5, dz = e[14] + 0.5; if (dx * dx + dz * dz < 36 || e[14] < -4) { GRASS_BASE[i] = Z0.clone(); GRASS.setMatrixAt(i, Z0); } } GRASS.instanceMatrix.needsUpdate = true;
+  const Z0 = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < GRASS_BASE.length; i++) { const e = GRASS_BASE[i].elements; const dx = e[12] - 0.5, dz = e[14] + 0.5; if (dx * dx + dz * dz < 81 || e[14] < -4) { GRASS_BASE[i] = Z0.clone(); GRASS.setMatrixAt(i, Z0); } } GRASS.instanceMatrix.needsUpdate = true;
   // ein paar Grasbüschel am Rand der Sandfläche
   const tuftM = new THREE.MeshStandardMaterial({ color: 0x5d7a2e, side: THREE.DoubleSide, roughness: 0.8 }); const r = rng(77);
-  for (let k = 0; k < 26; k++) { const a = r() * Math.PI * 2, d = 4.2 + r() * 2.2; const tf = new THREE.Group(); tf.position.set(0.5 + Math.cos(a) * d, 0, -0.5 + Math.sin(a) * d); if (tf.position.z < -3.6) continue;
+  for (let k = 0; k < 26; k++) { const a = r() * Math.PI * 2, d = 8.6 + r() * 2.2; const tf = new THREE.Group(); tf.position.set(0.5 + Math.cos(a) * d, 0, -0.5 + Math.sin(a) * d); if (tf.position.z < -3.6) continue;
     for (let j = 0; j < 9; j++) { const b = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.45 + r() * 0.35, 3), tuftM); b.position.set((r() - .5) * 0.25, 0.25, (r() - .5) * 0.25); b.rotation.set((r() - .5) * 0.6, r() * 3, (r() - .5) * 0.6); tf.add(b); } world.add(tf); } }
 
 // ---------- Reset ----------

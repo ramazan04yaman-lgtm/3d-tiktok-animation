@@ -542,16 +542,14 @@ function alignMouth(target) { rex.root.updateMatrixWorld(true); const p = rex.mo
 const AR0 = 0.2, ALEN = 8.0; // Körperradius, Länge
 // Fleckenmuster (u: entlang 4.8 Einheiten, v: Umfang; v=0.25 oben, 0.75 Bauch)
 const snakeTex = canvasTex(2048, 512, (g, w, h) => {
-  const gr = g.createLinearGradient(0, 0, 0, h); [[0, '#4a5223'], [0.12, '#3a4219'], [0.25, '#2c3213'], [0.38, '#3a4219'], [0.5, '#4a5223'], [0.6, '#6e6a2a'], [0.75, '#958436'], [0.9, '#6e6a2a'], [1, '#4a5223']].forEach(([s, c]) => gr.addColorStop(s, c));
+  const gr = g.createLinearGradient(0, 0, 0, h); [[0, '#5e5d30'], [0.08, '#73713f'], [0.14, '#a9a796'], [0.25, '#bcbcb0'], [0.36, '#a9a796'], [0.42, '#73713f'], [0.5, '#5e5d30'], [0.65, '#545429'], [0.75, '#4c4c25'], [0.85, '#545429'], [1, '#5e5d30']].forEach(([s, c]) => gr.addColorStop(s, c));
   g.fillStyle = gr; g.fillRect(0, 0, w, h); const r = rng(21);
   const blob = (x, y, rx, ry, col, a = 0) => { for (const dx of [-w, 0, w]) { g.beginPath(); g.ellipse(x + dx, y, rx, ry, a, 0, 7); g.fillStyle = col; g.fill(); } };
-  for (let x = 0; x < w; x += 128) { const j = (r() - .5) * 30; blob(x + j, 128 - 34, 46 + r() * 10, 30, '#141509', 0.2); blob(x + 64 + j, 128 + 34, 46 + r() * 10, 30, '#141509', -0.2); } // Rückenflecken paarweise versetzt
-  for (const yc of [40, 216]) for (let x = 30; x < w; x += 150) { const jx = x + (r() - .5) * 40, jy = yc + (r() - .5) * 16; blob(jx, jy, 30, 22, '#151408'); blob(jx, jy, 17, 11, '#a8651c'); } // Augenflecken an den Flanken
-  for (let k = 0; k < 260; k++) { const x = r() * w, y = 384 + (r() - .5) * 150; blob(x, y, 6 + r() * 9, 5 + r() * 6, '#1b1a0c'); } // Bauchpunkte
-  g.globalAlpha = 0.18; for (let k = 0; k < 4000; k++) { g.fillStyle = r() < 0.5 ? '#000' : '#fff'; g.fillRect(r() * w, r() * h, 2, 2); } g.globalAlpha = 1; });
+  g.globalAlpha = 0.1; for (let k = 0; k < 900; k++) { const y = 256 + (r() - 0.5) * 330; blob(r() * w, y, 10 + r() * 30, 6 + r() * 14, r() < 0.6 ? '#2e2f14' : '#9a9660', r() * 3); } // dezente Marmorierung
+  g.globalAlpha = 0.12; for (let k = 0; k < 5000; k++) { g.fillStyle = r() < 0.5 ? '#000' : '#fff'; g.fillRect(r() * w, r() * h, 2, 2); } g.globalAlpha = 1; });
 snakeTex.wrapS = snakeTex.wrapT = THREE.RepeatWrapping;
 // Schuppen-Shader: Schuppen überlappen; bei Dehnung (aStretch) öffnen sich Lücken mit heller Zwischenhaut, optional Risse / Falten
-const snakeU = { uTear: { value: 0 }, uFold: { value: 0 }, uGapK: { value: 0.35 }, uScaleN: { value: new THREE.Vector2(92, 54) } };
+const snakeU = { uTear: { value: 0 }, uFold: { value: 0 }, uGapK: { value: 0.35 }, uScaleN: { value: new THREE.Vector2(124, 66) } };
 function snakeShader(sh) {
   Object.assign(sh.uniforms, snakeU);
   sh.vertexShader = 'attribute float aStretch; varying float vStretch;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vStretch = aStretch;');
@@ -559,7 +557,7 @@ function snakeShader(sh) {
   float hsh(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   vec4 scl(vec2 uv) { // x: Höhe, y: innen (0/1), z: Rand, w: Zellzufall
     vec2 p = uv * uScaleN; float row = floor(p.y); p.x += mod(row, 2.0) * 0.5; vec2 id = floor(p); vec2 f = fract(p) - 0.5;
-    float belly = smoothstep(0.62, 0.7, fract(uv.y)) * (1.0 - smoothstep(0.8, 0.88, fract(uv.y)));
+    float belly = smoothstep(0.12, 0.2, fract(uv.y)) * (1.0 - smoothstep(0.3, 0.38, fract(uv.y)));
     float st = vStretch * uGapK; float r = 0.62 / (1.0 + 0.22 * st);
     vec2 q = f; q.y *= mix(1.0, 0.45, belly); float d = abs(q.x) * 0.72 + abs(q.y) * 0.95 + 0.12 * length(q);
     float ins = 1.0 - smoothstep(r - 0.06, r, d); float dome = ins * (0.55 + 0.45 * sqrt(max(0.0, 1.0 - d * d / (r * r)))) * (0.75 + 0.25 * (f.x + 0.5));
@@ -572,7 +570,7 @@ function snakeShader(sh) {
       float tear = uTear * smoothstep(0.25, 0.6, vStretch) * step(0.68, hsh(floor(vMapUv * uScaleN * vec2(1.0, 0.5)))) ;
       diffuseColor.rgb = mix(diffuseColor.rgb, mix(skin, vec3(0.55, 0.04, 0.05), tear), gap * smoothstep(0.02, 0.15, vStretch * uGapK + uFold * 0.3)); }`);
 }
-const snakeM = new THREE.MeshStandardMaterial({ map: snakeTex, bumpMap: snakeTex, bumpScale: 1.6, roughness: 0.42, metalness: 0.0 });
+const snakeM = new THREE.MeshStandardMaterial({ map: snakeTex, bumpMap: snakeTex, bumpScale: 1.6, roughness: 0.72, metalness: 0.0 });
 snakeM.onBeforeCompile = snakeShader; snakeM.customProgramCacheKey = () => 'snake';
 const headSkinM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.4, bumpMap: scaleTex, bumpScale: 1.2 });
 const liningM = new THREE.MeshPhysicalMaterial({ color: 0xd98a8f, roughness: 0.32, clearcoat: 0.7, clearcoatRoughness: 0.25, side: THREE.DoubleSide, bumpMap: muscleTex, bumpScale: 0.4 });
@@ -585,9 +583,9 @@ const HL = 0.34; // halbe Kopflänge
 const SACK_FLIP = true;
 const sackR = w => Math.max(0.08, w.r * 1.1 + 0.035);
 const skullW = z => 0.14 * (1 - 0.42 * Math.pow(clamp((z + HL) / (2 * HL)), 1.6)); // halbe Breite entlang z
-function headColor(x, y, z, ny, c) { // oliv, schwarzer Streifen hinter dem Auge, gelbliche Unterseite
-  c.set(0x434b20); if (ny < -0.2 || y < 0.012) c.set(0x9a8a3a); if (y < 0.022 && y > -0.012 && Math.abs(x) > skullW(z) * 0.72) { c.set(0xcdb862); if ((z * 22 + 10) % 1 < 0.14) c.set(0x3b3115); } const st = Math.abs(Math.abs(x) - (0.13 - 0.1 * clamp((z + 0.34) / 0.6))) < 0.025 && y < 0.07 && y > 0.0 && z < 0.06; if (st) c.set(0x221f10);
-  if (y > 0.07 && Math.abs(x) < 0.07 && z < 0.1) c.lerp(new THREE.Color(0x1d1d0e), 0.6 * clamp(Math.sin(z * 30) + 0.3)); c.multiplyScalar(0.9 + 0.2 * fbm(x * 20, y * 20, z * 20, 2)); return c; }
+function headColor(x, y, z, ny, c) { // glattes Oliv, heller Lippen-/Kehlbereich
+  c.set(0x5a592d); if (y > 0.06) c.lerp(new THREE.Color(0x52522a), 0.6); if (ny < -0.2 || y < 0.006) c.set(0xb0ad98); else if (y < 0.03 && Math.abs(x) > skullW(z) * 0.7) c.set(0x9c9872);
+  c.multiplyScalar(0.92 + 0.16 * fbm(x * 14, y * 14, z * 14, 2)); return c; }
 function colGeo(geo, fn) { geo.computeVertexNormals(); const p = geo.attributes.position, n = geo.attributes.normal, cols = [], c = new THREE.Color(); for (let i = 0; i < p.count; i++) { fn(p.getX(i), p.getY(i), p.getZ(i), n.getY(i), c); cols.push(c.r, c.g, c.b); } geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); return geo; }
 function makeAna() {
   const root = new THREE.Group(); const ol = outlineMat(0xffe27a, 0.03);
@@ -600,14 +598,14 @@ function makeAna() {
   // Kopf
   const head = new THREE.Group(); root.add(head);
   const sg = new THREE.SphereGeometry(1, 56, 36); sg.rotateX(Math.PI / 2); { const p = sg.attributes.position; for (let i = 0; i < p.count; i++) { const X = p.getX(i), Y = p.getY(i), Z = p.getZ(i); const z = Z * HL; const f = clamp((z + HL) / (2 * HL));
-    const w = skullW(z) * (Z > 0.92 ? Math.sqrt(Math.max(0.05, (1 - Z) / 0.08)) * 0.85 + 0.15 : 1); const top = 0.105 * (1 - 0.45 * Math.pow(f, 1.4));
-    const yy = Y > 0 ? Math.pow(Y, 0.7) * top : Y * 0.035; p.setXYZ(i, Math.sign(X) * Math.pow(Math.abs(X), 0.75) * w, yy, z + (Y > 0 ? 0 : -0.01)); } }
+    const w = skullW(z) * (Z > 0.92 ? Math.sqrt(Math.max(0.05, (1 - Z) / 0.08)) * 0.85 + 0.15 : 1); const top = 0.128 * (1 - 0.42 * Math.pow(f, 1.3));
+    const yy = Y > 0 ? Math.pow(Y, 0.62) * top : Y * 0.04; p.setXYZ(i, Math.sign(X) * Math.pow(Math.abs(X), 0.75) * w, yy, z + (Y > 0 ? 0 : -0.01)); } }
   const skull = new THREE.Mesh(colGeo(sg, headColor), headSkinM); skull.castShadow = true; head.add(skull); skull.add(new THREE.Mesh(sg, ol));
   for (const s of [-1, 1]) { // Augen oben seitlich, Nasenlöcher oben auf der Schnauze
-    const eg = new THREE.Group(); eg.position.set(s * 0.098, 0.056, 0.05); head.add(eg);
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.024, 18, 14), new THREE.MeshPhysicalMaterial({ color: 0x5e4c1e, roughness: 0.05, clearcoat: 1 })); eg.add(eye);
-    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.0245, 18, 14, 0, Math.PI * 2, 0, 0.5), new THREE.MeshBasicMaterial({ color: 0x050403 })); pup.rotation.x = -Math.PI / 2 - 0.2; pup.rotation.z = s * 0.6; pup.scale.set(0.35, 1, 1); eg.add(pup);
-    const lid = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.008, 8, 20), headSkinM); colGeo(lid.geometry, (x, y, z, ny, c) => c.set(0x353b19)); lid.rotation.set(Math.PI / 2 - 0.4, s * 0.5, 0); lid.position.y = 0.004; eg.add(lid);
+    const eg = new THREE.Group(); eg.position.set(s * 0.097, 0.06, 0.06); head.add(eg);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 18, 14), new THREE.MeshPhysicalMaterial({ color: 0xa8782a, roughness: 0.05, clearcoat: 1 })); eg.add(eye);
+    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.0225, 18, 14, 0, Math.PI * 2, 0, 0.5), new THREE.MeshBasicMaterial({ color: 0x050403 })); pup.rotation.x = -Math.PI / 2 - 0.2; pup.rotation.z = s * 0.6; pup.scale.set(0.35, 1, 1); eg.add(pup);
+    const lid = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.009, 8, 20), headSkinM); colGeo(lid.geometry, (x, y, z, ny, c) => c.set(0x6a6836)); lid.rotation.set(Math.PI / 2 - 0.4, s * 0.5, 0); lid.position.y = 0.004; eg.add(lid);
     const nos = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), new THREE.MeshBasicMaterial({ color: 0x0b0b06 })); nos.position.set(s * 0.03, 0.036, 0.27); nos.scale.set(1, 0.6, 1.3); head.add(nos); }
   // ---- Zähne: kurz, kräftig an der Basis, nach hinten gebogen (Widerhaken) ----
   const fangG = (() => { const c = new THREE.CatmullRomCurve3([V(0, 0.25, 0.02), V(0, -0.45, -0.04), V(0, -0.85, -0.3), V(0, -1.0, -0.62)]); const SEG = 12, RAD = 8; const g = new THREE.TubeGeometry(c, SEG, 1, RAD, false); const p = g.attributes.position;
@@ -615,13 +613,13 @@ function makeAna() {
     g.computeVertexNormals(); const col = []; for (let i = 0; i < p.count; i++) { const k = Math.floor(i / (RAD + 1)) / SEG; const cc = new THREE.Color(0xe9dcc0).lerp(new THREE.Color(0xfffcf2), clamp(k * 1.4)); col.push(cc.r, cc.g, cc.b); } g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return g; })();
   const toothM = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.15, sheen: 0.3 });
   const gumM = new THREE.MeshPhysicalMaterial({ color: 0xb8606a, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.2, bumpMap: muscleTex, bumpScale: 0.25 });
-  const tRnd = rng(77); const upTeeth = [];
+  const tRnd = rng(77); const upTeeth = [], gums = [];
   const palY = (u, z) => { const rho2 = Math.max(0, 1 - (z / HL) ** 2); const X = Math.pow(Math.min(1, Math.abs(u)), 4 / 3); return -0.035 * Math.sqrt(Math.max(0, rho2 - X * X)) - 0.003; }; // Gaumen direkt unter dem Schädel
   for (const s of [-1, 1]) {
     const gp = []; for (let k = 0; k <= 16; k++) { const z = lerp(-0.27, 0.3, k / 16); gp.push(V(s * skullW(z) * (0.9 - 0.25 * clamp((z - 0.22) / 0.1)), -0.006, z)); }
-    const gum = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(gp), 60, 0.008, 8, false), gumM); head.add(gum);
+    const gum = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(gp), 60, 0.008, 8, false), gumM); head.add(gum); gums.push(gum);
     const pp = []; for (let k = 0; k <= 10; k++) { const z = lerp(-0.25, 0.16, k / 10); pp.push(V(s * skullW(z) * 0.5, palY(0.5 / 0.95, z) - 0.002, z)); }
-    head.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp), 40, 0.005, 6, false), gumM));
+    { const gm = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pp), 40, 0.005, 6, false), gumM); head.add(gm); gums.push(gm); }
     for (let k = 0; k < 15; k++) { const z = lerp(-0.25, 0.27, k / 14); const m = new THREE.Mesh(fangG, toothM); const xf = 0.9 - 0.25 * clamp((z - 0.22) / 0.1); m.position.set(s * skullW(z) * xf, -0.008, z); m.rotation.set(0, 0, s * 0.12); m.userData.s = 0.026 * (0.8 + 0.35 * clamp((z + 0.25) / 0.35)) * (0.85 + 0.3 * tRnd()); head.add(m); upTeeth.push(m); }
     for (let k = 0; k < 9; k++) { const z = lerp(-0.23, 0.15, k / 8); const m = new THREE.Mesh(fangG, toothM); m.position.set(s * skullW(z) * 0.5, palY(0.5 / 0.95, z) - 0.006, z); m.userData.s = 0.022 * (0.85 + 0.3 * tRnd()); head.add(m); upTeeth.push(m); }
   }
@@ -632,13 +630,13 @@ function makeAna() {
     const path = [V(0, 0, 0), V(-s * 0.02, -0.01, 0.2), V(-s * 0.06, -0.015, 0.42), V(-s * 0.105, -0.012, JL)];
     const curve = new THREE.CatmullRomCurve3(path); const NS = 48, NR = 20; const mpos = [], muv = [], mcol = [], midx = []; const c = new THREE.Color();
     for (let i = 0; i <= NS; i++) { const k = i / NS; const cp = curve.getPoint(k); const T = curve.getTangent(k); const B = T.clone().cross(V(0, 1, 0)).normalize(); if (B.x * s < 0) B.negate(); const N = B.clone().cross(T).normalize(); if (N.y < 0) N.negate();
-      const hh = lerp(0.03, 0.016, Math.pow(k, 0.8)) * (k > 0.93 ? Math.sqrt(1 - (k - 0.93) / 0.075 * 0.6) : 1), ww = lerp(0.017, 0.011, k) * (k < 0.05 ? 0.6 + 8 * k : 1);
+      const hh = lerp(0.025, 0.014, Math.pow(k, 0.8)) * (k > 0.93 ? Math.sqrt(1 - (k - 0.93) / 0.075 * 0.6) : 1), ww = lerp(0.017, 0.011, k) * (k < 0.05 ? 0.6 + 8 * k : 1);
       for (let j = 0; j <= NR; j++) { const an = j / NR * Math.PI * 2; const ca = Math.cos(an), sa = Math.sin(an); const ex = Math.sign(ca) * Math.pow(Math.abs(ca), 0.8), ey = Math.sign(sa) * Math.pow(Math.abs(sa), 0.8);
         const P = cp.clone().addScaledVector(N, -hh + ey * hh).addScaledVector(B, ex * ww); mpos.push(P.x, P.y, P.z); muv.push(k * 5, j / NR);
-        if (sa > 0.75) c.set(0xb8656c); // Zahnfleisch oben
-        else if (ca < -0.3) c.set(sa > 0.1 ? 0xa86068 : 0x9b8a40); // Innenseite
-        else if (sa > -0.35) { if (sa > 0.55) { c.set(0xb9a655); if ((k * 13 + 0.3 + 0.15 * Math.sin(k * 40)) % 1 < 0.16 && k < 0.95) c.set(0x3b3115); } else { c.set(0x434b20); if (fbm(k * 9, sa * 2, s, 2) > 0.62) c.set(0x23240f); } } // Lippenschuppen
-        else c.set(sa < -0.8 ? 0x9c8f42 : 0x434b20);
+        if (sa > 0.75 && ca < 0.2) c.set(0xd59a9a); else if (sa > 0.75) c.set(0x9c9872); // Zahnfleisch oben
+        else if (ca < -0.3) c.set(sa > 0.1 ? 0xc98d8f : 0xb3ae86); // Innenseite
+        else if (sa > -0.35) { if (sa > 0.55) { c.set(0x9c9872); if ((k * 13 + 0.3) % 1 < 0.08 && k < 0.95) c.set(0x8d8960); } else c.set(0x5a592d); } // Lippenschuppen
+        else c.set(sa < -0.8 ? 0xb0ad98 : 0x6e6c3e);
         c.multiplyScalar(0.88 + 0.24 * fbm(P.x * 40, P.y * 40, P.z * 40, 2)); mcol.push(c.r, c.g, c.b); } }
     for (let i = 0; i < NS; i++) for (let j = 0; j < NR; j++) { const a = i * (NR + 1) + j, b = a + 1, cc = a + NR + 1, d = cc + 1; midx.push(a, cc, b, b, cc, d); }
     const jg = new THREE.BufferGeometry(); jg.setIndex(midx); jg.setAttribute('position', new THREE.Float32BufferAttribute(mpos, 3)); jg.setAttribute('uv', new THREE.Float32BufferAttribute(muv, 2)); jg.setAttribute('color', new THREE.Float32BufferAttribute(mcol, 3)); jg.computeVertexNormals();
@@ -667,7 +665,7 @@ function makeAna() {
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, chin, lig, lining, lg, MU, MV, corners, lgo, sack, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
+  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -716,7 +714,7 @@ function poseAna(a, o) {
   const step = ALEN / a.RINGS; let p = back0.clone(); let hd = heading; const pts = [], rads = [], strs = [], bfs = [];
   for (let i = 0; i <= a.RINGS; i++) { const d = i * step;
     // Radius: Hals -> Körper -> Schwanzspitze
-    let r = AR0 * (d < 0.5 ? lerp(0.72, 1, ease(d / 0.5)) : d > ALEN - 2.6 ? Math.pow(Math.max(0.004, (ALEN - d) / 2.6), 0.85) : 1) * (1 + 0.08 * Math.sin(clamp((d - 0.3) / (ALEN - 3)) * Math.PI));
+    let r = AR0 * (d < 0.6 ? lerp(0.62, 1, ease(d / 0.6)) : d > ALEN - 2.6 ? Math.pow(Math.max(0.004, (ALEN - d) / 2.6), 0.85) : 1) * (1 + 0.08 * Math.sin(clamp((d - 0.3) / (ALEN - 3)) * Math.PI));
     let rb = r, y;
     let cyA = cy; if (preyX0 !== null) { const lz = (p.x - preyX0); const cz = 1.06 - lz; const pr = cz > -0.7 && cz < 1.12 ? capyR(cz) * 1.08 * bulgeScale : 0; if (pr > r) r = pr; cyA = capyY(cz); } // Beule (Capybara-Koordinate, Nase = +1.06)
     const inPrey = preyX0 !== null && r > rb * 1.05; y = inPrey && !rest ? cyA : r * 0.92;
@@ -734,11 +732,12 @@ function poseAna(a, o) {
       uvA[k * 2] = i * step / 4.8; uvA[k * 2 + 1] = j / a.RS; stA[k] = strs[i]; } }
   a.bg.attributes.position.needsUpdate = a.bg.attributes.uv.needsUpdate = a.bg.attributes.aStretch.needsUpdate = true; a.bg.computeVertexNormals();
   // Unterkiefer
+  const tOpen = xray ? 1 : clamp((Math.max(gape, spread * 1.5) - 0.09) / 0.2);
   a.mandibles.forEach((m, i) => { const s = m.s; m.g.position.set(s * (0.125 + spread * 0.25 * 0), -quad * 0.12, -0.3 + (slide[i] || 0)); m.g.rotation.set(gape, s * spread, 0);
     if (jawTW) { const p0 = m.g.position.clone(), q0 = m.g.quaternion.clone(); m.g.position.copy(jawJ[i]).add(V(0, 0, slide[i] || 0)); const tl = jawTW[i].clone().add(V(0, 0, slide[i] || 0)).sub(m.g.position).normalize(); m.g.quaternion.setFromUnitVectors(m.curve.getPoint(1).normalize(), tl);
       if (jawK < 1) { m.g.position.lerpVectors(p0, m.g.position, jawK); m.g.quaternion.slerpQuaternions(q0, m.g.quaternion.clone(), jawK); } }
-    m.jaw.visible = m.jol.visible = !xray; m.bone.visible = !!xray; m.teeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth))); });
-  a.upTeeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth)));
+    m.jaw.visible = m.jol.visible = !xray; m.bone.visible = !!xray; m.teeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth * tOpen))); });
+  a.upTeeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth * tOpen))); a.gums.forEach(gm => gm.visible = tOpen > 0.02);
   a.head.updateMatrixWorld(true);
   // Kinnspitzen (Kopf-lokal)
   const tip = m => m.curve.getPoint(1).clone().applyMatrix4(m.g.matrix); const tL = tip(a.mandibles[0]), tR = tip(a.mandibles[1]);
@@ -786,7 +785,7 @@ function poseAna(a, o) {
       for (let j = 0; j <= a.SU; j++) { const f = j / a.SU, ph = lerp(ph0, ph1, f); let e = Math.max(1 - clamp(f / 0.14), 1 - clamp((1 - f) / 0.14)); e = e * e * (3 - 2 * e); let rad = Math.max(lerp(R, dU, e * gapK), w.r * 1.06 + 0.014);
         for (const J of jw) if (J) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
         const k = i * (a.SU + 1) + j; pos[k * 3] = rad * Math.cos(ph); pos[k * 3 + 1] = w.cy + rad * Math.sin(ph); pos[k * 3 + 2] = z;
-        uvA[k * 2] = (-HL * 0.85 - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.72) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
+        uvA[k * 2] = (-HL * 0.85 - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.62) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
@@ -838,16 +837,17 @@ function cam(pos, look, fov = 40, t = 0, shake = 0.03) {
 
 // ---------- Uferstelle: sandiger Platz am Wasser ----------
 { const sandTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#b39a72'; g.fillRect(0, 0, w, h); const r = rng(8); for (let i = 0; i < 14000; i++) { const v = r(); g.fillStyle = v < .4 ? 'rgba(90,70,45,0.25)' : v < .8 ? 'rgba(220,200,160,0.25)' : 'rgba(60,50,35,0.35)'; g.fillRect(r() * w, r() * h, 1 + r() * 2, 1 + r() * 2); } }, 6);
-  const sand = new THREE.Mesh(new THREE.CircleGeometry(7, 64), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
+  const sand = new THREE.Mesh(new THREE.CircleGeometry(9.5, 96), new THREE.MeshStandardMaterial({ map: sandTex, roughness: 0.95, bumpMap: sandTex, bumpScale: 1.5, transparent: false }));
   { const p = sand.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i); const a = Math.atan2(y, x); const rr = 1 + 0.18 * Math.sin(a * 5) + 0.1 * Math.sin(a * 11); p.setXY(i, x * rr, y * rr); } }
+  ground.geometry.dispose(); ground.geometry = new THREE.PlaneGeometry(1400, 1400, 280, 280); ground.position.y = -0.02;
   ground.material.polygonOffset = true; ground.material.polygonOffsetFactor = 2; ground.material.polygonOffsetUnits = 8; // Gras nie über den Sand flackern lassen
   sand.rotation.x = -Math.PI / 2; sand.position.set(0.5, 0.012, -0.5); sand.receiveShadow = true; world.add(sand);
   const river = new THREE.Mesh(new THREE.PlaneGeometry(80, 9), new THREE.MeshStandardMaterial({ color: 0x6f8f86, roughness: 0.06, metalness: 0.3 })); river.rotation.x = -Math.PI / 2; river.position.set(0, 0.025, -9.5); world.add(river);
   const mud = new THREE.Mesh(new THREE.PlaneGeometry(80, 1.6), new THREE.MeshStandardMaterial({ color: 0x5e4c36, roughness: 0.5 })); mud.rotation.x = -Math.PI / 2; mud.position.set(0, 0.02, -4.6); world.add(mud);
-  const Z0 = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < GRASS_BASE.length; i++) { const e = GRASS_BASE[i].elements; const dx = e[12] - 0.5, dz = e[14] + 0.5; if (dx * dx + dz * dz < 36 || e[14] < -4) { GRASS_BASE[i] = Z0.clone(); GRASS.setMatrixAt(i, Z0); } } GRASS.instanceMatrix.needsUpdate = true;
+  const Z0 = new THREE.Matrix4().makeScale(0, 0, 0); for (let i = 0; i < GRASS_BASE.length; i++) { const e = GRASS_BASE[i].elements; const dx = e[12] - 0.5, dz = e[14] + 0.5; if (dx * dx + dz * dz < 81 || e[14] < -4) { GRASS_BASE[i] = Z0.clone(); GRASS.setMatrixAt(i, Z0); } } GRASS.instanceMatrix.needsUpdate = true;
   // ein paar Grasbüschel am Rand der Sandfläche
   const tuftM = new THREE.MeshStandardMaterial({ color: 0x5d7a2e, side: THREE.DoubleSide, roughness: 0.8 }); const r = rng(77);
-  for (let k = 0; k < 26; k++) { const a = r() * Math.PI * 2, d = 4.2 + r() * 2.2; const tf = new THREE.Group(); tf.position.set(0.5 + Math.cos(a) * d, 0, -0.5 + Math.sin(a) * d); if (tf.position.z < -3.6) continue;
+  for (let k = 0; k < 26; k++) { const a = r() * Math.PI * 2, d = 8.6 + r() * 2.2; const tf = new THREE.Group(); tf.position.set(0.5 + Math.cos(a) * d, 0, -0.5 + Math.sin(a) * d); if (tf.position.z < -3.6) continue;
     for (let j = 0; j < 9; j++) { const b = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.45 + r() * 0.35, 3), tuftM); b.position.set((r() - .5) * 0.25, 0.25, (r() - .5) * 0.25); b.rotation.set((r() - .5) * 0.6, r() * 3, (r() - .5) * 0.6); tf.add(b); } world.add(tf); } }
 
 // ---------- Reset ----------
