@@ -99,7 +99,7 @@ const shots = [
   },
   // 4: Links/rechts vorschieben, festhaken, über die Beute ziehen
   (T) => {
-    sunAt(V(0, 0, 0)); const u = (T - S[4].start) / (S[4].end - S[4].start); const p = lerp(0.18, 0.62, ease(u)); const ph = (T - S[4].start) * 4.2;
+    sunAt(V(0, 0, 0)); const u = (T - S[4].start) / (S[4].end - S[4].start); const ph = (T - S[4].start) * 4.2; const NS = (S[4].end - S[4].start) * 4.2 / Math.PI, xs = ph / Math.PI; const p = lerp(0.18, 0.55, clamp((Math.floor(xs) + ease(xs % 1)) / NS)); // Stück für Stück: pro Kieferschub ein Ruck
     const sl = 0.07 * Math.sin(ph); const r = engulf(p, T, { slide: [sl, -sl], heading: 0.05 * Math.sin(ph) });
     const hp = headW(); cam(hp.clone().add(V(-0.45, 2.3, 0.9)), hp.clone().add(V(0.2, 0, 0)), 40, T, 0.004);
     const tL = WT(4, 'linke'), tRr = WT(4, 'rechte'); const side = Math.sin(ph) > 0;
@@ -108,7 +108,7 @@ const shots = [
   },
   // 5: Schlucken dauert Stunden – keine Luft
   (T) => {
-    sunAt(V(0, 0, 0)); const u = (T - S[5].start) / (S[5].end - S[5].start); const p = lerp(0.62, 0.72, u); engulf(p, T, { slide: [0.03 * Math.sin(T * 2), -0.03 * Math.sin(T * 2)] });
+    sunAt(V(0, 0, 0)); const u = (T - S[5].start) / (S[5].end - S[5].start); const p = lerp(0.55, 0.72, ease(u)); engulf(p, T, { slide: [0.03 * Math.sin(T * 2), -0.03 * Math.sin(T * 2)] });
     const hp = headW(); cam(V(hp.x - 0.4, 0.85, 2.3), V(hp.x - 0.2, 0.55, 0), 40, T, 0.006);
     const hrs = Math.min(5, 1 + Math.floor(clamp((T - WT(5, 'stunden') + 0.2) / 1.4) * 4.99)); chip(`⏱ ${hrs} STUNDE${hrs > 1 ? 'N' : ''}`, 540, 470, clamp((T - WT(5, 'stunden') + 0.2) / 0.3));
     const kL = clamp((T - WT(5, 'luft') + 0.4) / 0.3); if (kL > 0) { const lv = clamp(1 - (T - WT(5, 'luft') + 0.3) / 0.9); svg.push(`<g opacity="${kL}"><rect x="290" y="1240" width="500" height="64" rx="32" fill="#111c" stroke="#fff" stroke-width="6"/><rect x="300" y="1250" width="${480 * lv}" height="44" rx="22" fill="${lv > 0.3 ? '#3ddc84' : '#e8483b'}"/><text x="540" y="1216" text-anchor="middle" font-family="M" font-weight="900" font-size="48" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke">LUFT</text></g>`); }

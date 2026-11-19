@@ -659,13 +659,13 @@ function makeAna() {
   const corners = [-1, 1].map(s => { const g = mkSheet(12, 24, s < 0, 0.45, 0.13); const mi = new THREE.Mesh(g, innerM); lining.add(mi); const o = new THREE.Mesh(g, outerM); o.castShadow = true; lining.add(o); return { s, g, mi, o }; });
   // Gedehnter Hautsack um die Beute (eine durchgehende Fläche vom Hals bis zu den Kieferspitzen)
   const SU = 64, SV = 44; const sackG = mkSheet(SU, SV, SACK_FLIP, 1, 1); const sinM = innerM.clone(); sinM.side = THREE.BackSide;
-  const sack = new THREE.Group(); head.add(sack); const sko = new THREE.Mesh(sackG, snakeM); sko.castShadow = true; sack.add(sko); sack.add(new THREE.Mesh(sackG, sinM)); sack.visible = false;
+  const sack = new THREE.Group(); head.add(sack); const sko = new THREE.Mesh(sackG, snakeM); sko.castShadow = true; sack.add(sko); sack.add(new THREE.Mesh(sackG, sinM)); sack.visible = false; const lipM = new THREE.MeshPhysicalMaterial({ color: 0xd88a90, emissive: 0x3a0c10, roughness: 0.35, clearcoat: 0.6 }); const lips = [0, 1].map(() => { const m = new THREE.Mesh(new THREE.BufferGeometry(), lipM); sack.add(m); return m; });
   // Luftröhre (Glottis) – Schnorchel mit Knorpelringen
   const trach = new THREE.Group(); head.add(trach); const tt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 1, 16, 1, true), trachM); tt.rotation.x = Math.PI / 2; trach.add(tt);
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
+  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, lips, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -779,13 +779,27 @@ function poseAna(a, o) {
   const sk = !!wrap && a.lining.visible; a.sack.visible = sk; a.lgo.visible = !sk; a.corners.forEach(c => { c.mi.visible = c.o.visible = !sk; });
   if (sk) { const M = a.mandibles.map(m => m.g.matrix); const mp = (i, k) => a.mandibles[i].curve.getPoint(clamp(k)).applyMatrix4(M[i]); const jz = [0, 1].map(i => [mp(i, 0).z, mp(i, 1).z]);
     const pos = a.sg.attributes.position.array, uvA = a.sg.attributes.uv.array, col = a.sg.attributes.color.array, stS = a.sg.attributes.aStretch.array; const cI = new THREE.Color(0xd98a8f), cD = new THREE.Color(0x5a1418), c = new THREE.Color(); const Z0s = -a.NK - 0.012, Z1s = 0.3;
+    const zh = (jz[0][0] + jz[1][0]) / 2 + 0.02; const kRow = []; const SU = a.SU, SA = 16; // Seitenbereiche j<=SA und j>=SU-SA; dazwischen Boden zwischen den Kieferhälften
     for (let i = 0; i <= a.SV; i++) { const z = lerp(Z0s, Z1s, i / a.SV); const w = wrap(z); const R = sackR(w); const gapK = clamp((z + 0.26) / 0.1); const sw = skullW(clamp(z, -HL, HL)) * 0.9;
       const aU = Math.atan2(-0.012 - w.cy, sw), dU = Math.hypot(sw, -0.012 - w.cy); const ph0 = lerp(Math.PI / 2, aU, gapK), ph1 = -Math.PI - ph0;
-      const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); if (kk < -0.05 || kk > 1.05) return null; const L = mp(s, kk); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return [aJ, Math.hypot(L.x, L.y - w.cy)]; });
-      for (let j = 0; j <= a.SU; j++) { const f = j / a.SU, ph = lerp(ph0, ph1, f); let e = Math.max(1 - clamp(f / 0.14), 1 - clamp((1 - f) / 0.14)); e = e * e * (3 - 2 * e); let rad = Math.max(lerp(R, dU, e * gapK), w.r * 1.06 + 0.014);
-        for (const J of jw) if (J) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
-        const k = i * (a.SU + 1) + j; pos[k * 3] = rad * Math.cos(ph); pos[k * 3 + 1] = w.cy + rad * Math.sin(ph); pos[k * 3 + 2] = z;
+      // Seiten offen: vor dem Kiefergelenk keine Haut zwischen Ober- und Unterkiefer (nur schmale Lippen)
+      const kO = Math.pow(clamp((z - zh) / 0.32), 0.8); kRow.push(kO); const lipQ = lerp(1, 0.14, kO); const rm = s => s <= 0.5 ? s * lipQ : 1 - (1 - s) * lipQ;
+      const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); const L = mp(s, clamp(kk)); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return kk < -0.05 || kk > 1.05 ? [aJ, null] : [aJ, Math.hypot(L.x, L.y - w.cy)]; });
+      const aR = jw[1][0], aL = jw[0][0];
+      for (let j = 0; j <= SU; j++) { let ph, e = 0;
+        if (j <= SA) { const sp = rm(j / SA); ph = lerp(ph0, aR, sp); e = 1 - clamp(sp / 0.55); }
+        else if (j >= SU - SA) { const sp = rm((SU - j) / SA); ph = lerp(ph1, aL, sp); e = 1 - clamp(sp / 0.55); }
+        else ph = lerp(aR, aL, (j - SA) / (SU - 2 * SA));
+        e = e * e * (3 - 2 * e); let rad = Math.max(lerp(R, dU, e * gapK), w.r * 1.06 + 0.014);
+        for (const J of jw) if (J[1] !== null) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
+        const k = i * (SU + 1) + j; pos[k * 3] = rad * Math.cos(ph); pos[k * 3 + 1] = w.cy + rad * Math.sin(ph); pos[k * 3 + 2] = z;
         uvA[k * 2] = (-a.NK - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.62) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
+    { const idx = [], cut = [SA / 2, SU - SA / 2 - 1]; for (let i = 0; i < a.SV; i++) for (let j = 0; j < SU; j++) { if ((kRow[i] > 0.001 || kRow[i + 1] > 0.001) && cut.includes(j)) continue;
+        const A = i * (SU + 1) + j, B = A + 1, C = A + SU + 1, D = C + 1; if (SACK_FLIP) idx.push(A, C, B, B, C, D); else idx.push(A, B, C, B, D, C); } a.sg.setIndex(idx); }
+    // rosa Lippensaum entlang der offenen Seitenränder (oben -> Mundwinkel -> unten)
+    a.lips.forEach((lm, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const P = k => V(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]); const pts = []; let i0 = kRow.findIndex(k => k > 0.001);
+      if (i0 > 0) { for (let i = a.SV; i >= i0; i--) pts.push(P(i * (SU + 1) + cU)); pts.push(P((i0 - 1) * (SU + 1) + cU).lerp(P((i0 - 1) * (SU + 1) + cL), 0.5)); for (let i = i0; i <= a.SV; i++) pts.push(P(i * (SU + 1) + cL)); }
+      lm.visible = pts.length > 3; if (lm.visible) { lm.geometry.dispose(); lm.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 0.009, 8, false); } });
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
@@ -935,7 +949,7 @@ const shots = [
   },
   // 4: Links/rechts vorschieben, festhaken, über die Beute ziehen
   (T) => {
-    sunAt(V(0, 0, 0)); const u = (T - S[4].start) / (S[4].end - S[4].start); const p = lerp(0.18, 0.62, ease(u)); const ph = (T - S[4].start) * 4.2;
+    sunAt(V(0, 0, 0)); const u = (T - S[4].start) / (S[4].end - S[4].start); const ph = (T - S[4].start) * 4.2; const NS = (S[4].end - S[4].start) * 4.2 / Math.PI, xs = ph / Math.PI; const p = lerp(0.18, 0.55, clamp((Math.floor(xs) + ease(xs % 1)) / NS)); // Stück für Stück: pro Kieferschub ein Ruck
     const sl = 0.07 * Math.sin(ph); const r = engulf(p, T, { slide: [sl, -sl], heading: 0.05 * Math.sin(ph) });
     const hp = headW(); cam(hp.clone().add(V(-0.45, 2.3, 0.9)), hp.clone().add(V(0.2, 0, 0)), 40, T, 0.004);
     const tL = WT(4, 'linke'), tRr = WT(4, 'rechte'); const side = Math.sin(ph) > 0;
@@ -944,7 +958,7 @@ const shots = [
   },
   // 5: Schlucken dauert Stunden – keine Luft
   (T) => {
-    sunAt(V(0, 0, 0)); const u = (T - S[5].start) / (S[5].end - S[5].start); const p = lerp(0.62, 0.72, u); engulf(p, T, { slide: [0.03 * Math.sin(T * 2), -0.03 * Math.sin(T * 2)] });
+    sunAt(V(0, 0, 0)); const u = (T - S[5].start) / (S[5].end - S[5].start); const p = lerp(0.55, 0.72, ease(u)); engulf(p, T, { slide: [0.03 * Math.sin(T * 2), -0.03 * Math.sin(T * 2)] });
     const hp = headW(); cam(V(hp.x - 0.4, 0.85, 2.3), V(hp.x - 0.2, 0.55, 0), 40, T, 0.006);
     const hrs = Math.min(5, 1 + Math.floor(clamp((T - WT(5, 'stunden') + 0.2) / 1.4) * 4.99)); chip(`⏱ ${hrs} STUNDE${hrs > 1 ? 'N' : ''}`, 540, 470, clamp((T - WT(5, 'stunden') + 0.2) / 0.3));
     const kL = clamp((T - WT(5, 'luft') + 0.4) / 0.3); if (kL > 0) { const lv = clamp(1 - (T - WT(5, 'luft') + 0.3) / 0.9); svg.push(`<g opacity="${kL}"><rect x="290" y="1240" width="500" height="64" rx="32" fill="#111c" stroke="#fff" stroke-width="6"/><rect x="300" y="1250" width="${480 * lv}" height="44" rx="22" fill="${lv > 0.3 ? '#3ddc84' : '#e8483b'}"/><text x="540" y="1216" text-anchor="middle" font-family="M" font-weight="900" font-size="48" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke">LUFT</text></g>`); }
