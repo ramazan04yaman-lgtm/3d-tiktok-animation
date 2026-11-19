@@ -31,7 +31,7 @@ body.mx-render, body.mx-render #root { width: 1080px; height: 1920px; overflow: 
 /* Overlay building blocks (safe zone: top 160px, bottom 420px, right 140px are covered by TikTok UI) */
 .mx-caption { position: absolute; left: 60px; right: 140px; top: 1210px; text-align: left; }
 .mx-caption-text { display: inline-block; font: 800 66px/1.1 Inter, sans-serif; color: #fff; letter-spacing: -1px; text-shadow: 0 4px 30px rgba(0,0,0,0.8); }
-.mx-caption-sub { margin-top: 14px; font: 600 38px/1.25 Inter, sans-serif; color: #c6d4e2; text-shadow: 0 3px 20px rgba(0,0,0,0.8); }
+.mx-caption-sub { margin-top: 14px; font: 600 38px/1.25 Inter, sans-serif; color: #d6e1ec; text-shadow: 0 2px 6px rgba(0,0,0,0.95), 0 0 26px rgba(0,0,0,0.85); }
 .mx-chip { position: absolute; top: 180px; left: 56px; padding: 14px 24px 18px; border-radius: 40px; background: rgba(8,12,18,0.7); border: 2px solid rgba(88,196,255,0.45); font: 700 32px Inter, sans-serif; color: #fff; overflow: hidden; }
 .mx-chip-num { font-family: 'JetBrains Mono', monospace; color: #58c4ff; margin-right: 14px; font-size: 28px; }
 .mx-chip-progress { position: absolute; left: 0; bottom: 0; height: 4px; background: #58c4ff; }

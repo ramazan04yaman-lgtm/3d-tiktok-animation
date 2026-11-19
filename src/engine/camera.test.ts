@@ -6,6 +6,7 @@ import { espressoCamera } from '../projects/espresso/script';
 import { microwaveCamera } from '../projects/microwave/script';
 import { heartCamera } from '../projects/heart/script';
 import { gutCamera } from '../projects/gut/script';
+import { papercutCamera } from '../projects/papercut/script';
 
 /** Analyse a path frame by frame like the exporter would see it. */
 function analyse(path: CameraPath, duration: number) {
@@ -47,6 +48,7 @@ describe('CameraPath', () => {
     ['microwave', microwaveCamera],
     ['heart', heartCamera],
     ['gut', gutCamera],
+    ['papercut', papercutCamera],
   ])('has continuous velocity (no jerks) on the %s camera path', (_name, path) => {
     const { maxSpeed, maxAccel } = analyse(path, 60);
     // Units are decimetres; < 6 dm/s is a calm dolly, accel bound rules out velocity jumps.

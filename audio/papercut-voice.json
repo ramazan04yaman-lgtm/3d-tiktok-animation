@@ -1,0 +1,145 @@
+{
+ "source": "audio/voice_felix_papercut.mp3",
+ "video": "out/papercut/papercut.mp4",
+ "output": "out/papercut/papercut_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 58.5 s at natural speed; paragraph pauses lengthened by 0.22 s so the narration fills 60 s.",
+ "segments": [
+  {
+   "text": "Ein Blatt Papier ist so dünn wie ein Haar –",
+   "src": [
+    0,
+    2.674
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "und trotzdem kann es deine Haut aufschneiden.",
+   "src": [
+    3.013,
+    5.425
+   ],
+   "at": 3.113
+  },
+  {
+   "text": "Wie ist das möglich?",
+   "src": [
+    5.798,
+    7.033
+   ],
+   "at": 5.898
+  },
+  {
+   "text": "Unter dem Mikroskop ist die Papierkante alles andere als glatt:",
+   "src": [
+    7.617,
+    11.25
+   ],
+   "at": 7.937
+  },
+  {
+   "text": "Sie besteht aus Zellulosefasern und ist rau wie eine winzige Säge.",
+   "src": [
+    11.427,
+    16.144
+   ],
+   "at": 11.747
+  },
+  {
+   "text": "Gleitet dein Finger an der Kante entlang, drückt die ganze Kraft auf eine hauchdünne Linie.",
+   "src": [
+    16.481,
+    22.062
+   ],
+   "at": 17.021
+  },
+  {
+   "text": "Der Druck wird so groß, dass die Kante die oberste Hautschicht durchtrennt.",
+   "src": [
+    22.356,
+    26.69
+   ],
+   "at": 22.896
+  },
+  {
+   "text": "Der Schnitt ist flach:",
+   "src": [
+    27.037,
+    28.473
+   ],
+   "at": 27.797
+  },
+  {
+   "text": "Er erreicht kaum Blutgefäße, aber viele Nervenenden.",
+   "src": [
+    28.604,
+    32.302
+   ],
+   "at": 29.364
+  },
+  {
+   "text": "Deine Fingerspitzen gehören zu den empfindlichsten Stellen deines Körpers –",
+   "src": [
+    32.622,
+    36.707
+   ],
+   "at": 33.382
+  },
+  {
+   "text": "und weil die Wunde kaum blutet, liegen die Nerven offen.",
+   "src": [
+    36.834,
+    40.183
+   ],
+   "at": 37.594
+  },
+  {
+   "text": "Das Überraschende:",
+   "src": [
+    40.712,
+    41.657
+   ],
+   "at": 41.692
+  },
+  {
+   "text": "Forscher aus Dänemark … 0,065 Millimetern am gefährlichsten ist.",
+   "src": [
+    41.87,
+    50.915
+   ],
+   "at": 42.85
+  },
+  {
+   "text": "Dünneres knickt weg,",
+   "src": [
+    51.144,
+    52.758
+   ],
+   "at": 52.124
+  },
+  {
+   "text": "dickeres drückt die Haut nur ein.",
+   "src": [
+    53.094,
+    55.0
+   ],
+   "at": 54.074
+  },
+  {
+   "text": "Klein, aber gemein:",
+   "src": [
+    55.33,
+    56.949
+   ],
+   "at": 56.53
+  },
+  {
+   "text": "der Papierschnitt.",
+   "src": [
+    57.294,
+    58.34
+   ],
+   "at": 58.494
+  }
+ ]
+}
