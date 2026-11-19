@@ -4,3 +4,4 @@ video*/*contact.png
 video*/log*
 video*/*.wav
 video*/*.raw
+video*/__pycache__/
