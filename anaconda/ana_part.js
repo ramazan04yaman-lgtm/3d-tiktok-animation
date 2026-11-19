@@ -170,7 +170,7 @@ function poseAna(a, o) {
   const fwd = V(Math.cos(heading) * Math.cos(pitch), Math.sin(pitch), -Math.sin(heading) * Math.cos(pitch)); // heading 0 -> +x
   a.head.position.copy(headPos); a.head.quaternion.setFromUnitVectors(V(0, 0, 1), fwd);
   // Körper: vom Hinterkopf rückwärts integrieren
-  const back0 = headPos.clone().addScaledVector(fwd, -HL * 0.85); const pos = a.bg.attributes.position.array, uvA = a.bg.attributes.uv.array, stA = a.bg.attributes.aStretch.array;
+  const NK = HL * (wrap ? lerp(0.45, 0.85, jawK) : 0.45); a.NK = NK; const back0 = headPos.clone().addScaledVector(fwd, -NK); const pos = a.bg.attributes.position.array, uvA = a.bg.attributes.uv.array, stA = a.bg.attributes.aStretch.array;
   const step = ALEN / a.RINGS; let p = back0.clone(); let hd = heading; const pts = [], rads = [], strs = [], bfs = [];
   for (let i = 0; i <= a.RINGS; i++) { const d = i * step;
     // Radius: Hals -> Körper -> Schwanzspitze
@@ -179,7 +179,7 @@ function poseAna(a, o) {
     let cyA = cy; if (preyX0 !== null) { const lz = (p.x - preyX0); const cz = 1.06 - lz; const pr = cz > -0.7 && cz < 1.12 ? capyR(cz) * 1.08 * bulgeScale : 0; if (pr > r) r = pr; cyA = capyY(cz); } // Beule (Capybara-Koordinate, Nase = +1.06)
     const inPrey = preyX0 !== null && r > rb * 1.05; y = inPrey && !rest ? cyA : r * 0.92;
     if (d < 1.3 && !inPrey) y = Math.max(y, lerp(back0.y, y, ease(d / 1.3)));
-    let bfK = 1; if (wrap && d < 0.8) { const zl = -HL * 0.85 - d; const w = wrap(zl); const e = ease(clamp(d / 0.7)); bfK = e; const rS = lerp(sackR(w) * 1.012, r, e); if (rS > r) r = rS; y = lerp(headPos.y + w.cy + zl * Math.sin(pitch), y, e); }
+    let bfK = 1; if (wrap && d < 0.8) { const zl = -NK - d; const w = wrap(zl); const e = ease(clamp(d / 0.7)); bfK = e; const rS = lerp(sackR(w) * 1.012, r, e); if (rS > r) r = rS; y = lerp(headPos.y + w.cy + zl * Math.sin(pitch), y, e); }
     pts.push(V(p.x, y, p.z)); bfs.push(bfK); rads.push(r); strs.push(clamp((r / rb - 1) / 1.3));
     hd = heading + curve(d); const dir = V(-Math.cos(hd), 0, Math.sin(hd)); p.addScaledVector(dir, step); }
   // Höhe glätten (sanfte Übergänge an der Beule)
@@ -238,14 +238,14 @@ function poseAna(a, o) {
       g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = true; g.computeVertexNormals(); }); }
   const sk = !!wrap && a.lining.visible; a.sack.visible = sk; a.lgo.visible = !sk; a.corners.forEach(c => { c.mi.visible = c.o.visible = !sk; });
   if (sk) { const M = a.mandibles.map(m => m.g.matrix); const mp = (i, k) => a.mandibles[i].curve.getPoint(clamp(k)).applyMatrix4(M[i]); const jz = [0, 1].map(i => [mp(i, 0).z, mp(i, 1).z]);
-    const pos = a.sg.attributes.position.array, uvA = a.sg.attributes.uv.array, col = a.sg.attributes.color.array, stS = a.sg.attributes.aStretch.array; const cI = new THREE.Color(0xd98a8f), cD = new THREE.Color(0x5a1418), c = new THREE.Color(); const Z0s = -HL * 0.85 - 0.012, Z1s = 0.3;
+    const pos = a.sg.attributes.position.array, uvA = a.sg.attributes.uv.array, col = a.sg.attributes.color.array, stS = a.sg.attributes.aStretch.array; const cI = new THREE.Color(0xd98a8f), cD = new THREE.Color(0x5a1418), c = new THREE.Color(); const Z0s = -a.NK - 0.012, Z1s = 0.3;
     for (let i = 0; i <= a.SV; i++) { const z = lerp(Z0s, Z1s, i / a.SV); const w = wrap(z); const R = sackR(w); const gapK = clamp((z + 0.26) / 0.1); const sw = skullW(clamp(z, -HL, HL)) * 0.9;
       const aU = Math.atan2(-0.012 - w.cy, sw), dU = Math.hypot(sw, -0.012 - w.cy); const ph0 = lerp(Math.PI / 2, aU, gapK), ph1 = -Math.PI - ph0;
       const jw = [0, 1].map(s => { const kk = (z - jz[s][0]) / (jz[s][1] - jz[s][0]); if (kk < -0.05 || kk > 1.05) return null; const L = mp(s, kk); let aJ = Math.atan2(L.y - w.cy, L.x); if (aJ > ph0) aJ -= Math.PI * 2; return [aJ, Math.hypot(L.x, L.y - w.cy)]; });
       for (let j = 0; j <= a.SU; j++) { const f = j / a.SU, ph = lerp(ph0, ph1, f); let e = Math.max(1 - clamp(f / 0.14), 1 - clamp((1 - f) / 0.14)); e = e * e * (3 - 2 * e); let rad = Math.max(lerp(R, dU, e * gapK), w.r * 1.06 + 0.014);
         for (const J of jw) if (J) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
         const k = i * (a.SU + 1) + j; pos[k * 3] = rad * Math.cos(ph); pos[k * 3 + 1] = w.cy + rad * Math.sin(ph); pos[k * 3 + 2] = z;
-        uvA[k * 2] = (-HL * 0.85 - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.62) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
+        uvA[k * 2] = (-a.NK - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.62) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
