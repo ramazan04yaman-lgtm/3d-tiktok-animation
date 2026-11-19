@@ -31,9 +31,9 @@ export function PapercutScene() {
       <Label position={pt(-0.25, 0)} text="Fingerkuppe" sub="besonders dicht mit Nerven" visible={L.tip} offset={[-80, -300]} accent="#ffd84a" />
       <Label position={pt(0.02, 0.1)} text="Nerven liegen offen" sub="kaum Blut deckt die Wunde ab" visible={L.open} offset={[60, -300]} accent="#ff7a3a" />
 
-      <Label position={[R[0] + SHEETS[1].dx, R[1] + 1.2, 0]} text="≈ 0,065 mm" sub="schneidet am leichtesten" visible={L.mid} offset={[60, -260]} accent="#7fd0ff" />
-      <Label position={[R[0] + SHEETS[0].dx, R[1] + 1.0, 0]} text="Dünner" sub="knickt weg" visible={L.thin} offset={[-60, -280]} accent="#c9d4e0" />
-      <Label position={[R[0] + SHEETS[2].dx, R[1] + 1.0, 0]} text="Dicker" sub="drückt die Haut nur ein" visible={L.thick} offset={[-120, -280]} accent="#c9d4e0" />
+      <Label position={[R[0] + SHEETS[1].dx, R[1] + 1.2, R[2]]} text="≈ 0,065 mm" sub="schneidet am leichtesten" visible={L.mid} offset={[60, -260]} accent="#7fd0ff" />
+      <Label position={[R[0] + SHEETS[0].dx, R[1] + 1.0, R[2]]} text="Dünner" sub="knickt weg" visible={L.thin} offset={[-60, -280]} accent="#c9d4e0" />
+      <Label position={[R[0] + SHEETS[2].dx, R[1] + 1.0, R[2]]} text="Dicker" sub="drückt die Haut nur ein" visible={L.thick} offset={[-120, -280]} accent="#c9d4e0" />
     </>
   );
 }

@@ -29,7 +29,7 @@ export const papercutTimeline = new Timeline({
 });
 
 const E: Vec3 = [EDGE.x, EDGE.y, EDGE.z];
-export const RIG: Vec3 = [6, 2.5, 0];
+export const RIG: Vec3 = [0, 2.9, -2.6];
 const R = (dx: number, dy: number, dz = 0): Vec3 => [RIG[0] + dx, RIG[1] + dy, RIG[2] + dz];
 
 export const papercutCamera = new CameraPath([
@@ -51,14 +51,16 @@ export const papercutCamera = new CameraPath([
   orbit(31.6, [0.05, 4.8, 0.8], 14, 18, 1.9, { fov: 38 }),
   orbit(35.0, [0, 4.84, 0.8], 4, 16, 1.8, { fov: 38 }),
   orbit(38.6, [0, 4.92, 0.8], -8, 20, 1.45, { fov: 38 }),
+  orbit(40.4, [0.05, 4.9, 0.8], -12, 20, 1.7, { fov: 38 }),
   // study rig
-  orbit(41.6, [3.0, 3.4, 0.4], 16, 12, 6.6, { fov: 38 }),
+  orbit(42.0, [0, 3.7, -1.2], 2, 12, 5.6, { fov: 38 }),
   orbit(43.8, R(0, 0.5), 0, 12, 7.2, { fov: 38 }),
   orbit(48.2, R(0, 0.4), -6, 10, 6.4, { fov: 38 }),
   orbit(51.8, R(-0.85, 0.3), -12, 10, 3.0, { fov: 38 }),
   orbit(54.2, R(0.85, 0.3), 12, 10, 3.0, { fov: 38 }),
   // outro
-  orbit(57.0, [0, 4.4, 0.5], 30, 12, 6.0, { fov: 38 }),
+  orbit(56.2, [0.3, 3.9, -0.8], 20, 12, 6.0, { fov: 38 }),
+  orbit(57.6, [0, 4.4, 0.5], 30, 12, 6.0, { fov: 38 }),
   orbit(60, [0, 4.2, 0.4], 24, 10, 8.0, { fov: 38, stop: true }),
 ]);
 
@@ -67,8 +69,10 @@ export const papercutCamera = new CameraPath([
 /** microscope view of the edge (cross-fade with the macro scene) */
 export const micro = (t: number) => envelope(t, 8.6, 9.6, 16.3, 17.2);
 /** skin section block */
-export const block = (t: number) => envelope(t, 27.3, 28.3, 40.9, 41.8);
-export const fingerVis = (t: number) => Math.max(0, 1 - micro(t) - block(t));
+export const block = (t: number) => envelope(t, 27.3, 28.3, 41.4, 42.0);
+/** finger & sheet step aside while the study rig is shown */
+const away = (t: number) => envelope(t, 40.0, 40.6, 56.4, 57.2);
+export const fingerVis = (t: number) => Math.max(0, 1 - micro(t) - Math.max(block(t), away(t)));
 
 /** x of the sheet (slides along its edge): fast in the hook, slow re-enactment in the pressure scene */
 export const sheetX = (t: number) => (t < 9.8 ? 1.6 - 3.2 * ramp(t, 0.5, 2.5, Ease.inOutSine) : 1.6 - 3.2 * ramp(t, 17.4, 26.2, Ease.inOutSine));
@@ -86,7 +90,7 @@ export const nerves = (t: number) => envelope(t, 31.4, 32.0, 40.6, 41.2);
 export const pain = (t: number) => envelope(t, 37.6, 38.2, 40.6, 41.2);
 
 /** study rig: the three sheets press down from 43.4 s */
-export const rig = (t: number) => ramp(t, 40.8, 42.2);
+export const rig = (t: number) => ramp(t, 39.6, 40.6) * (1 - ramp(t, 57.2, 58.2));
 export const rigPress = (t: number) => ramp(t, 43.4, 46.2, Ease.inOutSine) * (1 - ramp(t, 56.0, 57.0));
 
 export const labels = {
