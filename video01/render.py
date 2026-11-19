@@ -8,6 +8,65 @@ TOTAL = TL[-1]['start'] + TL[-1]['dur'] + 0.6
 GY = 1250          # ground y
 MX, TX = 380, 700  # Max / Tom x
 FONT = "Inter"
+ACC = (1.0, 0.76, 0.32)
+
+# ---------------------------------------------------------------- bokeh + captions
+_r = np.random.default_rng(7)
+BOK = [(_r.uniform(0, W), _r.uniform(0, H), _r.uniform(30, 95), _r.uniform(0.025, 0.06), _r.uniform(-12, 12), _r.uniform(-8, 8)) for _ in range(16)]
+def bokeh(c, T):
+    for x, y, r, a, vx, vy in BOK:
+        c.arc((x + vx * T) % W, (y + vy * T) % H, r, 0, 2 * math.pi)
+        c.set_source_rgba(1, 0.92, 0.8, a); c.fill()
+
+ACCENT = ["freunde","gehalt","millionär","nichts","23","3000","gehaltserhöhung","500","gönnt","auto","bisher","investiert",
+          "aus","wohnung","urlaube","steigt","nichts","lacht","altes","86000","20","260000","sieht","härter","million","222000",
+          "genauso","nichts","verdient","behält","also","du"]
+def _n(s): return re.sub(r"[^0-9a-zäöüß]", "", s.lower())
+def build_caps():
+    Wd = json.load(open('words.json')); ws = []
+    for w, a, b in Wd:
+        if w.startswith('.') and ws: ws[-1][0] += w.rstrip('.') if w.endswith('.') and len(w) > 4 else w; ws[-1][2] = b
+        else: ws.append([w, a, b])
+    starts = [s['start'] + p for s in TL for p in s['phr']]
+    groups = []
+    for k, st in enumerate(starts):
+        en = starts[k + 1] if k + 1 < len(starts) else 1e9
+        g = [w for w in ws if st - 0.15 <= w[1] < en - 0.15]
+        groups.append((st, en, g, ACCENT[k] if k < len(ACCENT) else ""))
+    return groups
+import re
+CAPS = build_caps()
+CF = "Inter"
+def captions(c, T):
+    for st, en, g, acc in CAPS:
+        if not (st - 0.15 <= T < en - 0.1) or not g: continue
+        c.select_font_face(CF, 0, cairo.FONT_WEIGHT_BOLD)
+        size = 78
+        words = [w[0].upper() for w in g]
+        def layout(size):
+            c.set_font_size(size); sp = c.text_extents(" ").x_advance * 1.1
+            lines = [[]]; lw = 0
+            for i, w in enumerate(words):
+                ww = c.text_extents(w).x_advance
+                if lines[-1] and lw + sp + ww > 960: lines.append([]); lw = 0
+                lines[-1].append(i); lw += (sp if lw else 0) + ww
+            return lines, sp
+        lines, sp = layout(size)
+        while len(lines) > 2: size -= 6; lines, sp = layout(size)
+        y0 = 330 - (len(lines) - 1) * size * 0.6
+        for li, line in enumerate(lines):
+            tw = sum(c.text_extents(words[i]).x_advance for i in line) + sp * (len(line) - 1)
+            x = W / 2 - tw / 2; y = y0 + li * size * 1.2
+            for i in line:
+                w = words[i]; ww = c.text_extents(w).x_advance
+                k = (T - g[i][1] + 0.06) / 0.12
+                if k > 0:
+                    k = min(1, k); s_ = 1 + 0.18 * (1 - eout(k))
+                    c.save(); c.translate(x + ww / 2, y); c.scale(s_, s_)
+                    if _n(w) == acc: c.set_source_rgba(*ACC, k)
+                    else: c.set_source_rgba(1, 1, 1, k)
+                    c.move_to(-ww / 2, size * 0.36); c.show_text(w); c.restore()
+                x += ww + sp
 
 def cl(x, a=0., b=1.): return max(a, min(b, x))
 def ease(x): x = cl(x); return x * x * (3 - 2 * x)
@@ -23,7 +82,7 @@ def fmt(n): return f"{int(round(n)):,}".replace(",", ".") + " €"
 # ---------------------------------------------------------------- primitives
 def col(c, g, a): c.set_source_rgba(g, g, g, a)
 
-def text(c, x, y, s, size, a=1, g=1.0, bold=True, align='c', spacing=0):
+def text(c, x, y, s, size, a=1, g=1.0, bold=True, align='c', spacing=0, rgb=None):
     if a <= 0: return
     c.select_font_face(FONT, cairo.FONT_SLANT_NORMAL,
                        cairo.FONT_WEIGHT_BOLD if bold else cairo.FONT_WEIGHT_NORMAL)
@@ -31,7 +90,8 @@ def text(c, x, y, s, size, a=1, g=1.0, bold=True, align='c', spacing=0):
     ext = c.text_extents(s)
     w = ext.x_advance + spacing * (len(s) - 1)
     x0 = x - w / 2 if align == 'c' else (x if align == 'l' else x - w)
-    col(c, g, a)
+    if rgb: c.set_source_rgba(*rgb, a)
+    else: col(c, g, a)
     if spacing:
         cx = x0
         for ch in s:
@@ -119,7 +179,7 @@ def jar(c, x, y, p, fill, t, g=1., coins_drop=0.):
     c.save(); c.translate(x, y); s = back(p); c.scale(s, s)
     if fill > 0:
         fh = (h - 16) * cl(fill)
-        lg = cairo.LinearGradient(0, -fh, 0, 0); lg.add_color_stop_rgba(0, 1, 1, 1, 0.95 * a); lg.add_color_stop_rgba(1, 1, 1, 1, 0.35 * a)
+        lg = cairo.LinearGradient(0, -fh, 0, 0); lg.add_color_stop_rgba(0, *ACC, 0.95 * a); lg.add_color_stop_rgba(1, *ACC, 0.35 * a)
         c.move_to(-w / 2 + 8, -8)
         for i in range(31):
             xx = -w / 2 + 8 + (w - 16) * i / 30
@@ -203,15 +263,15 @@ def chart(c, p_axes, p_line, kind, t, labels):
             P = pts(fv, pr); c.move_to(x0, y0)
             for q in P: c.line_to(*q)
             c.line_to(P[-1][0], y0); c.close_path()
-            lg = cairo.LinearGradient(0, y1, 0, y0); lg.add_color_stop_rgba(0, 1, 1, 1, 0.22); lg.add_color_stop_rgba(1, 1, 1, 1, 0.0)
+            lg = cairo.LinearGradient(0, y1, 0, y0); lg.add_color_stop_rgba(0, *ACC, 0.25); lg.add_color_stop_rgba(1, *ACC, 0.0)
             c.set_source(lg); c.fill()
             c.move_to(*P[0])
             for q in P[1:]: c.line_to(*q)
-            stroke(c, 1, 1, 6)
+            c.set_line_width(6); c.set_source_rgb(*ACC); c.stroke()
             for i in range(1, 6):
                 u = i / 6
                 if u < pr: c.arc(x0 + (x1 - x0) * u, y0 - (y0 - y1) * fv(u), 8, 0, 2 * math.pi); col(c, 1, 0.9); c.fill()
-            ex, ey = P[-1]; c.arc(ex, ey, 16, 0, 2 * math.pi); col(c, 1, 1); c.fill()
+            ex, ey = P[-1]; c.arc(ex, ey, 16, 0, 2 * math.pi); c.set_source_rgb(*ACC); c.fill()
             yrs = int(23 + 37 * pr)
             text(c, ex - 30, ey - 50, f"{yrs} J.", 30, 1, 1, align='r')
 
@@ -229,7 +289,7 @@ def camera(T):
         px, py, pz0, pz1 = CAM[si - 1]
         k = ease(t / 0.55)
         cx, cy, z = lerp(px, cx, k), lerp(py, cy, k), lerp(pz1, z, k)
-    return cx, cy, z * 1.22
+    return cx, cy - 70, z * 1.22
 
 def scene_at(T):
     for i, s in enumerate(TL):
@@ -248,6 +308,7 @@ def jar_fill(si, t, d, P):
 
 def draw(c, T):
     si = scene_at(T); s = TL[si]; t = T - s['start']; d = s['dur']; P = s['phr']
+    bokeh(c, T)
     cx, cy, z = camera(T)
     for cc in (c, OV[0]):
         cc.translate(W / 2, H / 2); cc.scale(z, z); cc.translate(-cx, -cy)
@@ -287,7 +348,7 @@ def draw(c, T):
         k = ap(t, 0.15, P[1] - 0.2)
         spotlight(c, TX, ap(t, 0.1, 0.5))
         val = 1_000_000 * eout(k) ** 1.5
-        text(c, TX, 800, fmt(val), 74, ap(t, 0.1, 0.2))
+        text(c, TX, 800, fmt(val), 74, ap(t, 0.1, 0.2), rgb=ACC)
         pill(c, TX, 710, "MILLIONÄR", ap(t, P[1] - 0.3, 0.3), 28)
         text(c, MX, 960, "0 €", 74, ap(t, P[1], 0.3), 0.55)
         pill(c, MX, 880, "PLEITE", ap(t, P[1] + 0.25, 0.3), 28, 0.55)
@@ -333,12 +394,12 @@ def draw(c, T):
         text(c, 540, 560, "+10", 110, ap(t, 0.1, 0.3))
         bubble(c, MX + 90, GY - 290, "HAHA", ap(t, 0.8, 0.3))
         pill(c, TX, GY - 270, "ALTES AUTO", ap(t, P[1] + 0.2, 0.3), 24, 0.6)
-        text(c, 790, 820, fmt(86542 * eout(ap(t, P[2], 1.0))), 52, ap(t, P[2], 0.2))
+        text(c, 790, 820, fmt(86542 * eout(ap(t, P[2], 1.0))), 52, ap(t, P[2], 0.2), rgb=ACC)
         pill(c, 790, 740, "DEPOT", ap(t, P[2], 0.3), 24, 0.6)
     elif si == 9:
         pill(c, 540, 470, "JAHRE SPÄTER", 1, 24, 0.6)
         text(c, 540, 560, "+20", 110, 1)
-        text(c, 800, 820, fmt(lerp(86542, 260463, eout(ap(t, 0.2, P[1] + 0.6)))), 56)
+        text(c, 800, 820, fmt(lerp(86542, 260463, eout(ap(t, 0.2, P[1] + 0.6)))), 56, rgb=ACC)
         pill(c, 800, 740, "DEPOT", 1, 24, 0.6)
     elif si == 10:
         chart(c, ap(t, 0, 0.4), (ap(t, 0.2, d - 0.6), ap(t, 0.4, d - 1.2)), 'compound', t, ("", "EINGEZAHLT"))
@@ -346,7 +407,7 @@ def draw(c, T):
     elif si == 11:
         spotlight(c, 790, ap(t, 0, 0.6))
         pill(c, 600, 470, "MIT 60", ap(t, 0, 0.3), 30)
-        text(c, 600, 600, fmt(lerp(260463, 1048272, eout(ap(t, 0.1, P[1])))), 92)
+        text(c, 600, 600, fmt(lerp(260463, 1048272, eout(ap(t, 0.1, P[1])))), 92, rgb=ACC)
         pill(c, 600, 720, "EINGEZAHLT: 222.000 €", ap(t, P[1] + 0.3, 0.3), 28, 0.6)
     elif si == 12:
         pill(c, MX, 700, "GENAUSO VIEL VERDIENT", ap(t, 0.3, 0.3), 26)
@@ -360,7 +421,7 @@ def draw(c, T):
             g = 1.0 if ok else lerp(1, 0.45, ap(t, P[1], 0.4))
             c.save(); c.translate(540, y); s_ = back(k); c.scale(s_, s_)
             rrect(c, -330, -90, 660, 180, 18); stroke(c, g, cl(k * 2), 5)
-            text(c, -40, 0, lab, 64, cl(k * 2), g)
+            text(c, -40, 0, lab, 64, cl(k * 2), g, rgb=ACC if ok else None)
             c.restore()
             check_circle(c, 800, y, 44, ap(t, t0 + 0.4, 0.35), ok, g)
         pill(c, 540, 400, "WAS REICH MACHT", ap(t, 0.1, 0.3), 26, 0.6)
@@ -383,6 +444,7 @@ def render(T):
     c = cairo.Context(surf); c.set_source_rgb(0.035, 0.035, 0.04); c.paint()
     ov = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H); OV[0] = cairo.Context(ov)
     draw(c, T)
+    OV[0].identity_matrix(); captions(OV[0], T)
     o = np.ndarray((H, W, 4), np.uint8, ov.get_data()).astype(np.float32)
     oa = o[..., 3:4] / 255.; orgb = o[..., :3][..., ::-1]
     a = np.ndarray((H, W, 4), np.uint8, surf.get_data())[..., :3][..., ::-1].astype(np.float32)
