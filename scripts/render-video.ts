@@ -144,6 +144,7 @@ const { chromium } = require('playwright');
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('console', (m: { type(): string; text(): string }) => { if (m.type() === 'error') console.error('[browser]', m.text()); });
+page.on('pageerror', (e: Error) => console.error('[browser-fehler]', e.message, (e.stack ?? '').split('\n').slice(0, 3).join(' | ')));
 await page.goto(`http://127.0.0.1:${addr.port}/?capture=${H}${args.leicht ? '&leicht=1' : ''}`);
 await page.waitForFunction(() => (window as any).__sim?.ready(), null, { timeout: 300_000 });
 await page.evaluate(([tl, s, demo]: [unknown, unknown, boolean]) => (window as any).__sim.loadStory(tl, s, demo), [timeline, zahlen.snapshot, !!args.demo]);

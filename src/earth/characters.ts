@@ -198,7 +198,89 @@ function partMaterial(kind: PartDef['mat']): THREE.Material {
     default: return smooth();
   }
 }
-const geoOf = (g: PartDef['geo']) => (Array.isArray(g) ? partGeos().hair[g[1]] : partGeos()[g]) as THREE.BufferGeometry;
+const geoOf = (g: PartDef['geo'], geos: PartGeos = partGeos()) => (Array.isArray(g) ? geos.hair[g[1]] : geos[g]) as THREE.BufferGeometry;
+
+// ------------------------------------------------------------------ WASSERTROPFEN-WESEN (Einwohner ab Tag 7)
+/** Figurenstil der Einwohner: Menschen (bis Tag 6) oder Wassertropfen-Wesen. */
+export type FigurStil = 'menschen' | 'tropfen';
+/** Profil eines Tropfens (Original-Maßstab): runder Bauch, nach oben spitz. Höhe ≈ 2,3 wie eine Figur. */
+const TR = { boden: 0.12, R: 0.74, spitze: 2.3 };
+function tropfenRadius(y: number): number {
+  const yc = TR.boden + TR.R;
+  if (y <= yc) return Math.sqrt(Math.max(0, TR.R * TR.R - (y - yc) ** 2));
+  const u = (y - yc) / (TR.spitze - yc);
+  return TR.R * Math.pow(Math.max(0, 1 - u), 1.35) * (1 - 0.15 * u);
+}
+/** Wasserfarben der Tropfen (10 klar unterscheidbare Töne). */
+export const TROPFEN_FARBEN = ['#4fc3ff', '#2f7dff', '#2fd3c8', '#7f9dff', '#62e4ff', '#1b62d6', '#46b0ea', '#36d3a0', '#a5dcff', '#5a6dff'];
+const tropfenFarbe = (l: Look) => TROPFEN_FARBEN[Math.max(0, PALETTE.shirts.indexOf(l.shirt)) % TROPFEN_FARBEN.length];
+
+let tropfenCache: PartGeos | null = null;
+/** Bauteile des Tropfens – gleiche Gelenke wie die Menschen (Arme, Füße, Becher), damit alle Bewegungen passen. */
+export function tropfenGeos(): PartGeos {
+  if (tropfenCache) return tropfenCache;
+  const prof: THREE.Vector2[] = [];
+  for (let k = 0; k <= 40; k++) { const y = TR.boden + (TR.spitze - TR.boden) * (k / 40); prof.push(new THREE.Vector2(tropfenRadius(y), y)); }
+  const koerper = fertig(new THREE.LatheGeometry(prof, 40));
+  const vorn = (y: number) => tropfenRadius(y) * 0.93;
+  const EY = 1.0;   // Augenhöhe
+  // Große Cartoon-Augen: weiße Augäpfel, schwarze Pupillen, weiße Glanzpunkte
+  const auge = (x: number) => at(sph(0.2, 24, 18).scale(0.85, 1.15, 0.45), x, EY, vorn(EY) - 0.05);
+  const pupille = (x: number) => at(sph(0.1, 18, 12).scale(1, 1.2, 0.5), x * 1.05, EY - 0.03, vorn(EY) + 0.03);
+  const glanz = (x: number) => at(sph(0.035, 10, 8), x * 1.05 + 0.04, EY + 0.04, vorn(EY) + 0.08);
+  const augenWeiss = fertig(mergeGeometries([auge(-0.22), auge(0.22), glanz(-0.22), glanz(0.22)])!);
+  const pupillen = fertig(mergeGeometries([pupille(-0.22), pupille(0.22)])!);
+  const wangen = fertig(mergeGeometries([
+    at(new THREE.CircleGeometry(0.085, 20).rotateY(-0.5), -0.45, EY - 0.27, vorn(EY - 0.27) * 0.92),
+    at(new THREE.CircleGeometry(0.085, 20).rotateY(0.5), 0.45, EY - 0.27, vorn(EY - 0.27) * 0.92),
+  ])!);
+  const mund = fertig(at(sph(0.11, 20, 12).scale(1.3, 0.4, 0.35), 0, EY - 0.34, vorn(EY - 0.34) + 0.01));
+  // Kleine Accessoires auf der Spitze (Index = Look.hairStyle; 0 = ohne)
+  const top = TR.spitze;
+  const deko = (g: THREE.BufferGeometry) => fertig(g);
+  const hair = [
+    new THREE.BufferGeometry(),
+    deko(mergeGeometries([new THREE.SphereGeometry(0.24, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, top - 0.32, 0),
+      new THREE.CylinderGeometry(0.2, 0.2, 0.03, 18, 1, false, -Math.PI / 2, Math.PI).translate(0, top - 0.32, 0.17)])!),   // Kappe
+    deko(sph(0.15, 16, 12).translate(0, top + 0.05, 0)),                                                                   // Bommel
+    deko(new THREE.TorusGeometry(0.11, 0.035, 8, 20, Math.PI * 1.5).rotateZ(-0.6).translate(0.05, top + 0.06, 0)),          // Locke
+    deko(mergeGeometries([new THREE.CylinderGeometry(0.17, 0.2, 0.16, 20).translate(0, top - 0.2, 0),
+      new THREE.CylinderGeometry(0.42, 0.42, 0.03, 24).translate(0, top - 0.28, 0)])!),                                   // Strohhut
+  ];
+  // Fliege vorn am Bauch
+  const fliege = fertig(mergeGeometries([
+    at(new THREE.ConeGeometry(0.1, 0.18, 4).rotateZ(Math.PI / 2), -0.09, 0.4, vorn(0.4) + 0.02),
+    at(new THREE.ConeGeometry(0.1, 0.18, 4).rotateZ(-Math.PI / 2), 0.09, 0.4, vorn(0.4) + 0.02),
+    at(sph(0.05, 10, 8), 0, 0.4, vorn(0.4) + 0.04)])!);
+  // Arme: kurze Stummel vom Schultergelenk schräg nach außen-unten (drehen sich um dasselbe Gelenk wie bei den Menschen)
+  const arm = (s: number) => fertig(at(caps(0.09, 0.42).rotateZ(s * 0.55), 0.58 * s, 0.98, 0));
+  const hand = (s: number) => fertig(at(sph(0.12, 14, 10), 0.75 * s, 0.72, 0.02));
+  const fuss = (s: number) => fertig(at(sph(0.16, 16, 12).scale(1, 0.55, 1.4), 0.26 * s, 0.07, 0.08));
+  const leer = new THREE.BufferGeometry();
+  const becher = fertig(at(new THREE.CylinderGeometry(0.12, 0.09, 0.28, 18), 0.76, 0.66, 0.16));
+  const wasser = fertig(at(new THREE.CylinderGeometry(0.105, 0.105, 0.02, 18), 0.76, 0.79, 0.16));
+  tropfenCache = { head: leer, face: pupillen, whites: augenWeiss, cheeks: wangen, mouth: mund, hair, body: koerper, collar: leer, tie: fliege,
+    armL: arm(-1), armR: arm(1), handL: hand(-1), handR: hand(1), legL: leer, legR: leer, shoeL: fuss(-1), shoeR: fuss(1), cup: becher, water: wasser };
+  return tropfenCache;
+}
+/** Teileliste der Tropfen: Körper in Wasserfarbe, weiße Handschuhe und Füße, Fliege + Accessoire in den eigenen Farben. */
+const TROPFEN_PARTS: PartDef[] = [
+  { geo: 'shoeL', attach: 'legL', color: () => '#ffffff', mat: 'color', outline: 0.02 },
+  { geo: 'shoeR', attach: 'legR', color: () => '#ffffff', mat: 'color', outline: 0.02 },
+  { geo: 'body', attach: 'body', color: tropfenFarbe, mat: 'color', outline: 0.028 },
+  { geo: 'tie', attach: 'body', color: (l) => l.tie ?? '#ff4f5e', mat: 'color', outline: 0.012 },
+  { geo: 'armL', attach: 'armL', color: tropfenFarbe, mat: 'color', outline: 0.02 },
+  { geo: 'armR', attach: 'armR', color: tropfenFarbe, mat: 'color', outline: 0.02 },
+  { geo: 'handL', attach: 'armL', color: () => '#ffffff', mat: 'color', outline: 0.018 },
+  { geo: 'handR', attach: 'armR', color: () => '#ffffff', mat: 'color', outline: 0.018 },
+  { geo: 'cup', attach: 'armR', color: () => '#e9f8ff', mat: 'cup', outline: 0.016 },
+  { geo: 'water', attach: 'armR', color: () => null, mat: 'water', outline: 0 },
+  ...[1, 2, 3, 4].map((k): PartDef => ({ geo: ['hair', k], attach: 'body', color: (l) => (l.hairStyle === k ? l.hair : null), mat: 'color', outline: 0.02 })),
+  { geo: 'whites', attach: 'body', color: () => null, mat: 'white', outline: 0 },
+  { geo: 'face', attach: 'body', color: () => null, mat: 'black', outline: 0 },
+  { geo: 'cheeks', attach: 'body', color: () => null, mat: 'pink', outline: 0 },
+  { geo: 'mouth', attach: 'body', color: () => null, mat: 'mund', outline: 0 },
+];
 
 // ------------------------------------------------------------------ Viele Figuren (Instancing)
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -210,10 +292,13 @@ export class Crowd {
   count = 0;
   readonly max: number;
 
-  constructor(max: number) {
+  readonly stil: FigurStil;
+  constructor(max: number, stil: FigurStil = 'menschen') {
     this.max = max;
-    for (const def of PARTS) {
-      const geo = geoOf(def.geo);
+    this.stil = stil;
+    const geos = stil === 'tropfen' ? tropfenGeos() : partGeos();
+    for (const def of stil === 'tropfen' ? TROPFEN_PARTS : PARTS) {
+      const geo = geoOf(def.geo, geos);
       const mesh = new THREE.InstancedMesh(geo, partMaterial(def.mat), max);
       mesh.frustumCulled = false;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -319,17 +404,28 @@ export class FarCrowd {
   readonly group = new THREE.Group();
   private head: THREE.InstancedMesh;
   private body: THREE.InstancedMesh;
-  constructor(max: number) {
+  private stil: FigurStil;
+  constructor(max: number, stil: FigurStil = 'menschen') {
+    this.stil = stil;
     const H = P.headY, R = P.headR;
-    this.head = new THREE.InstancedMesh(new THREE.SphereGeometry(R, 10, 8).scale(1.06, 0.97, 1).translate(0, H, 0), smooth(), max);
-    const body = mergeGeometries([new THREE.CapsuleGeometry(0.18, 0.21, 3, 8).translate(0, P.bodyY, 0), new THREE.CylinderGeometry(0.13, 0.12, 0.3, 8).translate(0, 0.15, 0)])!;
-    this.body = new THREE.InstancedMesh(body, smooth(), max);
+    if (stil === 'tropfen') {
+      // Fernsicht: einfacher Tropfen (Wasserfarbe) + zwei weiße Augen
+      const prof: THREE.Vector2[] = [];
+      for (let k = 0; k <= 12; k++) { const y = TR.boden + (TR.spitze - TR.boden) * (k / 12); prof.push(new THREE.Vector2(tropfenRadius(y) * S, y * S)); }
+      this.head = new THREE.InstancedMesh(new THREE.LatheGeometry(prof, 12), smooth(), max);
+      const augen = mergeGeometries([sph(0.2 * S, 8, 6).translate(-0.22 * S, 1.0 * S, 0.62 * S), sph(0.2 * S, 8, 6).translate(0.22 * S, 1.0 * S, 0.62 * S)])!;
+      this.body = new THREE.InstancedMesh(augen, smooth(), max);
+    } else {
+      this.head = new THREE.InstancedMesh(new THREE.SphereGeometry(R, 10, 8).scale(1.06, 0.97, 1).translate(0, H, 0), smooth(), max);
+      const body = mergeGeometries([new THREE.CapsuleGeometry(0.18, 0.21, 3, 8).translate(0, P.bodyY, 0), new THREE.CylinderGeometry(0.13, 0.12, 0.3, 8).translate(0, 0.15, 0)])!;
+      this.body = new THREE.InstancedMesh(body, smooth(), max);
+    }
     for (const m of [this.head, this.body]) { m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.count = 0; this.group.add(m); }
   }
   setLook(i: number, look: Look): void {
     const c = new THREE.Color();
-    this.head.setColorAt(i, c.set(look.skin));
-    this.body.setColorAt(i, c.set(look.shirt));
+    this.head.setColorAt(i, c.set(this.stil === 'tropfen' ? tropfenFarbe(look) : look.skin));
+    this.body.setColorAt(i, c.set(this.stil === 'tropfen' ? '#ffffff' : look.shirt));
   }
   setPose(i: number, base: THREE.Matrix4): void { this.head.setMatrixAt(i, base); this.body.setMatrixAt(i, base); }
   setCount(n: number): void { this.head.count = this.body.count = n; }

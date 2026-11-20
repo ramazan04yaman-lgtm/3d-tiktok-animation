@@ -49,6 +49,7 @@ export class StoryPlayer {
     this.namenEl = layer.querySelector('.namen')!;
     if (timeline.ankunft) scene.updateNeueShot(timeline.ankunft.von, timeline.ankunft.bis);
     document.body.classList.toggle('kompakt', timeline.anzeige === 'kompakt');
+    scene.people.stil = timeline.figuren ?? 'menschen';
     this.stickerEl = layer.querySelector('.stickers')!;
     this.captionEl = layer.querySelector('.caption')!;
   }
@@ -261,25 +262,28 @@ export class StoryPlayer {
     this.namenEl.style.display = zeigen ? '' : 'none';
     if (!zeigen) return;
     if (!this.namenSchilder.length) {
-      this.namenSchilder = namen.map((n, i) => {
+      const anzahlSchilder = Math.max(namen.length, this.timeline.ankunft?.bis ?? 0);
+      this.namenSchilder = Array.from({ length: anzahlSchilder }, (_, i) => namen[i] ?? null).map((n, i) => {
         const el = document.createElement('div');
         el.className = 'nm' + (this.timeline.ankunft && i >= this.timeline.ankunft.von ? ' neu' : '');
         el.style.setProperty('--farbe', People.gemeinschaftsLook(i).shirt);
-        el.textContent = n ?? '';
-        if (n) this.namenEl.appendChild(el);
+        // neue Einwohner ohne bekannten Namen: "Nr. 42"
+        const neuOhneName = !n && this.timeline.ankunft && i >= this.timeline.ankunft.von && i < this.timeline.ankunft.bis;
+        el.textContent = n ?? (neuOhneName ? `Nr. ${i + 1}` : '');
+        if (n || neuOhneName) this.namenEl.appendChild(el);
         return el;
       });
     }
     const cam = this.scene.camera;
     const W = 56.25;                      // Breite in cqh (9:16)
-    const n = Math.min(namen.length, people.anzahl);
+    const n = Math.min(this.namenSchilder.length, people.anzahl);
     const kandidaten: { i: number; x: number; y: number; fs: number; tiefe: number }[] = [];
     const a = new THREE.Vector3(), b = new THREE.Vector3();
     for (let i = 0; i < this.namenSchilder.length; i++) {
       const el = this.namenSchilder[i];
       // In der Einstellung "neue" nur die Schilder der Neuen (übersichtlich)
       const nurNeue = (beat.kamera === 'neue' || beat.kamera === 'neu1') && this.timeline.ankunft;
-      const kopf = i < n && namen[i] && !(nurNeue && i < nurNeue.von) ? people.positionOf(i) : null;
+      const kopf = i < n && this.namenSchilder[i].textContent && !(nurNeue && i < nurNeue.von) ? people.positionOf(i) : null;
       if (!kopf) { el.style.display = 'none'; continue; }
       // positionOf liegt ~0,25 Figuren-Einheiten über dem Scheitel -> Schild direkt auf den Kopf setzen
       const oben = kopf.clone().normalize().multiplyScalar(people.figureSize * 0.6);
@@ -320,5 +324,5 @@ export class StoryPlayer {
     }
   }
 
-  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; document.body.classList.remove('kompakt', 'hud-aus'); }
+  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; this.scene.people.stil = 'menschen'; document.body.classList.remove('kompakt', 'hud-aus'); }
 }

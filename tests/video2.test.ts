@@ -135,4 +135,11 @@ test('Echter Spielstand: alle 41 Namen exakt wie vorgegeben, alte Folgen bleiben
   assert.equal(extra(v6.snapshot) - extra(v6.seit!), 1_080n);
   assert.equal(v6.snapshot.totalConsumedMl, '1318230');
   assert.equal(v6.snapshot.naechste[0].follower, '100');
+  // Tag 7: +5 (ohne Namen) -> 46, 460 L/Tag, 16 Likes + 1 Kommentar = 0,66 L
+  // 1.318,23 L + 19.11.: 41 × 10 L + 20.11.: 41 × 10 L + 5 × 10 L (Ankunftstag) + 0,66 L = 2.188,89 L
+  const v7 = echteZahlen(undefined, 'video-07', '2026-11-20');
+  assert.equal(v7.snapshot.population, '46');
+  assert.equal(v7.snapshot.dailyMl, '460000');
+  assert.equal(extra(v7.snapshot) - extra(v7.seit!), 660n);
+  assert.equal(v7.snapshot.totalConsumedMl, '2188890');
 });

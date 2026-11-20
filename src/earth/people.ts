@@ -8,7 +8,7 @@
  * also zwischen zwei Videos nicht woanders hin.
  */
 import * as THREE from 'three';
-import { Crowd, FarCrowd, type Look, PALETTE, type Pose, lookFor } from './characters.ts';
+import { Crowd, FarCrowd, type FigurStil, type Look, PALETTE, type Pose, lookFor } from './characters.ts';
 import { type EarthAssets, sampleElevation } from './assets.ts';
 import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { EARTH_RADIUS_M, latLonToVec3, tangentFrame } from './geo.ts';
@@ -25,7 +25,8 @@ export const HOF_EINHEIT = 0.0006;
  * Solange es höchstens GRUENDER Menschen gibt, stehen alle nebeneinander vor dem Haus
  * (Reihen zu je 4, mittig um den Hof). Erst danach verteilen sich die Menschen auf die Städte der Welt.
  */
-export const GRUENDER = 45;
+/** So viele Einwohner haben einen festen Platz auf dem Hof (Reihen zu je 4; jede Figur behält ihren Platz). */
+export const GRUENDER = 200;
 /** Abstand der Reihen in der Gemeinschaft (Hof-Einheiten). */
 export const GEMEINSCHAFT_REIHE = 2.3;
 /** Spalten der Gemeinschaft bei n Einwohnern. */
@@ -43,7 +44,7 @@ export function gruenderPlatz(i: number, n: number): [number, number] {
     const reihe = Math.floor(i / sp), j = i % sp, inReihe = Math.min(sp, n - reihe * sp);
     // Reihenfolge in der Reihe: Mitte zuerst, dann links/rechts (Figur 1 vorne Mitte)
     const ordnung = Array.from({ length: inReihe }, (_, k) => k).sort((a, b) => Math.abs(a - (inReihe - 1) / 2) - Math.abs(b - (inReihe - 1) / 2) || a - b);
-    const x = (ordnung[j] - (inReihe - 1) / 2) * 2.5 + (reihe % 2 ? 0.45 : -0.45);
+    const x = ((ordnung[j] ?? j) - (inReihe - 1) / 2) * 2.5 + (reihe % 2 ? 0.45 : -0.45);
     void reihen;
     const z = reihe * GEMEINSCHAFT_REIHE - 0.4;
     return [x, z];
@@ -69,10 +70,14 @@ function hash(i: number): number {
 
 export class People {
   readonly group = new THREE.Group();
-  /** Alle Einwohner im einheitlichen Charakterstil (siehe characters.ts). */
-  private crowd = new Crowd(NAH_MAX);
+  /** Alle Einwohner im einheitlichen Charakterstil (siehe characters.ts) – als Menschen oder als Wassertropfen-Wesen. */
+  private crowds: Record<FigurStil, Crowd> = { menschen: new Crowd(NAH_MAX), tropfen: new Crowd(NAH_MAX, 'tropfen') };
   /** Vereinfachte Figuren für die Fernsicht. */
-  private far = new FarCrowd(MAX_FIGURES);
+  private fars: Record<FigurStil, FarCrowd> = { menschen: new FarCrowd(MAX_FIGURES), tropfen: new FarCrowd(MAX_FIGURES, 'tropfen') };
+  /** Aktueller Figurenstil (ab Tag 7: Wassertropfen-Wesen). Jede Figur behält Nummer, Farben und Platz. */
+  stil: FigurStil = 'menschen';
+  private get crowd(): Crowd { return this.crowds[this.stil]; }
+  private get far(): FarCrowd { return this.fars[this.stil]; }
   private looks: Look[] = [];
   /** Nahmodus: volle Detailstufe für die Figuren nahe der Kamera (wird von der Szene gesetzt). */
   nah = false;
@@ -109,10 +114,10 @@ export class People {
 
   constructor(assets: EarthAssets) {
     this.assets = assets;
-    this.group.add(this.crowd.group, this.far.group);
+    for (const s of ['menschen', 'tropfen'] as const) this.group.add(this.crowds[s].group, this.fars[s].group);
     for (let i = 0; i < MAX_FIGURES; i++) {
       this.looks[i] = i < GRUENDER ? People.gemeinschaftsLook(i) : lookFor(i, hash);
-      this.far.setLook(i, this.looks[i]);
+      for (const s of ['menschen', 'tropfen'] as const) this.fars[s].setLook(i, this.looks[i]);
     }
     // Städte gewichten (Wurzel der Einwohnerzahl -> auch kleinere Städte bekommen Leute)
     let acc = 0;
@@ -215,6 +220,8 @@ export class People {
     // noch nicht angekommene Figuren nicht zeichnen
     const unsichtbar = (i: number) => this.unsichtbar(i);
     if (this.nah) liste = liste.filter((i) => !unsichtbar(i));
+    // nicht aktiven Stil ausblenden
+    for (const s of ['menschen', 'tropfen'] as const) if (s !== this.stil) { this.crowds[s].setCount(0); this.fars[s].setCount(0); }
     this.crowd.setCount(this.nah ? liste.length : 0);
     this.far.setCount(this.nah ? 0 : this.shown);
     let slot = 0;

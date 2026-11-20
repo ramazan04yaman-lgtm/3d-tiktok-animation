@@ -48,6 +48,7 @@ export const SHOTS: Record<string, Shot> = {
   australia: { label: '🦘 Australien', lat: -24, lon: 134, dist: 2.1, tilt: 12, focus: 1 },
   northsea:  { label: '🌊 Nordsee (Küste)', lat: 55, lon: 3, dist: 1.3, tilt: 12, focus: 1 },
   sunda:     { label: '🏝️ Indonesien (Schelf)', lat: 0, lon: 110, dist: 1.35, tilt: 20, focus: 1 },
+  golf:      { label: '🏜️ Persischer Golf (flach)', lat: 26.5, lon: 52, dist: 1.36, tilt: 8, focus: 1, spin: 0.5 },
   beringsee: { label: '🌊 Beringmeer (flacher Schelf)', lat: 61, lon: -172, dist: 1.42, tilt: 9, focus: 1, spin: 0.6 },
   pacific:   { label: '🌊 Pazifik', lat: 0, lon: -160, dist: 3.4, tilt: 0, focus: 0.5, spin: 4 },
   flyover:   {

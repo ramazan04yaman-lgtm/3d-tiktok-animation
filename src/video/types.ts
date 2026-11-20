@@ -81,6 +81,8 @@ export interface Folge {
         /** Nachbearbeitung: zusätzlich schneller (1.06 = 6 % schneller, Tonhöhe bleibt) + Präsenz/Kompressor. */
         beschleunigen?: number; energie?: boolean }
     | { typ: 'aufnahme'; datei: string } | { typ: 'keine' };
+  /** Figurenstil der Einwohner: "tropfen" = Wassertropfen-Wesen (ab Tag 7), sonst Menschen. */
+  figuren?: 'menschen' | 'tropfen';
   /** Ton: "nur-stimme" = ohne Musik und Soundeffekte. */
   ton?: 'nur-stimme' | 'voll';
   /** Anzeige oben: "kompakt" = eine schlanke Zeile + nächstes Ziel (TikTok-Format), sonst die große Anzeige. */
@@ -115,6 +117,7 @@ export interface TimelineBeat {
 
 export interface Timeline {
   titel: string;
+  figuren?: 'menschen' | 'tropfen';
   anzeige?: 'kompakt' | 'voll';
   /** TikTok-Namen der Einwohner (Index = Figur; Lücken = ohne Namen). */
   namen?: (string | null)[];

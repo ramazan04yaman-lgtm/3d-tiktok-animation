@@ -61,6 +61,7 @@ npm run sim -- undo     # letzten Eintrag löschen
 | `video-04` | 16.11.2026 | +6 | 13 | 3 | – | – | 130 ml + 1,5 L = **1,63 L** |
 | `video-05` | 17.11.2026 | +10 | 18 | 10 | – | 1 | 180 ml + 5 L = **5,18 L** |
 | `video-06` | 18.11.2026 | +4 | 8 | 2 | – | – | 80 ml + 1 L = **1,08 L** |
+| `video-07` | 20.11.2026 | +5 (ohne Namen) | 16 | 1 | – | – | 160 ml + 0,5 L = **0,66 L** |
 
 Stand 15.11.2026: 21 Einwohner, 210 L pro Tag, insgesamt 260,34 L getrunken (Trinken 250 L + Aktivitäten 10,34 L).
 Stand 16.11.2026: 27 Einwohner, 270 L pro Tag, insgesamt 531,97 L getrunken (Trinken 520 L + Aktivitäten 11,97 L).
@@ -163,6 +164,8 @@ Jede Folge ist eine Datei in **`folgen/`** (Beispiel: `folgen/folge-01.json`). P
   `zahlen`, `stufen`, `szenario`, `ergebnis` (Ergebnis-Karte: was seit dem letzten Video dazukam)
 - **Kamera `hof`:** die ersten Einwohner zusammen vor ihrem Haus; **`gemeinschaft`:** alle Einwohner mit Namen von oben;
   **`namen`:** Kamerafahrt durch die Reihen (Namensschilder groß); **`neue`:** Blick auf die neuen Einwohner
+- **`"figuren": "tropfen"`**: Einwohner als Wassertropfen-Wesen (ab Tag 7) statt Menschen – gleiche Nummern, Farben und Plätze
+- **`"ton": "nur-stimme"`**: nur die Erzählstimme, Aufnahme läuft am Stück (keine eingefügten Pausen)
 - **`"ankunft": true`** im Beat: die neuen Einwohner (seit `"seit"`) fallen nacheinander auf den Hof, mit gelbem NEU-Schild
 - **Weitere Felder:** `"strohhalm": true`, `"aktion": "winken" | "trinken"`, `"wasser": { "von": "jetzt", "bis": 0.5 }`
   (Vorschau, wird als VORSCHAU gekennzeichnet), `"min": 2.5` (Mindestdauer), `"audio": "aufnahmen/satz-03.mp3"`
