@@ -12,6 +12,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 4. **„Wie funktioniert das menschliche Herz?“** — `--project heart`
 5. **„Warum und wie furzen Menschen?“** — `--project gut`
 6. **„Warum schneidet Papier?“** — `--project papercut`
+7. **„Was wächst in deinem Duschkopf?“** — `--project shower`
 
 ```bash
 npm install
@@ -212,3 +213,7 @@ Simplifications: procedural model (no medical scan); small intestine strongly sh
 ## Episode 6 — Papierschnitt (papercut)
 
 Narration `audio/papercut-voice.json` (Felix, natural speed). Hook: edge slides over the fingertip and opens a cut (0–3 s); microscope dive into the fibre edge; pressure on a line (1 N on 1 cm × 0.065 mm ≈ 15 bar, ≈ 150× a flat finger); textbook skin section (epidermis, dermis with capillary loops, fat, free nerve endings; shallow V cut, severed endings send pain signals); surprise: 2024 DTU study — ≈ 65 µm paper slices, thinner buckles, thicker dents (thicknesses exaggerated on screen).
+
+## Episode 7 — Duschkopf (shower)
+
+Narration `audio/shower-voice.json` (Felix, natural speed). Hook: crooked jets + clogged rubber nozzles (0–6 s); section through the head with residual water; time-lapse (weeks HUD): limescale crystals, pink/brown biofilm, biofilm magnifier, clogged nozzles deflect the jets; x-ray figure (gut episode) inhales aerosol into the lungs ("meist harmlos"); surprise: mycobacteria up to > 100× above tap water in some showerheads (Feazel et al., PNAS 2009 — verify before publishing); fix: rub nozzles, descale, run hot water.
