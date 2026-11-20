@@ -40,7 +40,7 @@ const fangM = new THREE.MeshPhysicalMaterial({ color: 0xf6f1e4, roughness: 0.25,
 const trachM = new THREE.MeshPhysicalMaterial({ color: 0xe6a5aa, roughness: 0.35, clearcoat: 0.6 });
 // ---- Kopf ----
 const HL = 0.34; // halbe Kopflänge
-const SACK_FLIP = true; const UPH = V(0, -0.01, -0.26); // Drehpunkt Oberkiefer
+const SACK_FLIP = true; const UPCUT = true; const UPH = V(0, -0.01, -0.26); // Drehpunkt Oberkiefer
 const rotU = (P, ang) => { if (!ang) return P; const y = P.y - UPH.y, z = P.z - UPH.z, c = Math.cos(ang), s = Math.sin(ang); P.y = UPH.y + y * c + z * s; P.z = UPH.z - y * s + z * c; return P; };
 const sackR = w => Math.max(0.08, w.r * 1.1 + 0.035);
 const skullW = z => 0.14 * (1 - 0.42 * Math.pow(clamp((z + HL) / (2 * HL)), 1.6)); // halbe Breite entlang z
@@ -258,11 +258,11 @@ function poseAna(a, o) {
         for (const J of jw) if (J[1] !== null) { const wg = Math.exp(-(((ph - J[0]) / 0.32) ** 2)); rad -= Math.max(0, rad - (J[1] - 0.014)) * wg; }
         const k = i * (SU + 1) + j; const Pv = V(rad * Math.cos(ph), w.cy + rad * Math.sin(ph), z); if (upLift && (j <= SA / 2 || j >= SU - SA / 2)) rotU(Pv, upLift * clamp((z - zh + 0.06) / 0.12)); pos[k * 3] = Pv.x; pos[k * 3 + 1] = Pv.y; pos[k * 3 + 2] = Pv.z;
         uvA[k * 2] = (-a.NK - z) / 4.8; uvA[k * 2 + 1] = 0.5 - ph / (Math.PI * 2); stS[k] = clamp((rad / (AR0 * 0.62) - 1) / 1.3); c.copy(cI).lerp(cD, 0.5 * clamp((0.3 - z) / 0.5)); col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b; } }
-    { const idx = [], cut = [SA / 2, SU - SA / 2 - 1]; for (let i = 0; i < a.SV; i++) for (let j = 0; j < SU; j++) { if ((kRow[i] > 0.001 || kRow[i + 1] > 0.001) && cut.includes(j)) continue;
+    { const idx = [], cut = [SA / 2, SU - SA / 2 - 1]; for (let i = 0; i < a.SV; i++) for (let j = 0; j < SU; j++) { if ((kRow[i] > 0.001 || kRow[i + 1] > 0.001) && (cut.includes(j) || (UPCUT && (j < SA / 2 || j >= SU - SA / 2)))) continue; /* oberer Seitenstreifen neben dem Schädel weg */
         const A = i * (SU + 1) + j, B = A + 1, C = A + SU + 1, D = C + 1; if (SACK_FLIP) idx.push(A, C, B, B, C, D); else idx.push(A, B, C, B, D, C); } a.sg.setIndex(idx); }
     // rosa Lippensaum entlang der offenen Seitenränder (oben -> Mundwinkel -> unten)
     a.lips.forEach((lm, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const P = k => V(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]); const pts = []; let i0 = kRow.findIndex(k => k > 0.001);
-      if (i0 > 0) { for (let i = a.SV; i >= i0; i--) pts.push(P(i * (SU + 1) + cU)); pts.push(P((i0 - 1) * (SU + 1) + cU).lerp(P((i0 - 1) * (SU + 1) + cL), 0.5)); for (let i = i0; i <= a.SV; i++) pts.push(P(i * (SU + 1) + cL)); }
+      if (i0 > 0) { if (!UPCUT) for (let i = a.SV; i >= i0; i--) pts.push(P(i * (SU + 1) + cU)); pts.push(P((i0 - 1) * (SU + 1) + cU).lerp(P((i0 - 1) * (SU + 1) + cL), 0.5)); for (let i = i0; i <= a.SV; i++) pts.push(P(i * (SU + 1) + cL)); }
       lm.visible = pts.length > 3; if (lm.visible) { lm.geometry.dispose(); lm.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 0.009, 8, false); } });
     // Mundwinkel: fleischige rosa Falte zwischen Ober- und Unterlippe, nach innen eingezogen
     a.cfill.forEach((m, n) => { const cU = n ? SU - SA / 2 : SA / 2, cL = n ? cU - 1 : cU + 1; const i0 = kRow.findIndex(k => k > 0.001); m.visible = i0 > 0; if (!m.visible) return;

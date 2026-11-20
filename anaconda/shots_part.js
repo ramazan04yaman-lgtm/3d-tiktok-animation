@@ -100,7 +100,7 @@ const shots = [
   // 4: Links/rechts vorschieben, festhaken, über die Beute ziehen
   (T) => {
     sunAt(V(0, 0, 0)); const u = (T - S[4].start) / (S[4].end - S[4].start); const ph = (T - S[4].start) * 4.2; const NS = (S[4].end - S[4].start) * 4.2 / Math.PI, xs = ph / Math.PI; const p = lerp(0.18, 0.55, clamp((Math.floor(xs) + ease(xs % 1)) / NS)); // Stück für Stück: pro Kieferschub ein Ruck
-    const sl = 0.07 * Math.sin(ph); const r = engulf(p, T, { slide: [sl, -sl], heading: 0.05 * Math.sin(ph) });
+    const sl = 0.07 * Math.sin(ph); const r = engulf(p, T, { slide: [sl, -sl], heading: 0.05 * Math.sin(ph) }); ana.gums.forEach(g => g.visible = false); /* kein rosa Zahnfleisch-Streifen neben dem Schädel in der Draufsicht */
     const hp = headW(); cam(hp.clone().add(V(-0.45, 2.3, 0.9)), hp.clone().add(V(0.2, 0, 0)), 40, T, 0.004);
     const tL = WT(4, 'linke'), tRr = WT(4, 'rechte'); const side = Math.sin(ph) > 0;
     const pL = hl(-0.3, -0.1, 0.2), pR = hl(0.3, -0.1, 0.2);
