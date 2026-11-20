@@ -32,7 +32,7 @@ const shots = [
   (T) => { const tW = WP(0, 'wolf'), tZ = WP(0, 'zaun'); badge.style.display = T < 2.4 ? 'block' : 'none'; const u = T - S[0].start;
     if (T < tW - 0.1) cam(V(4.6 - u * 0.3, 1.9, 4.4), V(0.3, 0.3, -1.9), 40, T, 0.006);
     else if (T < tZ - 0.2) { const w = wolves[0]; poseQ(w, { pos: V(-1.0, 0, -12.6), yaw: 0.2, headP: -0.1, T }); cam(V(0.2, 1.2, -6.8), V(-1.0, 0.6, -12.6), 34, T, 0.004); label3('WOLF', headW(w), clamp((T - tW) / 0.3), 140, -220); }
-    else { cam(V(-4.5, 1.4, -3.5), V(-2.5, 0.6, -8.5), 40, T, 0.005); label3('ZAUN', V(-2.5, 0.95, FZ0), clamp((T - tZ) / 0.3), 120, -260); icon(false, 540, 1340, clamp((T - WP(0, 'aus')) / 0.25)); }
+    else { camFix(V(0.6 - (T - tZ) * 0.15, 1.1, -5.7), V(-2.0, 0.45, -8.5), 40); label3('ZAUN', V(-2.5, 0.95, FZ0), clamp((T - tZ) / 0.3), 120, -260); icon(false, 540, 1340, clamp((T - WP(0, 'aus')) / 0.25)); }
   },
   // 1: Wolf gräbt sich unter dem Zaun durch – am Morgen fehlt eine Ziege
   (T) => { const tG = WP(1, 'graben'), tD = WP(1, 'durch'), tM = WP(1, 'morgen'); const w = wolves[0]; const H = G.hole.position;
@@ -80,7 +80,7 @@ const shots = [
     if (T < tS - 0.1) { const g = ease((T - tJ) / 1.4); poseQ(dog, { pos: V(1.2, 0, 2.0), yaw: -0.4, scale: lerp(0.5, 1, g), wag: 1, T }); cam(V(4.8, 1.5, 4.9), V(1.2, 0.5, 1.8), 40, T, 0.004);
       chip('🎂 1 JAHR', 540, 470, clamp((T - tJ) / 0.3)); chip('⚖️ ÜBER 40 KILO', 540, 1340, clamp((T - WP(7, 'kilo')) / 0.3), '#2fbf5b'); }
     else if (T < tN - 0.1) { poseQ(dog, { pos: V(1.2, 0, 2.0), yaw: -0.4, lie: 1, sleep: 1, T }); cam(V(4.6, 1.4, 4.9), V(1.2, 0.3, 1.8), 40, T, 0.004); chip('💤 SCHLÄFT TAGSÜBER', 540, 470, clamp((T - tS) / 0.3)); }
-    else { mood('night'); const k = (T - tN) * 1.1; poseQ(dog, { pos: V(lerp(-4, 3, clamp(k / 6)), 0, FZ0 + 0.9), yaw: Math.PI / 2, walk: 1, gait: T * 7, T }); cam(V(lerp(-4, 3, clamp(k / 6)) + 0.5, 1.6, FZ0 + 6.0), V(lerp(-4, 3, clamp(k / 6)), 0.5, FZ0 + 0.9), 40, T, 0.004);
+    else { mood('night'); const k = (T - tN) * 1.1; poseQ(dog, { pos: V(lerp(-1.5, 3, clamp(k / 6)), 0, FZ0 + 0.9), yaw: Math.PI / 2, walk: 1, gait: T * 7, T }); { const x = lerp(-1.5, 3, clamp(k / 6)); camFix(V(x + 2.4, 1.4, FZ0 + 3.2), V(x - 0.2, 0.5, FZ0 + 0.9), 40); }
       chip('🌙 NACHTS AM ZAUN', 540, 470, clamp((T - tN) / 0.3)); }
   },
   // 8: Bellt bei jedem Geräusch – der Wolf zieht weiter
