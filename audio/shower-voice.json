@@ -1,0 +1,169 @@
+{
+ "source": "audio/voice_felix_shower.mp3",
+ "video": "out/shower/shower.mp4",
+ "output": "out/shower/shower_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 56.6 s at natural speed; each pause lengthened by 0.155 s so the narration fills 60 s.",
+ "segments": [
+  {
+   "text": "Dein Duschkopf spritzt schief?",
+   "src": [
+    0,
+    1.826
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "Dann wächst in ihm etwas, das du jeden Morgen einatmest.",
+   "src": [
+    2.219,
+    5.846
+   ],
+   "at": 2.474
+  },
+  {
+   "text": "Schauen wir hinein:",
+   "src": [
+    6.214,
+    7.087
+   ],
+   "at": 6.624
+  },
+  {
+   "text": "Nach jedem Duschen bleibt Wasser im Duschkopf stehen.",
+   "src": [
+    7.592,
+    10.35
+   ],
+   "at": 8.157
+  },
+  {
+   "text": "Dunkel, feucht und warm –",
+   "src": [
+    10.721,
+    12.599
+   ],
+   "at": 11.441
+  },
+  {
+   "text": "perfekt für Bakterien.",
+   "src": [
+    12.915,
+    14.419
+   ],
+   "at": 13.79
+  },
+  {
+   "text": "Zuerst lagert sich Kalk ab.",
+   "src": [
+    14.827,
+    16.649
+   ],
+   "at": 15.857
+  },
+  {
+   "text": "Darauf bilden Bakterien einen schleimigen Belag, den Biofilm.",
+   "src": [
+    16.921,
+    21.056
+   ],
+   "at": 18.106
+  },
+  {
+   "text": "Nach einigen Wochen verstopft er die Düsen –",
+   "src": [
+    21.471,
+    23.827
+   ],
+   "at": 22.811
+  },
+  {
+   "text": "und der Strahl wird schief.",
+   "src": [
+    24.058,
+    25.747
+   ],
+   "at": 25.553
+  },
+  {
+   "text": "Beim Duschen reißt das Wasser Teile davon mit.",
+   "src": [
+    26.039,
+    28.69
+   ],
+   "at": 27.689
+  },
+  {
+   "text": "Winzige Tröpfchen schweben im Dampf … bis in die Lunge.",
+   "src": [
+    28.992,
+    33.87
+   ],
+   "at": 30.797
+  },
+  {
+   "text": "Für Gesunde ist das meist harmlos,",
+   "src": [
+    34.168,
+    36.226
+   ],
+   "at": 36.128
+  },
+  {
+   "text": "für Menschen mit schwachem Immunsystem nicht.",
+   "src": [
+    36.411,
+    38.809
+   ],
+   "at": 38.526
+  },
+  {
+   "text": "Das Überraschende:",
+   "src": [
+    39.169,
+    40.125
+   ],
+   "at": 41.439
+  },
+  {
+   "text": "Forscher fanden … über hundertmal mehr Mykobakterien …",
+   "src": [
+    40.314,
+    46.233
+   ],
+   "at": 42.739
+  },
+  {
+   "text": "Die Lösung:",
+   "src": [
+    46.581,
+    47.271
+   ],
+   "at": 49.161
+  },
+  {
+   "text": "Gummidüsen regelmäßig mit dem Finger abreiben,",
+   "src": [
+    47.53,
+    50.262
+   ],
+   "at": 50.265
+  },
+  {
+   "text": "den Duschkopf entkalken und das Wasser kurz heiß vorlaufen lassen –",
+   "src": [
+    50.474,
+    54.514
+   ],
+   "at": 53.364
+  },
+  {
+   "text": "ohne direkt darunter zu stehen.",
+   "src": [
+    54.624,
+    56.42
+   ],
+   "at": 57.669
+  }
+ ]
+}
