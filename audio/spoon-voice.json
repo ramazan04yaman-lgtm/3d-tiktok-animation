@@ -1,0 +1,161 @@
+{
+ "source": "audio/voice_felix_spoon.mp3",
+ "video": "out/spoon/spoon.mp4",
+ "output": "out/spoon/spoon_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 55.3 s at natural speed; pauses lengthened (each ≤ 0.7 s total) so the narration fills the video.",
+ "segments": [
+  {
+   "text": "Siehst du diese dunkle Linie in deinem Holzlöffel?",
+   "src": [
+    0,
+    2.686
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "Das ist ein Riss –",
+   "src": [
+    3.126,
+    4.15
+   ],
+   "at": 3.371
+  },
+  {
+   "text": "und darin steckt mehr als nur Holz.",
+   "src": [
+    4.272,
+    6.821
+   ],
+   "at": 4.789
+  },
+  {
+   "text": "Holz ist wie ein Schwamm:",
+   "src": [
+    7.103,
+    8.87
+   ],
+   "at": 7.892
+  },
+  {
+   "text": "Es besteht aus winzigen Röhren, die Wasser und Fett aufsaugen.",
+   "src": [
+    9.249,
+    12.989
+   ],
+   "at": 10.234
+  },
+  {
+   "text": "Beim Kochen quillt das Holz auf,",
+   "src": [
+    13.251,
+    15.559
+   ],
+   "at": 14.508
+  },
+  {
+   "text": "beim Trocknen schrumpft es – und irgendwann reißt es.",
+   "src": [
+    15.806,
+    19.381
+   ],
+   "at": 17.335
+  },
+  {
+   "text": "In den Riss drücken sich Soße, Fleischsaft und Fett.",
+   "src": [
+    19.65,
+    23.216
+   ],
+   "at": 21.451
+  },
+  {
+   "text": "Die Spülmaschine macht es schlimmer:",
+   "src": [
+    23.49,
+    25.384
+   ],
+   "at": 25.563
+  },
+  {
+   "text": "Hitze und Nässe … der Riss wird tiefer.",
+   "src": [
+    25.588,
+    31.143
+   ],
+   "at": 27.933
+  },
+  {
+   "text": "Im Spalt bleiben Essensreste feucht –",
+   "src": [
+    31.458,
+    34.097
+   ],
+   "at": 34.054
+  },
+  {
+   "text": "ideal für Bakterien.",
+   "src": [
+    34.354,
+    35.819
+   ],
+   "at": 37.222
+  },
+  {
+   "text": "Das Spülwasser erreicht sie dort kaum.",
+   "src": [
+    36.004,
+    38.295
+   ],
+   "at": 39.144
+  },
+  {
+   "text": "Das Überraschende:",
+   "src": [
+    38.884,
+    39.91
+   ],
+   "at": 42.041
+  },
+  {
+   "text": "Ein intakter Holzlöffel ist trotzdem sehr hygienisch.",
+   "src": [
+    40.253,
+    43.466
+   ],
+   "at": 43.637
+  },
+  {
+   "text": "Bakterien werden in die Poren gezogen … wenn das Holz trocknet.",
+   "src": [
+    43.68,
+    48.522
+   ],
+   "at": 47.336
+  },
+  {
+   "text": "Also: Holzlöffel von Hand spülen,",
+   "src": [
+    48.883,
+    51.51
+   ],
+   "at": 52.751
+  },
+  {
+   "text": "gut trocknen lassen –",
+   "src": [
+    51.706,
+    52.841
+   ],
+   "at": 55.846
+  },
+  {
+   "text": "und gerissene Löffel austauschen.",
+   "src": [
+    53.029,
+    55.09
+   ],
+   "at": 57.441
+  }
+ ]
+}

@@ -6,6 +6,7 @@ import { kettleProject } from './kettle';
 import { microwaveProject } from './microwave';
 import { papercutProject } from './papercut';
 import { showerProject } from './shower';
+import { spoonProject } from './spoon';
 
 export const projects: Record<string, ExplainerProject> = {
   [kettleProject.id]: kettleProject,
@@ -15,5 +16,6 @@ export const projects: Record<string, ExplainerProject> = {
   [gutProject.id]: gutProject,
   [papercutProject.id]: papercutProject,
   [showerProject.id]: showerProject,
+  [spoonProject.id]: spoonProject,
 };
 export const defaultProjectId = kettleProject.id;
