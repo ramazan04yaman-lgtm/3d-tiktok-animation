@@ -277,7 +277,7 @@ function poseAna(a, o) {
     a.sg.attributes.position.needsUpdate = a.sg.attributes.aStretch.needsUpdate = a.sg.attributes.uv.needsUpdate = a.sg.attributes.color.needsUpdate = true; a.sg.computeVertexNormals(); }
   // Luftröhre: schiebt sich am Mundboden nach vorn
   a.trach.visible = trach > 0.01; if (a.trach.visible) { const mid = tL.clone().add(tR).multiplyScalar(0.5); let base = V(0, mid.y * 0.5 + 0.01, -0.12); let tipP = V(trachX * trach, mid.y + 0.02 + trachY * trach, lerp(0.0, 0.42, trach) + mid.z * 0.4);
-    if (trachSide === 9) { base.set(0, -0.045, 0.06); tipP = base.clone().addScaledVector(V(0, 0.32, 1).normalize(), 0.06 + 0.46 * trach); }
+    if (trachSide === 9) { if (wrap) { const w = wrap(0.12); base.set(0, w.cy - w.r * 1.06 + 0.035, 0.12); tipP = base.clone().addScaledVector(V(0, 0.55, 1).normalize(), 0.06 + 0.42 * trach); } /* unten am Mundboden unter der Beute nach vorn */ else { base.set(0, -0.045, 0.06); tipP = base.clone().addScaledVector(V(0, 0.32, 1).normalize(), 0.06 + 0.46 * trach); } }
     if (trachSide >= 0 && trachSide < 9) { const m = a.mandibles[trachSide]; base.copy(m.curve.getPoint(0.4).applyMatrix4(m.g.matrix)).add(V(-m.s * 0.03, 0.03, 0)); tipP = base.clone().addScaledVector(V(m.s * 0.85, 0.45, 0.3).normalize(), 0.03 + 0.4 * trach); } const len = base.distanceTo(tipP);
     a.trach.position.copy(base).lerp(tipP, 0.5); a.trach.quaternion.setFromUnitVectors(V(0, 0, 1), tipP.clone().sub(base).normalize()); a.tt.scale.set(1, len, 1);
     a.rings.forEach((r, k) => { const f = (k + 0.5) / a.rings.length - 0.5; r.position.set(0, 0, f * len); r.visible = true; }); a.trTip.position.set(0, 0, len / 2); }
