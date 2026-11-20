@@ -35,7 +35,7 @@ function engulf(p, T, extra = {}) {
   const o = Object.assign({ headPos: V(hx, hy, 0), heading: 0, curve: restCurve, gape, spread, preyX0: PREY_X0, t: T, quad: kIn * clamp(rc * 1.2), pitch: lerp(0.1 * openK, -0.08, kIn) }, extra);
   if (p > 0.02) { const pt = o.pitch || 0; o.wrap = z => { const czr = 1.06 - (hx + z - PREY_X0), cz3 = Math.min(czr, 1.0); const rP = Math.max(capyR(cz3), rc * 0.85); return { cy: capyY(cz3) - hy - z * Math.sin(pt), r: czr > 1.0 ? lerp(rP, AR0 * 0.5, ease(clamp((czr - 1.0) / 0.3))) : rP }; }; // hinter der Beute: Hals wieder schlank
     const th = 0.35, at = (z, s) => { const w = o.wrap(z), R = sackR(w) + 0.016; return V(s * R * Math.cos(th), w.cy - R * Math.sin(th), z); };
-    o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.06)); o.upLift = (o.lift ?? 0.5) * o.jawK; o.upW = lerp(1, Math.min(1.6, Math.max(1, Math.abs(at(-0.05, 1).x) / 0.14)), o.jawK * (o.widen ?? 1)); } // Oberkiefer nach oben angewinkelt
+    o.jawJ = [at(-0.26, -1), at(-0.26, 1)]; o.jawTW = [at(0.3, -1), at(0.3, 1)]; o.jawK = ease(clamp((p - 0.02) / 0.16)); o.upLift = (o.lift ?? 0.5) * o.jawK; o.upW = lerp(1, Math.min(1.6, Math.max(1, Math.abs(at(-0.05, 1).x) / 0.14)), o.jawK * (o.widen ?? 1)); } // Oberkiefer nach oben angewinkelt
   poseAna(ana, o);
   // Beine des Capybaras verschwinden, sobald sie im Schlangenkörper stecken
   capy.legs.forEach((l, i) => { const lzW = PREY_X0 + 1.06 - (i < 2 ? 0.38 : -0.38) * 1; const insideL = hx + 0.28 > lzW && p > 0.05; l.scale.setScalar(insideL ? 0.0001 : 1); });
@@ -82,8 +82,8 @@ const shots = [
   // 2: Maul klappt riesig auf – aber ohne Arme rutscht das Capybara wieder raus
   (T) => {
     sunAt(V(0, 0, 0)); const tA = WT(2, 'aber'), tR = WT(2, 'rutscht');
-    let p; if (T < tA) p = lerp(-0.16, 0.22, ease((T - S[2].start - 0.1) / (tA - S[2].start - 0.3))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.14, ease((T - tR) / 1.0));
-    const openK = Math.min(ease((T - S[2].start) / 0.45), T > tR + 1.0 ? 1 - ease((T - tR - 1.0) / 0.5) : 1);
+    let p; if (T < tA) p = lerp(-0.07, 0.22, ease((T - S[2].start - 0.1) / (tA - S[2].start - 0.3))); else if (T < tR) p = 0.22 + 0.015 * Math.sin((T - tA) * 9); else p = lerp(0.22, -0.14, ease((T - tR) / 1.0));
+    const openK = Math.min(ease((T - S[2].start) / (tA - S[2].start - 0.4)), /* Maul geht langsam auf */ T > tR + 1.0 ? 1 - ease((T - tR - 1.0) / 0.5) : 1);
     engulf(p, T, { openK });
     const hp = headW(); cam(V(PREY_X0 - 0.6, 1.05, 2.5), V(PREY_X0 + 0.15, 0.5, 0), 38, T, 0.006);
     if (T > tR - 0.1) capy.root.position.x += 0.0;
@@ -109,7 +109,7 @@ const shots = [
   // 5: Schlucken dauert Stunden – keine Luft
   (T) => {
     sunAt(V(0, 0, 0)); const u = (T - S[5].start) / (S[5].end - S[5].start); const p = lerp(0.55, 0.72, ease(u)); engulf(p, T, { slide: [0.03 * Math.sin(T * 2), -0.03 * Math.sin(T * 2)] });
-    const hp = headW(); cam(V(hp.x - 0.4, 0.85, 2.3), V(hp.x - 0.2, 0.55, 0), 40, T, 0.006);
+    const hp = headW(); cam(V(hp.x - 0.3, 1.0, 2.9), V(hp.x - 0.1, 0.7, 0), 40, T, 0.006); /* weiter weg: ganzes Maul mit Mundwinkel sichtbar */
     const hrs = Math.min(5, 1 + Math.floor(clamp((T - WT(5, 'stunden') + 0.2) / 1.4) * 4.99)); chip(`⏱ ${hrs} STUNDE${hrs > 1 ? 'N' : ''}`, 540, 470, clamp((T - WT(5, 'stunden') + 0.2) / 0.3));
     const kL = clamp((T - WT(5, 'luft') + 0.4) / 0.3); if (kL > 0) { const lv = clamp(1 - (T - WT(5, 'luft') + 0.3) / 0.9); svg.push(`<g opacity="${kL}"><rect x="290" y="1240" width="500" height="64" rx="32" fill="#111c" stroke="#fff" stroke-width="6"/><rect x="300" y="1250" width="${480 * lv}" height="44" rx="22" fill="${lv > 0.3 ? '#3ddc84' : '#e8483b'}"/><text x="540" y="1216" text-anchor="middle" font-family="M" font-weight="900" font-size="48" fill="#fff" stroke="#000" stroke-width="10" paint-order="stroke">LUFT</text></g>`); }
   },
