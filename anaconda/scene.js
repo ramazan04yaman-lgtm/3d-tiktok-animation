@@ -601,7 +601,11 @@ function makeAna() {
   const sg = new THREE.SphereGeometry(1, 56, 36); sg.rotateX(Math.PI / 2); { const p = sg.attributes.position; for (let i = 0; i < p.count; i++) { const X = p.getX(i), Y = p.getY(i), Z = p.getZ(i); const z = Z * HL; const f = clamp((z + HL) / (2 * HL));
     const w = skullW(z) * (Z > 0.92 ? Math.sqrt(Math.max(0.05, (1 - Z) / 0.08)) * 0.85 + 0.15 : 1); const top = 0.128 * (1 - 0.42 * Math.pow(f, 1.3));
     const yy = Y > 0 ? Math.pow(Y, 0.62) * top : Y * 0.04; p.setXYZ(i, Math.sign(X) * Math.pow(Math.abs(X), 0.75) * w, yy, z + (Y > 0 ? 0 : -0.01)); } }
-  const skull = new THREE.Mesh(colGeo(sg, headColor), headSkinM); skull.castShadow = true; head.add(skull); skull.add(new THREE.Mesh(sg, ol));
+  const skull = new THREE.Mesh(colGeo(sg, headColor), headSkinM); skull.castShadow = true; head.add(skull); skull.add(new THREE.Mesh(sg, ol)); const skirt = (() => { const NU = 40, NV = 8, P = [], UV = [], I = []; for (let v = 0; v <= NV; v++) for (let u = 0; u <= NU; u++) { const th = lerp(-0.95, 0.95, u / NU), X = Math.sin(th), Z = -Math.cos(th), tv = v / NV; const end = Math.min(1, (0.95 - Math.abs(th)) / 0.35); const z = Z * HL * 0.97, x = Math.sign(X) * Math.pow(Math.abs(X), 0.75) * skullW(z) * lerp(0.97, 0.8, tv);
+      P.push(x, 0.012 - tv * 0.17 * (0.25 + 0.75 * end), z + tv * 0.03); UV.push(u / NU * 3, tv); }
+    for (let v = 0; v < NV; v++) for (let u = 0; u < NU; u++) { const A = v * (NU + 1) + u, B = A + 1, C = A + NU + 1, D = C + 1; I.push(A, C, B, B, C, D); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(UV, 2)); g.setIndex(I);
+    const m = new THREE.Mesh(colGeo(g, (x, y, z, ny, c) => c.set(0x5a592d)), headSkinM.clone()); m.material.side = THREE.DoubleSide; m.visible = false; head.add(m); return m; })(); // Nackenhaut-Schürze: verbindet Hinterkopf mit dem Hals
   for (const s of [-1, 1]) { // Augen oben seitlich, Nasenlöcher oben auf der Schnauze
     const eg = new THREE.Group(); eg.position.set(s * 0.097, 0.06, 0.06); head.add(eg);
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.022, 18, 14), new THREE.MeshPhysicalMaterial({ color: 0xa8782a, roughness: 0.05, clearcoat: 1 })); eg.add(eye);
@@ -668,7 +672,7 @@ function makeAna() {
   const rings = []; for (let k = 0; k < 12; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.007, 6, 18), aBoneM); trach.add(r); rings.push(r); }
   const trTip = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.01, 8, 18), trachM); trach.add(trTip); trach.visible = false;
   root.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
-  return { root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, lips, cfill, upper, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
+  return { skirt, root, body, bodyOl, bg, RINGS, RS, head, skull, mandibles, upTeeth, gums, chin, lig, lining, lg, MU, MV, corners, lgo, sack, lips, cfill, upper, sg: sackG, SU, SV, palY, trach, tt, rings, trTip, ol, JL };
 }
 const ana = makeAna(); scene.add(ana.root);
 // ---- Capybara ----
@@ -741,7 +745,7 @@ function poseAna(a, o) {
       if (jawK < 1) { m.g.position.lerpVectors(p0, m.g.position, jawK); m.g.quaternion.slerpQuaternions(q0, m.g.quaternion.clone(), jawK); } }
     m.jaw.visible = m.jol.visible = !xray; m.bone.visible = !!xray; m.teeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth * tOpen))); });
   a.upTeeth.forEach(tm => tm.scale.setScalar(Math.max(0.0001, tm.userData.s * teeth * tOpen))); a.gums.forEach(gm => gm.visible = tOpen > 0.02);
-  a.upper.rotation.x = -upLift; a.upper.scale.x = upW; /* Oberkiefer breiter, bis an die Mundwinkel */
+  a.upper.rotation.x = -upLift; a.skirt.visible = jawK > 0.01 && upLift > 0.001; a.upper.scale.x = upW; /* Oberkiefer breiter, bis an die Mundwinkel */
   a.head.updateMatrixWorld(true);
   // Kinnspitzen (Kopf-lokal)
   const tip = m => m.curve.getPoint(1).clone().applyMatrix4(m.g.matrix); const tL = tip(a.mandibles[0]), tR = tip(a.mandibles[1]);
