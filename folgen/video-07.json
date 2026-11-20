@@ -103,7 +103,7 @@
     {
       "text": "Und alle trinken.",
       "kamera": "hof",
-      "uebergang": 1.4
+      "uebergang": 0
     },
     {
       "text": "{blau:{pro_tag_genau}.} Jeden Tag.",
@@ -252,7 +252,7 @@
     {
       "text": "Willst du der {gruen:nächste Tropfen} sein?",
       "kamera": "neu1",
-      "uebergang": 1.6,
+      "uebergang": 0,
       "cliffhanger": true,
       "min": 3,
       "sticker": [

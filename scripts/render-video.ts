@@ -120,7 +120,8 @@ folge.beats.forEach((b, i) => {
 
 if (amStueck) {
   const b = amStueck.beginn, n = b.length;
-  for (let i = 0; i < n; i++) dauer[i] = (i + 1 < n ? b[i + 1] : amStueck.gesamt + 0.6) - (i === 0 ? 0 : b[i]);
+  // letztes Bild (Folgen-Karte) bleibt nach dem letzten Wort noch kurz stehen
+  for (let i = 0; i < n; i++) dauer[i] = (i + 1 < n ? b[i + 1] : amStueck.gesamt + 1.2) - (i === 0 ? 0 : b[i]);
 }
 // ---------- 2. Zeitleiste ----------
 const timeline = buildTimeline({ folge, ...zahlen, sprechdauer: dauer, wortzeiten, amStueck: !!amStueck });
