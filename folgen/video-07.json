@@ -1,5 +1,5 @@
 {
-  "titel": "Tag 7 – Die Tropfen kommen",
+  "titel": "Tag 7 – Der Eimer in Amerika",
   "konto": "@wasserderErde",
   "anzeige": "kompakt",
   "ton": "nur-stimme",
@@ -30,10 +30,24 @@
       "min": 1.8
     },
     {
-      "text": "Und lebt hier: in {rot:Amerika!}",
+      "text": "Und landet in unserem {blau:Riesen-Eimer!}",
+      "kamera": "neue",
+      "uebergang": 0.9,
+      "hook": true,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "+{neue_einwohner} NEUE TROPFEN",
+          "farbe": "gruen",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Mitten in {rot:Amerika!}",
       "kamera": "stadt",
       "uebergang": 0,
-      "hook": true,
       "sticker": [
         {
           "typ": "schild",
@@ -45,30 +59,44 @@
       ]
     },
     {
-      "text": "Heute sind {gruen:fünf Neue} gelandet.",
-      "kamera": "neue",
-      "sticker": [
-        {
-          "typ": "schild",
-          "text": "+{neue_einwohner} NEUE EINWOHNER",
-          "farbe": "gruen",
-          "y": 14,
-          "drehung": 3
-        }
-      ],
-      "uebergang": 0
-    },
-    {
-      "text": "{gruen:{einwohner}} Tropfen. So viele wie noch nie.",
+      "text": "{gruen:{einwohner}} Tropfen sind schon drin.",
       "kamera": "gemeinschaft",
-      "uebergang": 1.4,
+      "uebergang": 0,
       "sticker": [
         {
           "typ": "zahl",
-          "label": "EINWOHNER",
+          "label": "🪣 IM EIMER",
           "von": "{einwohner_vorher}",
           "bis": "{einwohner}",
+          "einheit": "/ 100",
           "farbe": "gruen"
+        }
+      ]
+    },
+    {
+      "text": "Bei {gelb:100} ist der Eimer voll.",
+      "kamera": "gemeinschaft",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🪣 100 TROPFEN = VOLL",
+          "farbe": "gelb",
+          "y": 14,
+          "drehung": 2
+        }
+      ]
+    },
+    {
+      "text": "Und dann geht es in ein {rot:neues Land!}",
+      "kamera": "orbit",
+      "uebergang": 1.4,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🌍 DANACH: NEUES LAND",
+          "farbe": "rot",
+          "y": 14,
+          "drehung": -2
         }
       ]
     },
@@ -144,53 +172,6 @@
       ]
     },
     {
-      "text": "Fast {rot:900 Liter} mehr.",
-      "kamera": "rueckflug",
-      "sticker": [
-        {
-          "typ": "schild",
-          "text": "TAG 6: 1.318 L → TAG 7: 2.189 L",
-          "farbe": "rot",
-          "y": 14,
-          "drehung": 2
-        }
-      ]
-    },
-    {
-      "text": "In nur {rot:zwei Tagen!}",
-      "kamera": "space",
-      "uebergang": 0,
-      "sticker": [
-        {
-          "typ": "schild",
-          "text": "📅 IN NUR 2 TAGEN",
-          "farbe": "rot",
-          "y": 14,
-          "drehung": -3
-        }
-      ]
-    },
-    {
-      "text": "Das sind fast {blau:15 volle Badewannen.}",
-      "kamera": "hof",
-      "uebergang": 0,
-      "sticker": [
-        {
-          "typ": "zahl",
-          "label": "SO VIEL IST DAS",
-          "bis": "🛁 × 15",
-          "farbe": "blau"
-        },
-        {
-          "typ": "info",
-          "y": 44,
-          "zeilen": [
-            "1 BADEWANNE ≈ 150 L · 2.189 L ≈ 14,6 WANNEN"
-          ]
-        }
-      ]
-    },
-    {
       "text": "Am {gelb:ersten Tag:}",
       "kamera": "florida",
       "uebergang": 1.2,
@@ -235,49 +216,38 @@
       ]
     },
     {
-      "text": "Und bei {gelb:100 Followern}",
-      "kamera": "orbit",
-      "uebergang": 1.4,
-      "sticker": [
-        {
-          "typ": "zahl",
-          "label": "NÄCHSTES ZIEL",
-          "von": 0,
-          "bis": "100",
-          "einheit": "FOLLOWER",
-          "farbe": "gelb"
-        }
-      ]
-    },
-    {
-      "text": "wird jeder Like {rot:elfmal teurer.}",
-      "kamera": "space",
-      "uebergang": 1.2,
-      "sticker": [
-        {
-          "typ": "schild",
-          "text": "❤️ {like_ml} → 110 ml PRO LIKE",
-          "farbe": "rot",
-          "y": 14,
-          "drehung": 2
-        }
-      ]
-    },
-    {
-      "text": "Noch {gelb:{fehlende_follower}.} Schaffen wir das?",
+      "text": "Noch {gelb:{fehlende_follower}} Tropfen bis der Eimer voll ist.",
       "kamera": "gemeinschaft",
       "uebergang": 0,
       "min": 2.6,
       "sticker": [
         {
           "typ": "zahl",
-          "label": "ES FEHLEN NOCH",
+          "label": "🪣 ES FEHLEN NOCH",
           "von": 0,
           "bis": "{fehlende_follower}",
-          "einheit": "FOLLOWER",
+          "einheit": "TROPFEN",
           "farbe": "gelb"
         }
       ]
+    },
+    {
+      "text": "Welches Land kommt {rot:danach?}",
+      "kamera": "space",
+      "uebergang": 1.2,
+      "cliffhanger": true,
+      "sticker": [
+        {
+          "typ": "titel",
+          "zeilen": [
+            "WELCHES LAND",
+            "KOMMT",
+            "{rot:DANACH?}"
+          ]
+        }
+      ],
+      "untertitel": false,
+      "min": 2.2
     },
     {
       "text": "Willst du der {gruen:nächste Tropfen} sein?",

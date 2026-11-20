@@ -200,6 +200,32 @@ function hydrant(): THREE.Group {
   g.add(k, kopf, seite); return g;
 }
 
+/** Riesiger Glas-Eimer (Maße wie EIMER in people.ts): durchsichtig, mit Rand, Henkel, Strichen je 20 Tropfen und Schild. */
+function glasEimer(r: number, h: number): THREE.Group {
+  const g = new THREE.Group();
+  const glas = new THREE.MeshStandardMaterial({ color: '#d8f3ff', transparent: true, opacity: 0.11, roughness: 0.05, metalness: 0,
+    side: THREE.DoubleSide, depthWrite: false });
+  const wand = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r, h, 64, 1, true), glas); wand.position.y = h / 2; wand.renderOrder = 2;
+  const boden = teil(new THREE.CylinderGeometry(r, r, 0.15, 48), smooth('#bfe9ff', { transparent: true, opacity: 0.55 }), 0.02); boden.position.y = 0.075;
+  const randOben = teil(new THREE.TorusGeometry(r * 1.06, 0.09, 12, 64).rotateX(Math.PI / 2), '#e9f9ff', 0.02); randOben.position.y = h;
+  const randUnten = teil(new THREE.TorusGeometry(r, 0.07, 10, 64).rotateX(Math.PI / 2), '#e9f9ff', 0.015); randUnten.position.y = 0.05;
+  g.add(wand, boden, randOben, randUnten);
+  // Striche bei 20, 40, 60, 80 Tropfen
+  for (let k = 1; k <= 4; k++) {
+    const y = 0.15 + k * (h - 0.15) / 5;
+    const strich = new THREE.Mesh(new THREE.TorusGeometry(r * (1 + 0.06 * y / h) + 0.01, 0.025, 6, 64, Math.PI * 0.5).rotateX(Math.PI / 2).rotateY(Math.PI * 0.25), smooth('#ffffff'));
+    strich.position.y = y; g.add(strich);
+  }
+  // Henkel (Bügel)
+  // Henkel (Bügel) links-rechts, nach hinten umgeklappt -> verdeckt den Blick in den Eimer nicht
+  const henkel = teil(new THREE.TorusGeometry(r * 1.08, 0.07, 10, 48, Math.PI), '#c9ced8', 0.02);
+  henkel.position.y = h - 0.1; henkel.rotation.x = -1.35; g.add(henkel);
+  // Schild am oberen Rand
+  const tafel = teil(new THREE.BoxGeometry(2.6, 0.75, 0.06), smooth('#ffffff', { map: schildTex(['AMERIKA · USA', '100 = VOLL', ''], '#1f4f9f', '#ffffff') }), 0.02);
+  tafel.position.set(0, h + 0.6, -(r * 1.06 + 0.05)); g.add(tafel);   // am hinteren Rand: durchs Glas lesbar, verdeckt nichts
+  return g;
+}
+
 export interface Diorama { group: THREE.Group; update(t: number, camDist: number): void; radius: number }
 
 /** Baut die Umgebung. "hof" = Haus von Mensch Nr. 1, "dorf" = Dorfplatz mit Brunnen. */
@@ -272,6 +298,8 @@ export function createDiorama(art: 'hof' | 'dorf' | 'amerika'): Diorama {
     tafel.position.y = 1.9; schild.add(tafel);
     for (const x of [-1.3, 1.3]) { const p = teil(new THREE.BoxGeometry(0.12, 1.2, 0.12), '#d9dde6', 0.012); p.position.set(x, 0.6, 0); schild.add(p); }
     schild.position.set(7.5, 0, 3); schild.rotation.y = -0.35; deko.add(schild);
+    // Der riesige Glas-Eimer (Mitte 1,5 südlich, Radius 2,35, Höhe 5,2 – wie EIMER in people.ts)
+    const eimer = glasEimer(2.35, 5.2); eimer.position.set(0, 0, 1.5); deko.add(eimer);
     for (let i = 0; i < 18; i++) {
       const a = rnd() * Math.PI * 2, r = 22 + rnd() * 22, x = Math.cos(a) * r, z = Math.sin(a) * r;
       if (Math.abs(x) < 8 && z > -2) continue;   // Platz der Gemeinschaft frei lassen

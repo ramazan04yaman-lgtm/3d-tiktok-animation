@@ -121,6 +121,8 @@ export interface TimelineBeat {
 
 export interface Timeline {
   titel: string;
+  /** false = keine Namens-/Nummernschilder über den Figuren. */
+  schilder?: boolean;
   ort?: 'hof' | 'amerika';
   figuren?: 'menschen' | 'tropfen';
   anzeige?: 'kompakt' | 'voll';

@@ -14,7 +14,7 @@ import { RELIEF_EXAGGERATION } from './earthMaterial.ts';
 import { Mascot, createGiantStraw } from './mascot.ts';
 import { type Diorama, createDiorama } from './diorama.ts';
 import { SHOTS } from './camera.ts';
-import { GEMEINSCHAFT_REIHE, GRUENDER, HOF_EINHEIT, People, gemeinschaftSpalten, gruenderPlatz } from './people.ts';
+import { EIMER, GEMEINSCHAFT_REIHE, GRUENDER, HOF_EINHEIT, People, eimerPlatz, gemeinschaftSpalten, gruenderPlatz } from './people.ts';
 import { createAtmosphere, createClouds, createStars, createSun } from './sky.ts';
 
 export class EarthScene {
@@ -150,6 +150,7 @@ export class EarthScene {
   setOrt(ort: 'hof' | 'amerika'): void {
     if (ort === this.hofArt && (ort === 'hof') === (this.people.heimat === null)) return;
     this.hofArt = ort;
+    this.people.eimer = ort === 'amerika';
     this.people.setHeimat(ort === 'amerika' ? EarthScene.AMERIKA : null);
     this.updateFirstPerson();
   }
@@ -185,6 +186,12 @@ export class EarthScene {
       tilt: (tiefe * 0.8 * k) * 180 / Math.PI, focus: r + 0.5 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
     SHOTS.namen = { label: '🏷️ Kamerafahrt durch die Reihen', lat: latBei(vorne), lon: p.lon, dist: r + 5.2 * k, tilt: (8.6 * k) * 180 / Math.PI,
       focus: r + 0.75 * k, figur: k, sonne: EarthScene.SONNE_HINTEN, path: [[latBei(vorne - 0.8), p.lon], [latBei(hinten + 1.2), p.lon]], pathSeconds: 14, pathEinmal: true };
+    if (this.people.eimer) {
+      // GLAS-EIMER: ganzer Eimer von vorn (gemeinschaft) und etwas näher (hof)
+      const eLat = latBei(EIMER.z), fuell = Math.min(EIMER.hoehe, EIMER.boden + Math.ceil(this.people.anzahl / EIMER.proLage) * EIMER.lage);
+      SHOTS.gemeinschaft = { label: '🪣 Der Glas-Eimer', lat: eLat, lon: p.lon, dist: r + 5.2 * k, tilt: grad(13.5), focus: r + 3.6 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
+      SHOTS.hof = { label: '🪣 Im Eimer (nah)', lat: eLat, lon: p.lon + grad(1.2) / Math.cos(p.lat * Math.PI / 180), dist: r + (fuell + 1.4) * k, tilt: grad(7.5), focus: r + (fuell - 0.2) * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
+    }
   }
 
   private hofOrt: { lat: number; lon: number; r: number } | null = null;
@@ -192,6 +199,17 @@ export class EarthScene {
   updateNeueShot(von: number, bis: number): void {
     if (!this.hofOrt || bis <= von) return;
     const { lat, lon, r } = this.hofOrt, k = EarthScene.HOF_K, n = Math.min(this.people.anzahl, GRUENDER);
+    if (this.people.eimer) {
+      // Blick von oben schräg in den Eimer (dort landen die Neuen) + Nahaufnahme der ersten Neuen durchs Glas
+      const g = (u: number) => (u * k) * 180 / Math.PI, cos = Math.cos(lat * Math.PI / 180);
+      const [x1, y1, z1] = eimerPlatz(von);
+      const oben = eimerPlatz(bis - 1)[1];
+      // Von vorn auf den oberen Teil des Eimers, viel Himmel darüber -> man sieht die Neuen hineinfallen
+      void x1; void y1; void z1; void cos;
+      SHOTS.neu1 = { label: '✨ Neue fallen in den Eimer (nah)', lat: lat - g(EIMER.z), lon, dist: r + (oben + 3.4) * k, tilt: g(7.5), focus: r + (oben + 2.6) * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
+      SHOTS.neue = { label: '✨ Neue landen im Eimer', lat: lat - g(EIMER.z), lon, dist: r + (oben + 4.2) * k, tilt: g(10.5), focus: r + (oben + 1.8) * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
+      return;
+    }
     let x = 0, z = 0;
     for (let i = von; i < bis; i++) { const q = gruenderPlatz(i, n); x += q[0]; z += q[1]; }
     x /= bis - von; z /= bis - von;

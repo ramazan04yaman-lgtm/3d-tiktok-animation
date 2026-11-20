@@ -27,6 +27,20 @@ export const HOF_EINHEIT = 0.0006;
  */
 /** So viele Einwohner haben einen festen Platz auf dem Hof (Reihen zu je 4; jede Figur behält ihren Platz). */
 export const GRUENDER = 200;
+/**
+ * DER GLAS-EIMER (ab Tag 7, Amerika): Alle Tropfen sitzen in einem riesigen Glas-Eimer.
+ * Lagen zu je 20 Tropfen (1 Mitte + 7 innen + 12 außen), 5 Lagen = 100 = voll -> nächstes Land.
+ * Maße in Hof-Einheiten; z = Süden (zur Kamera), Eimer-Mitte liegt EIMER.z südlich des Hof-Mittelpunkts.
+ */
+export const EIMER = { z: 1.5, proLage: 20, lage: 1.0, r: 2.35, hoehe: 5.2, boden: 0.15, voll: 100 };
+/** Platz von Tropfen i im Eimer: [x, y, z] in Hof-Einheiten. */
+export function eimerPlatz(i: number): [number, number, number] {
+  const lage = Math.floor(i / EIMER.proLage), j = i % EIMER.proLage;
+  let r = 0, a = 0;
+  if (j >= 1 && j <= 7) { r = 0.9; a = ((j - 1) / 7) * Math.PI * 2 + lage * 0.45; }
+  else if (j > 7) { r = 1.8; a = ((j - 8) / 12) * Math.PI * 2 + lage * 0.3; }
+  return [r * Math.cos(a), EIMER.boden + lage * EIMER.lage, EIMER.z + r * Math.sin(a)];
+}
 /** Abstand der Reihen in der Gemeinschaft (Hof-Einheiten). */
 export const GEMEINSCHAFT_REIHE = 2.3;
 /** Spalten der Gemeinschaft bei n Einwohnern. */
@@ -103,6 +117,8 @@ export class People {
   }
   /** Noch nicht angekommen (unsichtbar)? */
   unsichtbar(i: number): boolean { const l = this.seitLandung(i); return l !== null && l < -FALLZEIT; }
+  /** Alle Tropfen sitzen im Glas-Eimer (statt in Reihen auf der Wiese). */
+  eimer = false;
   /** Heimat der Gemeinschaft (null = Stadt von Einwohner Nr. 1 wie bisher). */
   heimat: { lat: number; lon: number; name: string } | null = null;
   /** Heimat ändern (z. B. Amerika): alle Plätze neu berechnen (Reihen/Nummern bleiben gleich). */
@@ -249,15 +265,21 @@ export class People {
       const walking = tc < 4;
       const walkT = Math.floor((time + p.phase * 3) / cyc) * 4 + Math.min(tc, 4);  // nur Laufzeit zählt für den Weg
       const a = p.angle + walkT * p.speed / p.radius;
-      const r = p.radius * Math.min(s, 0.0009) * (this.shown <= GRUENDER ? (this.nah ? 0.08 : 0.6) : 2.2);
+      const r = p.radius * Math.min(s, 0.0009) * (this.eimer ? 0 : this.shown <= GRUENDER ? (this.nah ? 0.08 : 0.6) : 2.2);
       tmp.copy(p.base);
-      if (this.shown <= GRUENDER && i < GRUENDER) {
+      let eimerY = 0;
+      if (this.eimer && i < GRUENDER) {
+        const [x, y, z] = eimerPlatz(i);
+        tmp.addScaledVector(p.east, x * HOF_EINHEIT).addScaledVector(p.north, -z * HOF_EINHEIT);
+        eimerY = y * HOF_EINHEIT;
+      } else if (this.shown <= GRUENDER && i < GRUENDER) {
         // Gründer nebeneinander vor dem Haus
         const [x, z] = gruenderPlatz(i, this.shown);
         tmp.addScaledVector(p.east, x * HOF_EINHEIT).addScaledVector(p.north, -z * HOF_EINHEIT);
       }
       // auf einer Plattform: gleiche Richtung, aber auf deren Höhe (Gründer behalten so ihren Platz nebeneinander)
       for (const pl of this.platforms) if (pl.active && p.up.dot(pl.up) > pl.cosR) tmp.setLength(pl.r);
+      if (eimerY) tmp.addScaledVector(p.up, eimerY);
       tmp.addScaledVector(p.east, Math.cos(a) * r).addScaledVector(p.north, Math.sin(a) * r);
       const step = time * 7 + p.phase;
       if (walking) tmp.addScaledVector(p.up, Math.abs(Math.sin(step)) * 0.06 * s);
