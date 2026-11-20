@@ -13,6 +13,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 5. **„Warum und wie furzen Menschen?“** — `--project gut`
 6. **„Warum schneidet Papier?“** — `--project papercut`
 7. **„Was wächst in deinem Duschkopf?“** — `--project shower`
+8. **„Der Riss im Holzlöffel“** — `--project spoon`
 
 ```bash
 npm install
@@ -217,3 +218,7 @@ Narration `audio/papercut-voice.json` (Felix, natural speed). Hook: edge slides 
 ## Episode 7 — Duschkopf (shower)
 
 Narration `audio/shower-voice.json` (Felix, natural speed). Hook: crooked jets + clogged rubber nozzles (0–6 s); section through the head with residual water; time-lapse (weeks HUD): limescale crystals, pink/brown biofilm, biofilm magnifier, clogged nozzles deflect the jets; x-ray figure (gut episode) inhales aerosol into the lungs ("meist harmlos"); surprise: mycobacteria up to > 100× above tap water in some showerheads (Feazel et al., PNAS 2009 — verify before publishing); fix: rub nozzles, descale, run hot water.
+
+## Episode 8 — Holzlöffel (spoon)
+
+Narration `audio/spoon-voice.json` (Felix, natural speed). Hook: dark line in the bowl = crack (0–7 s); magnified wood block (rings, open pores) + vessel magnifier (water, then fat creep in by capillarity); swelling/shrinking until the block cracks; sauce, meat juice and fat pressed into the V crack; dishwasher cycles (HUD) deepen it; bacteria colonise the moist gap, rinse water stays on top; surprise: on intact wood bacteria are drawn into the pores and mostly die as it dries (wooden-board studies, Univ. of Wisconsin, 1990s); fix: hand wash, dry, replace cracked spoons.
