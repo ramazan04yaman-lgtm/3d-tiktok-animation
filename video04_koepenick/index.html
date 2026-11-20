@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { SHOTS, setEnv } from './shots.js';
+import * as L from './lib.js';
+const W = +(new URLSearchParams(location.search).get('w') || 1080), H = Math.round(W * 16 / 9);
+const PLAN = await (await fetch('build/plan.json')).json();
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setSize(W, H); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.08; r.outputColorSpace = THREE.SRGBColorSpace;
+const pm = new THREE.PMREMGenerator(r); setEnv(pm.fromScene(new RoomEnvironment(), 0.04).texture);
+const blm = document.createElement('canvas'); blm.width = W / 4; blm.height = H / 4; const bg = blm.getContext('2d');
+const out = document.createElement('canvas'); out.width = W; out.height = H; document.body.appendChild(out); const g = out.getContext('2d');
+const shots = PLAN.shots, words = PLAN.words, chunks = PLAN.chunks;
+let cur = null, upd = null; const ctx = { scene: null, camera: new THREE.PerspectiveCamera(50, W / H, 0.05, 30000), T: 0 };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const noise = (t, s) => Math.sin(t * 13.1 + s) * 0.5 + Math.sin(t * 27.7 + s * 2) * 0.3 + Math.sin(t * 51.3 + s * 3) * 0.2;
+
+// ---- keyword colours for subtitles
+const KEY = { yellow: ['UNIFORM', 'RATHAUS', 'BERLIN', '1906', 'WILHELM', 'VOIGT', 'SCHUSTER', 'PASS', 'ARBEIT', 'PREUSSEN', 'PREUßEN', 'TRÖDLER', 'HAUPTMANNS', 'HAUPTMANN', '16', 'OKTOBER', 'SOLDATEN', 'ZUG', 'KÖPENICK', 'BÜRGERMEISTER', 'STADTKASSE', '4000', 'MARK', 'ZEITUNGEN', 'KAISER', 'DEUTSCHLAND', 'MITKOMMEN'],
+  red: ['GEFÄNGNIS', 'VERHAFTEN', 'VERHAFTET', 'VERURTEILT', 'BESETZT', 'BESCHLAGNAHMT', 'NIEMAND', 'ARMER', 'KEINE', 'KEINEN', 'FALSCHEN', 'EROBERTE'],
+  green: ['GEHORCHT', 'GEHORCHEN', 'SOFORT', 'BEGNADIGT', 'LACHT', 'LUSTIG', 'WAHREN', 'GESCHICHTE', 'VERSCHWINDET'] };
+const COL = { yellow: '#FFD60A', red: '#FF453A', green: '#4CFF7A' };
+function keyCol(w) { const u = w.toUpperCase().replace(/[.,:!?]/g, ''); for (const k in KEY) if (KEY[k].includes(u)) return COL[k]; return null; }
+const isKey = w => !!keyCol(w.w);
+
+function captions(T) {
+  const c = chunks.find(c => T >= c.t0 && T < c.t1); if (!c) return;
+  const ws = c.idx.map(i => words[i]); const base = W * 0.074; const sp = base * 0.38; const maxW = W * 0.84;
+  g.font = `900 ${base}px "Inter Display"`; const widths = ws.map(w => g.measureText(w.w.toUpperCase()).width);
+  // fixed size; wrap into max 2 lines
+  const lines = [[]]; let lw = 0; ws.forEach((w, i) => { const add = widths[i] + (lines[lines.length - 1].length ? sp : 0); if (lw + add > maxW && lines[lines.length - 1].length) { lines.push([]); lw = 0; } lines[lines.length - 1].push(i); lw += widths[i] + (lines[lines.length - 1].length > 1 ? sp : 0); });
+  const k = clamp((T - c.t0) / 0.12); const pop = 0.86 + 0.14 * (1 - Math.pow(1 - k, 3)); const lh = base * 1.18;
+  g.save(); g.translate(W / 2, H * 0.64 - (lines.length - 1) * lh / 2); g.scale(pop, pop); g.textBaseline = 'middle'; g.textAlign = 'left'; g.lineJoin = 'round';
+  lines.forEach((ln, li) => {
+    const tw = ln.reduce((a, i) => a + widths[i], 0) + sp * (ln.length - 1); let x = -tw / 2; const y = li * lh;
+    ln.forEach(i => { const w = ws[i]; const txt = w.w.toUpperCase(); const next = ws[i + 1]; const active = T >= w.t0 && (!next || T < next.t0); const said = T >= w.t0 - 0.02;
+      const col = keyCol(w.w); const ww = widths[i]; const s = active ? 1.07 : 1;
+      g.save(); g.translate(x + ww / 2, y); g.scale(s, s); g.translate(-ww / 2, 0); g.font = `900 ${base}px "Inter Display"`; g.globalAlpha = said ? 1 : 0.55;
+      g.shadowColor = 'rgba(0,0,0,0.6)'; g.shadowBlur = base * 0.22; g.shadowOffsetY = base * 0.07; g.lineWidth = base * 0.19; g.strokeStyle = '#000'; g.strokeText(txt, 0, 0); g.shadowColor = 'transparent';
+      g.fillStyle = col || '#fff'; g.fillText(txt, 0, 0);
+      if (active) { g.fillStyle = col || '#fff'; g.globalAlpha = 0.9; g.fillRect(0, base * 0.52, ww, base * 0.07); }
+      g.restore(); x += ww + sp; });
+  });
+  g.restore();
+}
+function hud(alt) {
+  const txt = typeof alt === 'string' ? alt : 'HÖHE  ' + alt.toLocaleString('de-DE') + ' m'; const s = W * 0.042;
+  g.save(); g.font = `800 ${s}px "Inter Display"`; const tw = g.measureText(txt).width; const x = W * 0.06, y = H * 0.125, pw = tw + s * 2.4, ph = s * 1.7;
+  g.fillStyle = 'rgba(10,20,35,0.55)'; g.beginPath(); g.roundRect(x, y, pw, ph, ph / 2); g.fill(); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#FFD60A'; g.beginPath(); g.moveTo(x + s * 0.7, y + ph * 0.7); g.lineTo(x + s * 1.15, y + ph * 0.28); g.lineTo(x + s * 1.6, y + ph * 0.7); g.fill();
+  g.fillStyle = '#fff'; g.textBaseline = 'middle'; g.fillText(txt, x + s * 1.95, y + ph / 2 + 2); g.restore();
+}
+function grade(kind) {
+  const v = g.createRadialGradient(W / 2, H * 0.48, W * 0.35, W / 2, H / 2, H * 0.62);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, kind === 'night' ? 'rgba(5,10,40,0.6)' : 'rgba(0,0,0,0.38)'); g.fillStyle = v; g.fillRect(0, 0, W, H);
+  if (kind === 'dream') { const d = g.createRadialGradient(W / 2, H / 2, W * 0.3, W / 2, H / 2, H * 0.6); d.addColorStop(0, 'rgba(255,250,235,0)'); d.addColorStop(1, 'rgba(255,248,230,0.75)'); g.fillStyle = d; g.fillRect(0, 0, W, H); }
+  if (kind === 'warm') { g.fillStyle = 'rgba(255,140,60,0.08)'; g.fillRect(0, 0, W, H); }
+}
+window.DUR = PLAN.duration;
+window.renderFrame = (T, q = 0.93) => {
+  const si = shots.findIndex(s => T >= s.t0 && T < s.t1); const sh = shots[si < 0 ? shots.length - 1 : si];
+  if (cur !== sh) { cur = sh; L.resetReg(); ctx.scene = new THREE.Scene(); upd = SHOTS[sh.n](ctx); }
+  Object.assign(ctx, { T, tag: null, alt: null, shake: 0, flash: 0, grade: null, hand: 1, roll: 0 }); L.WIND.v = 1;
+  const lt = T - sh.t0, u = Math.min(1, lt / (sh.t1 - sh.t0)); upd(u, lt);
+  L.REG.tickers.forEach(f => f(lt, T));
+  // keyword punch-in zoom + shake
+  let bump = 0; for (const w of words) { const k = T - w.t0; if (w.key && k >= 0 && k < 0.4) bump = Math.max(bump, Math.sin(k / 0.4 * Math.PI) * (k < 0.08 ? k / 0.08 : 1)); }
+  const cam = ctx.camera; cam.fov *= 1 - 0.05 * bump; cam.updateProjectionMatrix();
+  if (ctx.shake) { cam.rotateX(noise(T, 1) * 0.018 * ctx.shake); cam.rotateY(noise(T, 7) * 0.018 * ctx.shake); cam.rotateZ(noise(T, 3) * 0.012 * ctx.shake); }
+  r.render(ctx.scene, cam);
+  // transitions: whip-pan on new sentence, zoom-punch on cuts inside a sentence
+  const tr = 0.16; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  if (lt < tr && si > 0) {
+    const k = lt / tr, e = 1 - Math.pow(1 - k, 3);
+    if (sh.first) { const off = (1 - e) * W * 0.5 * (sh.dir || 1); for (let i = 0; i < 6; i++) { g.globalAlpha = i ? 0.22 : 1; g.drawImage(r.domElement, off * (1 - i * 0.12) - (i * W * 0.03 * (1 - e)) * (sh.dir || 1), 0); } g.globalAlpha = 1; }
+    else { const s = 1 + 0.14 * (1 - e); for (let i = 0; i < 4; i++) { const ss = s + i * 0.03 * (1 - e); g.globalAlpha = i ? 0.25 : 1; g.drawImage(r.domElement, (W - W * ss) / 2, (H - H * ss) / 2, W * ss, H * ss); } g.globalAlpha = 1; }
+  } else g.drawImage(r.domElement, 0, 0);
+  // soft bloom on highlights + gentle colour grade
+  bg.filter = 'brightness(0.75) contrast(2.2) saturate(1.3) blur(5px)'; bg.clearRect(0, 0, blm.width, blm.height); bg.drawImage(out, 0, 0, blm.width, blm.height);
+  g.save(); g.globalCompositeOperation = 'screen'; g.globalAlpha = 0.28; g.drawImage(blm, 0, 0, W, H); g.restore();
+  g.save(); g.globalCompositeOperation = 'soft-light'; g.globalAlpha = 0.18; const cg = g.createLinearGradient(0, 0, 0, H); cg.addColorStop(0, '#5a8fd0'); cg.addColorStop(1, '#f0a050'); g.fillStyle = cg; g.fillRect(0, 0, W, H); g.restore();
+  // iris (silent-film) transition at chapter starts
+  if (sh.iris && lt < 0.45) { const k = lt / 0.45, e = 1 - Math.pow(1 - k, 3); const R = Math.hypot(W, H) * 0.55 * e; g.save(); g.fillStyle = '#000'; g.beginPath(); g.rect(0, 0, W, H); g.arc(W / 2, H * 0.45, Math.max(1, R), 0, Math.PI * 2, true); g.fill('evenodd'); g.restore(); }
+  grade(ctx.grade);
+  if (upd.overlay) upd.overlay(g, W, H, u, T, lt);
+  if (ctx.alt != null) hud(ctx.alt); else if (ctx.tag) hud(ctx.tag);
+  if (ctx.flash > 0) { g.fillStyle = `rgba(255,255,255,${Math.min(0.9, ctx.flash)})`; g.fillRect(0, 0, W, H); }
+  captions(T);
+  return out.toDataURL('image/jpeg', q);
+};
+await document.fonts.load('900 40px "Inter Display"'); await document.fonts.load('800 40px "Inter Display"');
+window.READY = true;
+</script></body></html>

@@ -1,0 +1,19 @@
+[
+ {"say": "Dieser Mann eroberte mit einer gebrauchten Uniform ein ganzes Rathaus.", "cap": "Dieser Mann eroberte mit einer gebrauchten Uniform ein ganzes Rathaus.", "shots": ["h_rathaus", "h_uniform", "h_salute"], "pause": 0.3},
+ {"say": "Berlin, neunzehnhundertsechs. Wilhelm Voigt ist ein armer Schuster, gerade aus dem Gefängnis entlassen.", "cap": "Berlin, 1906. Wilhelm Voigt ist ein armer Schuster, gerade aus dem Gefängnis entlassen.", "shots": ["berlin_wide", "voigt_cobbler", "voigt_gate"]},
+ {"say": "Ohne Pass bekommt er keine Arbeit. Und ohne Arbeit bekommt er keinen Pass.", "cap": "Ohne Pass bekommt er keine Arbeit. Und ohne Arbeit bekommt er keinen Pass.", "shots": ["office_no", "voigt_loop"]},
+ {"say": "Doch er bemerkt etwas: In Preußen gehorcht jeder einer Uniform.", "cap": "Doch er bemerkt etwas: In Preußen gehorcht jeder einer Uniform.", "shots": ["salute_street", "idea_face"], "pause": 0.25},
+ {"say": "Also kauft er beim Trödler die gebrauchte Uniform eines Hauptmanns.", "cap": "Also kauft er beim Trödler die gebrauchte Uniform eines Hauptmanns.", "shots": ["troedel_shop", "uniform_mirror"]},
+ {"say": "Am sechzehnten Oktober stellt er sich auf die Straße und hält einfach eine Gruppe Soldaten an.", "cap": "Am 16. Oktober stellt er sich auf die Straße und hält einfach eine Gruppe Soldaten an.", "shots": ["street_wait", "soldiers_come"]},
+ {"say": "Er befiehlt: Mitkommen! Und sie gehorchen sofort.", "cap": "Er befiehlt: Mitkommen! Und sie gehorchen sofort.", "shots": ["voigt_command", "march"], "pause": 0.2},
+ {"say": "Mit dem Zug fahren sie nach Köpenick.", "cap": "Mit dem Zug fahren sie nach Köpenick.", "shots": ["train_ext", "train_int"]},
+ {"say": "Dort besetzt er das Rathaus und lässt den Bürgermeister verhaften.", "cap": "Dort besetzt er das Rathaus und lässt den Bürgermeister verhaften.", "shots": ["rathaus_storm", "mayor_arrest"]},
+ {"say": "Dann beschlagnahmt er die Stadtkasse. Über viertausend Mark.", "cap": "Dann beschlagnahmt er die Stadtkasse. Über 4000 Mark.", "shots": ["cashbox", "money_count"]},
+ {"say": "Und niemand stellt eine einzige Frage.", "cap": "Und niemand stellt eine einzige Frage.", "shots": ["clerks_salute"], "pause": 0.3},
+ {"say": "Danach verschwindet er einfach mit dem Zug.", "cap": "Danach verschwindet er einfach mit dem Zug.", "shots": ["escape_station"], "pause": 0.3},
+ {"say": "Ganz Deutschland lacht. Die Zeitungen nennen ihn: Der Hauptmann von Köpenick.", "cap": "Ganz Deutschland lacht. Die Zeitungen nennen ihn: Der Hauptmann von Köpenick.", "shots": ["newsboy", "newspaper"]},
+ {"say": "Zehn Tage später wird er verhaftet und zu vier Jahren Gefängnis verurteilt.", "cap": "10 Tage später wird er verhaftet und zu 4 Jahren Gefängnis verurteilt.", "shots": ["arrest", "court"], "pause": 0.3},
+ {"say": "Doch sogar der Kaiser findet die Geschichte so lustig, dass er ihn begnadigt.", "cap": "Doch sogar der Kaiser findet die Geschichte so lustig, dass er ihn begnadigt.", "shots": ["kaiser_laugh", "release"], "pause": 0.35},
+ {"say": "Basierend auf einer wahren Geschichte. Such nach dem Hauptmann von Köpenick.", "cap": "Basierend auf einer wahren Geschichte. Such nach dem Hauptmann von Köpenick.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? Hättest du dem falschen Hauptmann gehorcht? Schreib es in die Kommentare!", "cap": "Und du? Hättest du dem falschen Hauptmann gehorcht? Schreib es in die Kommentare!", "shots": ["question"]}
+]
