@@ -6,48 +6,292 @@
   "figuren": "tropfen",
   "seit": "video-07",
   "stichtag": "2026-11-20",
-  "stimme": { "typ": "aufnahme", "datei": "aufnahmen/video-07-felix.mp3" },
-  "stimme_ki": { "typ": "piper", "modell": "tools/stimmen/de_DE-thorsten_emotional-medium.onnx", "sprecher": 0, "tempo": 0.78, "rauschen": 0.9, "betonung": 1.1, "beschleunigen": 1.15, "energie": true },
+  "stimme": {
+    "typ": "aufnahme",
+    "datei": "aufnahmen/video-07-felix.mp3"
+  },
+  "stimme_ki": {
+    "typ": "piper",
+    "modell": "tools/stimmen/de_DE-thorsten_emotional-medium.onnx",
+    "sprecher": 0,
+    "tempo": 0.78,
+    "rauschen": 0.9,
+    "betonung": 1.1,
+    "beschleunigen": 1.15,
+    "energie": true
+  },
   "beats": [
-    { "text": "{gruen:Fünf neue Tropfen} fallen vom Himmel!", "kamera": "neu1", "ankunft": true, "hook": true, "anzeige": false, "min": 1.8 },
-    { "text": "{gelb:Wer sind sie?}", "kamera": "neue", "uebergang": 0.9, "hook": true, "min": 2.2,
-      "sticker": [{ "typ": "schild", "text": "+{neue_einwohner} NEUE EINWOHNER", "farbe": "gruen", "y": 14, "drehung": -3 }] },
-    { "text": "Und schau: Alle sind jetzt {blau:Wassertropfen!}", "kamera": "gemeinschaft", "uebergang": 1.4,
-      "sticker": [{ "typ": "schild", "text": "💧 NEU: UNSERE EINWOHNER SIND TROPFEN", "farbe": "blau", "y": 14, "drehung": -2 }] },
-    { "text": "{gruen:{einwohner}} Tropfen. So viele wie noch nie.", "kamera": "gemeinschaft",
-      "sticker": [{ "typ": "zahl", "label": "EINWOHNER", "von": "{einwohner_vorher}", "bis": "{einwohner}", "farbe": "gruen" }] },
-    { "text": "Und alle trinken.", "kamera": "hof", "uebergang": 1.4 },
-    { "text": "{blau:{pro_tag_genau}.} Jeden Tag.", "kamera": "hof",
-      "sticker": [{ "typ": "schild", "text": "🥤 {pro_tag_genau} PRO TAG", "farbe": "blau", "y": 14, "drehung": -3 }] },
-    { "text": "Eure Likes und {gelb:Kommentare?}", "kamera": "orbit", "uebergang": 0,
-      "sticker": [{ "typ": "schild", "text": "❤️ {neue_likes} · 💬 {neue_kommentare}", "farbe": "weiss", "y": 14, "drehung": -2 }] },
-    { "text": "Noch mal {blau:{extra_verbrauch}.}", "kamera": "orbit",
-      "sticker": [{ "typ": "zahl", "label": "EXTRA DURCH LIKES + KOMMENTARE", "bis": "{extra_verbrauch}", "farbe": "blau" }] },
-    { "text": "Doch jetzt wird es {rot:ernst:}", "kamera": "rueckflug", "uebergang": 1.6 },
-    { "text": "Über {rot:2.000 Liter} sind weg!", "sprache": "Über 2000 Liter sind weg!", "kamera": "rueckflug", "ueberraschung": true, "min": 2.8,
-      "sticker": [{ "typ": "zahl", "label": "SCHON GETRUNKEN", "bis": "{verbraucht_genau}", "farbe": "rot" },
-                  { "typ": "info", "y": 44, "zeilen": ["🌊 NOCH ÜBRIG ≈ 1,386 × 10²¹ L"] }] },
-    { "text": "Fast {rot:900 Liter} mehr.", "kamera": "rueckflug",
-      "sticker": [{ "typ": "schild", "text": "TAG 6: 1.318 L → TAG 7: 2.189 L", "farbe": "rot", "y": 14, "drehung": 2 }] },
-    { "text": "In nur {rot:zwei Tagen!}", "kamera": "space", "uebergang": 0,
-      "sticker": [{ "typ": "schild", "text": "📅 IN NUR 2 TAGEN", "farbe": "rot", "y": 14, "drehung": -3 }] },
-    { "text": "Das sind fast {blau:15 volle Badewannen.}", "kamera": "hof", "uebergang": 0,
-      "sticker": [{ "typ": "zahl", "label": "SO VIEL IST DAS", "bis": "🛁 × 15", "farbe": "blau" },
-                  { "typ": "info", "y": 44, "zeilen": ["1 BADEWANNE ≈ 150 L · 2.189 L ≈ 14,6 WANNEN"] }] },
-    { "text": "Am {gelb:ersten Tag:}", "kamera": "golf", "uebergang": 1.2, "min": 2,
-      "wasser": { "von": 0, "bis": 0 },
-      "sticker": [{ "typ": "schild", "text": "VORHER · TAG 1", "farbe": "weiss", "y": 14, "drehung": -2 }] },
-    { "text": "Und heute? Der Golf {rot:fällt trocken!}", "kamera": "golf", "min": 3.4,
-      "wasser": { "von": 0, "bis": "jetzt" },
-      "sticker": [{ "typ": "schild", "text": "NACHHER · TAG 7", "farbe": "rot", "y": 14, "drehung": 2 },
-                  { "typ": "schild", "text": "🔍 GRAFIK VERSTÄRKT – ZAHLEN EXAKT", "farbe": "weiss", "y": 22, "drehung": -1 }] },
-    { "text": "Und bei {gelb:100 Followern}", "kamera": "orbit", "uebergang": 1.4,
-      "sticker": [{ "typ": "zahl", "label": "NÄCHSTES ZIEL", "von": 0, "bis": "100", "einheit": "FOLLOWER", "farbe": "gelb" }] },
-    { "text": "wird jeder Like {rot:elfmal teurer.}", "kamera": "space", "uebergang": 1.2,
-      "sticker": [{ "typ": "schild", "text": "❤️ {like_ml} → 110 ml PRO LIKE", "farbe": "rot", "y": 14, "drehung": 2 }] },
-    { "text": "Noch {gelb:{fehlende_follower}.} Schaffen wir das?", "kamera": "gemeinschaft", "uebergang": 0, "min": 2.6,
-      "sticker": [{ "typ": "zahl", "label": "ES FEHLEN NOCH", "von": 0, "bis": "{fehlende_follower}", "einheit": "FOLLOWER", "farbe": "gelb" }] },
-    { "text": "Und wer fällt als Nächstes {gruen:vom Himmel?}", "kamera": "neu1", "uebergang": 1.6, "cliffhanger": true, "min": 3,
-      "sticker": [{ "typ": "profil" }] }
-  ]
+    {
+      "text": "Wer mir jetzt folgt, wird ein {blau:Wassertropfen!}",
+      "kamera": "neu1",
+      "ankunft": true,
+      "hook": true,
+      "anzeige": false,
+      "min": 1.8
+    },
+    {
+      "text": "Und lebt hier: in {rot:Amerika!}",
+      "kamera": "stadt",
+      "uebergang": 0,
+      "hook": true,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🇺🇸 WILLKOMMEN IN AMERIKA",
+          "farbe": "weissrot",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Heute sind {gruen:fünf Neue} gelandet.",
+      "kamera": "neue",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "+{neue_einwohner} NEUE EINWOHNER",
+          "farbe": "gruen",
+          "y": 14,
+          "drehung": 3
+        }
+      ],
+      "uebergang": 0
+    },
+    {
+      "text": "{gruen:{einwohner}} Tropfen. So viele wie noch nie.",
+      "kamera": "gemeinschaft",
+      "uebergang": 1.4,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "EINWOHNER",
+          "von": "{einwohner_vorher}",
+          "bis": "{einwohner}",
+          "farbe": "gruen"
+        }
+      ]
+    },
+    {
+      "text": "Und alle trinken.",
+      "kamera": "hof",
+      "uebergang": 1.4
+    },
+    {
+      "text": "{blau:{pro_tag_genau}.} Jeden Tag.",
+      "kamera": "hof",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "🥤 {pro_tag_genau} PRO TAG",
+          "farbe": "blau",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Eure Likes und {gelb:Kommentare?}",
+      "kamera": "orbit",
+      "uebergang": 0,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "❤️ {neue_likes} · 💬 {neue_kommentare}",
+          "farbe": "weiss",
+          "y": 14,
+          "drehung": -2
+        }
+      ]
+    },
+    {
+      "text": "Noch mal {blau:{extra_verbrauch}.}",
+      "kamera": "orbit",
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "EXTRA DURCH LIKES + KOMMENTARE",
+          "bis": "{extra_verbrauch}",
+          "farbe": "blau"
+        }
+      ]
+    },
+    {
+      "text": "Doch jetzt wird es {rot:ernst:}",
+      "kamera": "rueckflug",
+      "uebergang": 1.6
+    },
+    {
+      "text": "Über {rot:2.000 Liter} sind weg!",
+      "sprache": "Über 2000 Liter sind weg!",
+      "kamera": "rueckflug",
+      "ueberraschung": true,
+      "min": 2.8,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "SCHON GETRUNKEN",
+          "bis": "{verbraucht_genau}",
+          "farbe": "rot"
+        },
+        {
+          "typ": "info",
+          "y": 44,
+          "zeilen": [
+            "🌊 NOCH ÜBRIG ≈ 1,386 × 10²¹ L"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Fast {rot:900 Liter} mehr.",
+      "kamera": "rueckflug",
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "TAG 6: 1.318 L → TAG 7: 2.189 L",
+          "farbe": "rot",
+          "y": 14,
+          "drehung": 2
+        }
+      ]
+    },
+    {
+      "text": "In nur {rot:zwei Tagen!}",
+      "kamera": "space",
+      "uebergang": 0,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "📅 IN NUR 2 TAGEN",
+          "farbe": "rot",
+          "y": 14,
+          "drehung": -3
+        }
+      ]
+    },
+    {
+      "text": "Das sind fast {blau:15 volle Badewannen.}",
+      "kamera": "hof",
+      "uebergang": 0,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "SO VIEL IST DAS",
+          "bis": "🛁 × 15",
+          "farbe": "blau"
+        },
+        {
+          "typ": "info",
+          "y": 44,
+          "zeilen": [
+            "1 BADEWANNE ≈ 150 L · 2.189 L ≈ 14,6 WANNEN"
+          ]
+        }
+      ]
+    },
+    {
+      "text": "Am {gelb:ersten Tag:}",
+      "kamera": "florida",
+      "uebergang": 1.2,
+      "min": 2,
+      "wasser": {
+        "von": 0,
+        "bis": 0
+      },
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "VORHER · TAG 1",
+          "farbe": "weiss",
+          "y": 14,
+          "drehung": -2
+        }
+      ]
+    },
+    {
+      "text": "Und heute? Florida wird {rot:immer größer!}",
+      "kamera": "florida",
+      "min": 3.4,
+      "wasser": {
+        "von": 0,
+        "bis": "jetzt"
+      },
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "NACHHER · TAG 7",
+          "farbe": "rot",
+          "y": 14,
+          "drehung": 2
+        },
+        {
+          "typ": "schild",
+          "text": "🔍 GRAFIK VERSTÄRKT – ZAHLEN EXAKT",
+          "farbe": "weiss",
+          "y": 22,
+          "drehung": -1
+        }
+      ]
+    },
+    {
+      "text": "Und bei {gelb:100 Followern}",
+      "kamera": "orbit",
+      "uebergang": 1.4,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "NÄCHSTES ZIEL",
+          "von": 0,
+          "bis": "100",
+          "einheit": "FOLLOWER",
+          "farbe": "gelb"
+        }
+      ]
+    },
+    {
+      "text": "wird jeder Like {rot:elfmal teurer.}",
+      "kamera": "space",
+      "uebergang": 1.2,
+      "sticker": [
+        {
+          "typ": "schild",
+          "text": "❤️ {like_ml} → 110 ml PRO LIKE",
+          "farbe": "rot",
+          "y": 14,
+          "drehung": 2
+        }
+      ]
+    },
+    {
+      "text": "Noch {gelb:{fehlende_follower}.} Schaffen wir das?",
+      "kamera": "gemeinschaft",
+      "uebergang": 0,
+      "min": 2.6,
+      "sticker": [
+        {
+          "typ": "zahl",
+          "label": "ES FEHLEN NOCH",
+          "von": 0,
+          "bis": "{fehlende_follower}",
+          "einheit": "FOLLOWER",
+          "farbe": "gelb"
+        }
+      ]
+    },
+    {
+      "text": "Willst du der {gruen:nächste Tropfen} sein?",
+      "kamera": "neu1",
+      "uebergang": 1.6,
+      "cliffhanger": true,
+      "min": 3,
+      "sticker": [
+        {
+          "typ": "profil"
+        }
+      ]
+    }
+  ],
+  "ort": "amerika",
+  "namensschilder": false
 }

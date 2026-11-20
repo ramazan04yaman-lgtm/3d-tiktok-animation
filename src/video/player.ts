@@ -47,6 +47,7 @@ export class StoryPlayer {
     this.realDrain = realDrain; this.dayLabel = dayLabel;
     layer.innerHTML = '<div class="namen"></div><div class="stickers"></div><div class="caption"></div>';
     this.namenEl = layer.querySelector('.namen')!;
+    scene.setOrt(timeline.ort ?? 'hof');
     if (timeline.ankunft) scene.updateNeueShot(timeline.ankunft.von, timeline.ankunft.bis);
     document.body.classList.toggle('kompakt', timeline.anzeige === 'kompakt');
     scene.people.stil = timeline.figuren ?? 'menschen';
@@ -324,5 +325,5 @@ export class StoryPlayer {
     }
   }
 
-  dispose(): void { this.layer.innerHTML = ''; this.scene.people.ankunft = null; this.scene.people.stil = 'menschen'; document.body.classList.remove('kompakt', 'hud-aus'); }
+  dispose(): void { this.scene.setOrt('hof'); this.layer.innerHTML = ''; this.scene.people.ankunft = null; this.scene.people.stil = 'menschen'; document.body.classList.remove('kompakt', 'hud-aus'); }
 }

@@ -324,7 +324,7 @@ export function buildTimeline({ folge, snapshot, seit, sprechdauer, wortzeiten, 
   // letzter Untertitel bleibt bis zum Ende stehen
   if (captions.length) captions[captions.length - 1].end = t;
   if (!musik.length || musik[0].start > 0) musik.unshift({ start: 0, typ: 'ruhig' });
-  return { titel: folge.titel, figuren: folge.figuren, anzeige: folge.anzeige, ankunft, namen: Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
+  return { titel: folge.titel, ort: folge.ort, figuren: folge.figuren, anzeige: folge.anzeige, ankunft, namen: folge.namensschilder === false ? [] : Array.from(namen ?? [], (n) => n ?? null), konto: folge.konto ?? '@deinkonto', dauer: t, beats, captions, events: events.sort((a, b) => a.t - b.t), musik };
 }
 
 function fillSticker(s: Sticker, p: Record<string, string>): Sticker {

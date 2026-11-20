@@ -118,11 +118,93 @@ function bank(): THREE.Group {
   return g;
 }
 
+// ------------------------------------------------------------------ AMERIKA (Kleinstadt im Mittleren Westen)
+const strasseTex = () => canvasTex(512, 64, (g) => {
+  g.fillStyle = '#4a4e57'; g.fillRect(0, 0, 512, 64);
+  for (let i = 0; i < 2500; i++) { g.fillStyle = `rgba(255,255,255,${rnd() * 0.06})`; g.fillRect(rnd() * 512, rnd() * 64, 2, 2); }
+  g.fillStyle = '#f2f2f2'; g.fillRect(0, 3, 512, 3); g.fillRect(0, 58, 512, 3);          // weiße Randlinien
+  g.fillStyle = '#ffcc1f'; for (let x = 0; x < 512; x += 64) g.fillRect(x + 8, 29, 40, 6);  // gelbe Mittellinie (gestrichelt)
+});
+const flaggeTex = () => canvasTex(380, 200, (g) => {
+  for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#ffffff' : '#c8202f'; g.fillRect(0, (i * 200) / 13, 380, 200 / 13 + 1); }
+  g.fillStyle = '#25356f'; g.fillRect(0, 0, 152, (200 * 7) / 13);
+  g.fillStyle = '#ffffff';
+  for (let r = 0; r < 9; r++) for (let c = 0; c < (r % 2 ? 5 : 6); c++) {
+    const x = 13 + c * 25 + (r % 2 ? 12.5 : 0), y = 10 + r * 11.5;
+    g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? 2.2 : 5; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.fill();
+  }
+});
+const schildTex = (zeilen: string[], bg: string, fg: string) => canvasTex(512, 256, (g) => {
+  g.fillStyle = bg; g.fillRect(0, 0, 512, 256); g.strokeStyle = fg; g.lineWidth = 10; g.strokeRect(12, 12, 488, 232);
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  zeilen.forEach((z, i) => { g.font = `900 ${i === 1 ? 74 : 40}px Arial, sans-serif`; g.fillText(z, 256, 60 + i * 72); });
+});
+
+/** Amerikanisches Holzhaus mit Veranda (Säulen + Vordach). */
+function usHaus(wand: string, dach: string): THREE.Group {
+  const g = haus(wand, dach, 2.4);
+  const vordach = teil(new THREE.BoxGeometry(3.4, 0.12, 1.2), '#ffffff', 0.02); vordach.position.set(0, 1.75, 1.95); g.add(vordach);
+  for (const x of [-1.5, 1.5]) { const s = teil(new THREE.CylinderGeometry(0.07, 0.07, 1.7, 10), '#ffffff', 0.015); s.position.set(x, 0.85, 2.45); g.add(s); }
+  const stufe = teil(new THREE.BoxGeometry(3.4, 0.2, 1.3), '#c9b79a', 0.015); stufe.position.set(0, 0.1, 1.95); g.add(stufe);
+  return g;
+}
+function briefkasten(farbe: string): THREE.Group {
+  const g = new THREE.Group();
+  const pfosten = teil(new THREE.BoxGeometry(0.1, 1.0, 0.1), '#8a5a33', 0.012); pfosten.position.y = 0.5;
+  const kasten = teil(new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(Math.PI / 2), farbe, 0.015);
+  kasten.position.y = 1.05;
+  const boden = teil(new THREE.BoxGeometry(0.4, 0.06, 0.6), farbe, 0.012); boden.position.y = 1.05;
+  const fahne = teil(new THREE.BoxGeometry(0.03, 0.28, 0.14), '#e0262f', 0.008); fahne.position.set(0.22, 1.2, 0.1);
+  g.add(pfosten, kasten, boden, fahne); return g;
+}
+function wasserturm(): THREE.Group {
+  const g = new THREE.Group();
+  for (const [x, z] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) {
+    const bein = teil(new THREE.CylinderGeometry(0.12, 0.16, 8, 10), '#c74a3a', 0.02); bein.position.set(x, 4, z); bein.rotation.set(-z * 0.04, 0, x * 0.04); g.add(bein);
+  }
+  const tank = teil(new THREE.CylinderGeometry(2.4, 2.4, 2.6, 32), smooth('#ffffff', { map: schildTex(['', 'WATER', ''], '#7cc6ff', '#ffffff') }), 0.04);
+  tank.position.y = 9.2; tank.rotation.y = Math.PI / 2;
+  const boden = teil(new THREE.SphereGeometry(2.4, 32, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), '#7cc6ff', 0.03); boden.position.y = 7.9;
+  const dach = teil(new THREE.ConeGeometry(2.6, 1.4, 32), '#c74a3a', 0.03); dach.position.y = 11.2;
+  g.add(tank, boden, dach); return g;
+}
+function scheune(): THREE.Group {
+  const g = new THREE.Group();
+  const wand = teil(new THREE.BoxGeometry(5, 3.6, 6), '#b8322a'); wand.position.y = 1.8;
+  const dach = teil(new THREE.CylinderGeometry(0.05, 3.4, 2.2, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 1.25), '#3d3a3a'); dach.position.y = 4.7;
+  const tor = teil(new THREE.BoxGeometry(2, 2.4, 0.08), '#ffffff', 0.02); tor.position.set(0, 1.2, 3.02);
+  const tor2 = teil(new THREE.BoxGeometry(1.8, 2.2, 0.06), '#b8322a', 0.015); tor2.position.set(0, 1.2, 3.06);
+  const x1 = teil(new THREE.BoxGeometry(2.8, 0.14, 0.04).rotateZ(0.83), '#ffffff', 0); x1.position.set(0, 1.2, 3.1);
+  const x2 = teil(new THREE.BoxGeometry(2.8, 0.14, 0.04).rotateZ(-0.83), '#ffffff', 0); x2.position.set(0, 1.2, 3.1);
+  g.add(wand, dach, tor, tor2, x1, x2); return g;
+}
+function schulbus(): THREE.Group {
+  const g = new THREE.Group();
+  const fenster = canvasTex(512, 128, (c) => {
+    c.fillStyle = '#ffc21a'; c.fillRect(0, 0, 512, 128);
+    c.fillStyle = '#1b2333'; for (let x = 24; x < 480; x += 58) c.fillRect(x, 18, 46, 40);
+    c.fillRect(0, 76, 512, 8); c.font = '900 26px Arial'; c.fillText('SCHOOL BUS', 170, 112);
+  });
+  const koerper = teil(new THREE.BoxGeometry(6, 1.7, 1.8), smooth('#ffffff', { map: fenster }), 0.03); koerper.position.y = 1.25;
+  const haube = teil(new THREE.BoxGeometry(1.0, 1.0, 1.7), '#ffc21a', 0.03); haube.position.set(3.45, 0.9, 0);
+  for (const [x, z] of [[-2, 0.9], [2.2, 0.9], [-2, -0.9], [2.2, -0.9]]) {
+    const rad = teil(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 18).rotateX(Math.PI / 2), '#1b1d24', 0.02); rad.position.set(x, 0.42, z); g.add(rad);
+  }
+  g.add(koerper, haube); return g;
+}
+function hydrant(): THREE.Group {
+  const g = new THREE.Group();
+  const k = teil(new THREE.CylinderGeometry(0.2, 0.24, 0.7, 14), '#e0262f', 0.015); k.position.y = 0.35;
+  const kopf = teil(new THREE.SphereGeometry(0.21, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), '#e0262f', 0.015); kopf.position.y = 0.7;
+  const seite = teil(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 10).rotateZ(Math.PI / 2), '#e0262f', 0.012); seite.position.y = 0.5;
+  g.add(k, kopf, seite); return g;
+}
+
 export interface Diorama { group: THREE.Group; update(t: number, camDist: number): void; radius: number }
 
 /** Baut die Umgebung. "hof" = Haus von Mensch Nr. 1, "dorf" = Dorfplatz mit Brunnen. */
-export function createDiorama(art: 'hof' | 'dorf'): Diorama {
-  seed = art === 'hof' ? 11 : 23;
+export function createDiorama(art: 'hof' | 'dorf' | 'amerika'): Diorama {
+  seed = art === 'hof' ? 11 : art === 'amerika' ? 31 : 23;
   const g = new THREE.Group();
   const R = 60;
   // Boden: Wiese mit Struktur, Rand verschwindet im Dunst (Nebel)
@@ -160,7 +242,42 @@ export function createDiorama(art: 'hof' | 'dorf'): Diorama {
   g.add(deko);
   const wegMat = smooth('#ffffff', { map: wegTex(), roughness: 0.9 });
   let wasser: THREE.Mesh | null = null;
-  if (art === 'hof') {
+  let flagge: THREE.Mesh | null = null;
+  if (art === 'amerika') {
+    // Straße (Ost-West) hinter der Gemeinschaft, Gehweg, Häuser mit Veranda auf der Nordseite
+    const strasse = new THREE.Mesh(new THREE.PlaneGeometry(90, 3.2).rotateX(-Math.PI / 2), smooth('#ffffff', { map: (() => { const t = strasseTex(); t.repeat.set(9, 1); return t; })(), roughness: 0.9 }));
+    strasse.position.set(0, 0.012, -3.7); strasse.receiveShadow = true; deko.add(strasse);
+    const gehweg = new THREE.Mesh(new THREE.PlaneGeometry(90, 1.1).rotateX(-Math.PI / 2), smooth('#d9d6cf', { roughness: 0.9 }));
+    gehweg.position.set(0, 0.014, -5.95); gehweg.receiveShadow = true; deko.add(gehweg);
+    const haeuser: [number, string, string][] = [[-13, '#dceeff', '#3c5a8a'], [-4.5, '#fffaf0', '#a8352d'], [4.5, '#fff0c2', '#5a6b7a'], [13, '#e3f6e9', '#2f5f4a']];
+    for (const [x, wand, dach] of haeuser) {
+      const h = usHaus(wand, dach); h.position.set(x, 0, -10.5); deko.add(h);
+      const bk = briefkasten(['#2f5fbf', '#2a2f45', '#e0262f', '#2aa36b'][haeuser.findIndex((q) => q[0] === x)]); bk.position.set(x + 2.2, 0, -6.7); deko.add(bk);
+      const z = zaun(5); z.position.set(x - 0.4, 0, -6.9); deko.add(z);
+      const b = baum(1.2 + rnd() * 0.3); b.position.set(x + 3.6, 0, -11.5); deko.add(b);
+    }
+    // US-Flagge am Mast (weht im Wind)
+    const mast = teil(new THREE.CylinderGeometry(0.06, 0.09, 6.5, 12), '#d9dde6', 0.015); mast.position.set(-7.2, 3.25, -1.6); deko.add(mast);
+    const kugel = teil(new THREE.SphereGeometry(0.14, 12, 10), '#ffd23a', 0.01); kugel.position.set(-7.2, 6.55, -1.6); deko.add(kugel);
+    flagge = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.37, 24, 8), smooth('#ffffff', { map: flaggeTex(), side: THREE.DoubleSide }));
+    flagge.position.set(-7.2 + 1.3, 5.7, -1.6); flagge.castShadow = true; deko.add(flagge);
+    // Wasserturm, rote Scheune, Schulbus, Hydrant, Laternen, Ortsschild
+    const wt = wasserturm(); wt.position.set(17, 0, -22); deko.add(wt);
+    const sch = scheune(); sch.position.set(-20, 0, -20); sch.rotation.y = 0.5; deko.add(sch);
+    const bus = schulbus(); bus.position.set(-15, 0, -3.7); deko.add(bus);
+    const hy = hydrant(); hy.position.set(6.4, 0, -1.6); deko.add(hy);
+    for (const x of [-10, 9.5]) { const l = laterne(); l.position.set(x, 0, -1.7); deko.add(l); }
+    const schild = new THREE.Group();
+    const tafel = teil(new THREE.BoxGeometry(3.2, 1.6, 0.1), smooth('#ffffff', { map: schildTex(['WELCOME TO', 'DROPTOWN', 'U.S.A.'], '#1f6b3a', '#ffffff') }), 0.02);
+    tafel.position.y = 1.9; schild.add(tafel);
+    for (const x of [-1.3, 1.3]) { const p = teil(new THREE.BoxGeometry(0.12, 1.2, 0.12), '#d9dde6', 0.012); p.position.set(x, 0.6, 0); schild.add(p); }
+    schild.position.set(7.5, 0, 3); schild.rotation.y = -0.35; deko.add(schild);
+    for (let i = 0; i < 18; i++) {
+      const a = rnd() * Math.PI * 2, r = 22 + rnd() * 22, x = Math.cos(a) * r, z = Math.sin(a) * r;
+      if (Math.abs(x) < 8 && z > -2) continue;   // Platz der Gemeinschaft frei lassen
+      const b = baum(1 + rnd() * 0.7); b.position.set(x, 0, z); deko.add(b);
+    }
+  } else if (art === 'hof') {
     const h = haus('#fff1d6', '#e8553f'); h.position.set(-0.4, 0, -4.4); h.rotation.y = 0.05; deko.add(h);
     const weg = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 7).rotateX(-Math.PI / 2), wegMat); weg.position.set(-1.0, 0.01, 0.3); weg.receiveShadow = true; deko.add(weg);
     const z1 = zaun(9); z1.position.set(1.5, 0, -6.4); deko.add(z1);
@@ -194,15 +311,22 @@ export function createDiorama(art: 'hof' | 'dorf'): Diorama {
   // Büsche und Steine verteilt
   const busch = mergeGeometries([new THREE.SphereGeometry(0.45, 14, 10), new THREE.SphereGeometry(0.35, 12, 8).translate(0.4, -0.05, 0.1), new THREE.SphereGeometry(0.32, 12, 8).translate(-0.35, -0.08, -0.1)])!;
   for (let i = 0; i < 26; i++) {
-    const a = rnd() * Math.PI * 2, r = (art === 'hof' ? 5 : 14) + rnd() * 25;
+    const a = rnd() * Math.PI * 2, r = (art === 'hof' ? 5 : art === 'amerika' ? 8 : 14) + rnd() * 25;
+    if (art === 'amerika' && ((Math.abs(Math.cos(a) * r) < 8 && Math.sin(a) * r > -2) || Math.abs(Math.sin(a) * r + 3.7) < 2.2)) continue;   // nicht auf Gemeinschaft/Straße
     const b = teil(busch, ['#3faa3a', '#58c24a', '#2f8f3a'][i % 3], 0.03); b.position.set(Math.cos(a) * r, 0.3, Math.sin(a) * r); deko.add(b);
   }
   return {
     group: g, radius: R,
     update(t: number, camDist: number) {
+      if (flagge) {
+        // Flagge weht: Welle wächst vom Mast nach außen
+        const pos = flagge.geometry.attributes.position as THREE.BufferAttribute;
+        for (let i = 0; i < pos.count; i++) { const x = pos.getX(i) + 1.3; pos.setZ(i, Math.sin(x * 2.4 - t * 5) * 0.12 * x); }
+        pos.needsUpdate = true; flagge.geometry.computeVertexNormals();
+      }
       if (wasser) { wasser.position.y += Math.sin(t * 2.2) * 0.0008; (wasser.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.28 + Math.sin(t * 3) * 0.06; }
       // Himmel nur nahe der Umgebung zeigen (beim Heranfliegen weich einblenden)
-      const o = THREE.MathUtils.smoothstep(camDist, R * 2.6, R * 1.15);
+      const o = THREE.MathUtils.smoothstep(camDist, R * 1.15, R * 2.6);
       (sky.material as THREE.ShaderMaterial).uniforms.uOpacity.value = 1 - o;
       sky.visible = o < 0.999;
     },

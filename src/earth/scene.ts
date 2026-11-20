@@ -44,6 +44,12 @@ export class EarthScene {
   /** Detaillierte Umgebungen für Nahaufnahmen (gleicher Stil wie die Figuren). */
   private hof: Diorama = createDiorama('hof');
   private dorf: Diorama = createDiorama('dorf');
+  /** Amerikanische Kleinstadt ("Droptown", Kansas) – Heimat der Tropfen-Gemeinschaft ab Tag 7. */
+  private amerika: Diorama = createDiorama('amerika');
+  /** Welche Umgebung die Gemeinschaft hat. */
+  private hofArt: 'hof' | 'amerika' = 'hof';
+  /** Ort Kansas (Mitte der USA). */
+  static AMERIKA = { lat: 38.5, lon: -98.3, name: 'Droptown, USA' };
   private nahSonne = new THREE.DirectionalLight('#fff4e0', 2.4);
   private composer!: EffectComposer;
   private bloom!: UnrealBloomPass;
@@ -95,7 +101,8 @@ export class EarthScene {
     this.scene.add(this.straw);
     this.hof.group.visible = false;
     this.dorf.group.visible = false;
-    this.scene.add(this.hof.group, this.dorf.group);
+    this.amerika.group.visible = false;
+    this.scene.add(this.hof.group, this.dorf.group, this.amerika.group);
     // Schatten nur in den Nahaufnahmen (eigene Sonne, nur für die Umgebung)
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -136,18 +143,36 @@ export class EarthScene {
     return r;
   }
 
+  /** Sonne für die Nahaufnahmen der Gemeinschaft: schräg hinter der Kamera (Süden) -> klar beleuchtet, kein Gegenlicht-Schleier. */
+  static readonly SONNE_HINTEN: [number, number] = [-40, 35];
+
+  /** Heimat der Gemeinschaft wählen: "amerika" = Kleinstadt in Kansas, sonst der bisherige Hof. */
+  setOrt(ort: 'hof' | 'amerika'): void {
+    if (ort === this.hofArt && (ort === 'hof') === (this.people.heimat === null)) return;
+    this.hofArt = ort;
+    this.people.setHeimat(ort === 'amerika' ? EarthScene.AMERIKA : null);
+    this.updateFirstPerson();
+  }
+
   /** Kamera-Shot + Hof für Mensch Nr. 1 vorbereiten (nach setPopulation aufrufen). */
   updateFirstPerson(): void {
     const p = this.people.firstPerson();
     const k = EarthScene.HOF_K;
-    const r = this.place(this.hof, p.lat, p.lon, k, 0, 0.4);
+    // aktive Umgebung platzieren, die andere ausblenden (Position 0 = unsichtbar)
+    const aktiv = this.hofArt === 'amerika' ? this.amerika : this.hof;
+    (aktiv === this.hof ? this.amerika : this.hof).group.position.set(0, 0, 0);
+    const r = this.place(aktiv, p.lat, p.lon, k, 0, 0.4);
     this.hofOrt = { lat: p.lat, lon: p.lon, r };
     // Kamera ca. 5 Einheiten hoch, 9 Einheiten südlich – Blick auf Mensch Nr. 1 vor seinem Haus
     SHOTS.einwohner1 = { label: `🏠 Mensch Nr. 1 (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 2.3 * k, tilt: (4.6 * k) * 180 / Math.PI,
       focus: r + 0.7 * k, figur: k, spin: 0.002 };
+    // Stadtansicht (Amerika): flacher Blick von Süden über die Tropfen auf Straße, Häuser, Flagge und Wasserturm
+    const grad = (u: number) => (u * k) * 180 / Math.PI;
+    SHOTS.stadt = { label: '🇺🇸 Droptown – Blick auf die Stadt', lat: p.lat + grad(8), lon: p.lon + grad(-4.6) / Math.cos(p.lat * Math.PI / 180),
+      dist: r + 6.5 * k, tilt: grad(24), focus: r + 3.2 * k, figur: k, sonne: EarthScene.SONNE_HINTEN, spin: 0.0012 };
     // Etwas weiter weg: die ersten Einwohner (Gründer) zusammen vor dem Haus
     SHOTS.hof = { label: `🏠 Die ersten Einwohner (${p.city})`, lat: p.lat, lon: p.lon, dist: r + 5.2 * k, tilt: (9.6 * k) * 180 / Math.PI,
-      focus: r + 0.75 * k, figur: k };
+      focus: r + 0.75 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
     // Die Gemeinschaft (ab 5 Einwohnern): Übersicht von schräg oben + Kamerafahrt durch die Reihen
     const n = Math.min(this.people.anzahl, GRUENDER);
     const reihen = Math.ceil(n / gemeinschaftSpalten(n));
@@ -157,9 +182,9 @@ export class EarthScene {
     // steil von oben (≈60°), Blickpunkt etwas hinter der Mitte -> Gruppe sitzt unter der oberen Anzeige
     const tiefe = vorne - hinten + 3;
     SHOTS.gemeinschaft = { label: '👥 Die Gemeinschaft (alle Namen)', lat: latBei(mitte - tiefe * 0.08), lon: p.lon, dist: r + tiefe * 1.36 * k,
-      tilt: (tiefe * 0.8 * k) * 180 / Math.PI, focus: r + 0.5 * k, figur: k };
+      tilt: (tiefe * 0.8 * k) * 180 / Math.PI, focus: r + 0.5 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
     SHOTS.namen = { label: '🏷️ Kamerafahrt durch die Reihen', lat: latBei(vorne), lon: p.lon, dist: r + 5.2 * k, tilt: (8.6 * k) * 180 / Math.PI,
-      focus: r + 0.75 * k, figur: k, path: [[latBei(vorne - 0.8), p.lon], [latBei(hinten + 1.2), p.lon]], pathSeconds: 14, pathEinmal: true };
+      focus: r + 0.75 * k, figur: k, sonne: EarthScene.SONNE_HINTEN, path: [[latBei(vorne - 0.8), p.lon], [latBei(hinten + 1.2), p.lon]], pathSeconds: 14, pathEinmal: true };
   }
 
   private hofOrt: { lat: number; lon: number; r: number } | null = null;
@@ -173,11 +198,11 @@ export class EarthScene {
     const grad = (u: number) => (u * k) * 180 / Math.PI;
     // Blickpunkt etwas hinter den Neuen -> sie stehen in der Bildmitte statt oben
     SHOTS.neue = { label: '✨ Die neuen Einwohner', lat: lat - grad(z - 4.6), lon: lon + grad(x) / Math.cos(lat * Math.PI / 180),
-      dist: r + 12 * k, tilt: grad(18), focus: r + 0.8 * k, figur: k };
+      dist: r + 12 * k, tilt: grad(18), focus: r + 0.8 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
     // Nahaufnahme: Platz der ERSTEN neuen Figur (für einen Einstieg mit Wucht)
     const [x1, z1] = gruenderPlatz(von, n);
     SHOTS.neu1 = { label: '✨ Die erste Neue (nah)', lat: lat - grad(z1), lon: lon + grad(x1) / Math.cos(lat * Math.PI / 180),
-      dist: r + 2.2 * k, tilt: grad(4.8), focus: r + 0.95 * k, figur: k };
+      dist: r + 2.2 * k, tilt: grad(4.8), focus: r + 0.95 * k, figur: k, sonne: EarthScene.SONNE_HINTEN };
   }
 
   /** Höhe für eine Plattform: über dem höchsten Gelände im Umkreis (Grad), damit nichts durchschaut. */
@@ -269,12 +294,12 @@ export class EarthScene {
     this.people.figureSize = shot?.figur ?? THREE.MathUtils.clamp(altitude * 0.0065, 0.0006, 0.009);
     // Umgebungen: sichtbar, wenn die Kamera in der Nähe ist (Himmel blendet beim Heranfliegen ein)
     let nah = 0;
-    for (const [d, k] of [[this.hof, EarthScene.HOF_K], [this.dorf, EarthScene.DORF_K]] as const) {
+    for (const [d, k] of [[this.hof, EarthScene.HOF_K], [this.dorf, EarthScene.DORF_K], [this.amerika, EarthScene.HOF_K]] as const) {
       const dist = this.camera.position.distanceTo(d.group.position) / k;
       d.group.visible = d.group.position.lengthSq() > 0 && dist < d.radius * 4;
       if (d.group.visible) {
         d.update(time, dist);
-        nah = Math.max(nah, THREE.MathUtils.smoothstep(dist, d.radius * 2.6, d.radius * 1.15));
+        nah = Math.max(nah, 1 - THREE.MathUtils.smoothstep(dist, d.radius * 1.15, d.radius * 2.6));   // 1 = mitten in der Umgebung
         if (dist < d.radius * 2.6) {
           // Schatten-Sonne für diese Umgebung
           this.nahSonne.visible = true;
@@ -283,13 +308,15 @@ export class EarthScene {
           const sc = this.nahSonne.shadow.camera;
           sc.left = sc.bottom = -26 * k; sc.right = sc.top = 26 * k; sc.near = 5 * k; sc.far = 100 * k;
           sc.updateProjectionMatrix();
-          this.scene.fog = new THREE.Fog(new THREE.Color().setRGB(0.72, 0.86, 1.0, THREE.SRGBColorSpace), d.radius * 0.45 * k, d.radius * 0.97 * k);
+          this.scene.fog = new THREE.Fog(new THREE.Color().setRGB(0.72, 0.86, 1.0, THREE.SRGBColorSpace), d.radius * (d === this.amerika ? 0.8 : 0.45) * k, d.radius * (d === this.amerika ? 1.5 : 0.97) * k);
         }
       }
     }
     if (nah === 0) { this.nahSonne.visible = false; this.scene.fog = null; }
     // In der Umgebung: Weltall-Elemente ausblenden, Kamera-Nahgrenze anpassen (kein Flackern)
     this.stars.visible = nah < 0.98;
+    // Leuchteffekt nur im All – in den Umgebungen klare Farben ohne Schleier
+    this.bloom.strength = 0.45 * (1 - nah * 0.85);
     this.atmo.visible = nah < 0.98;
     if (nah > 0.98) this.clouds.visible = false;
     const nearNeu = THREE.MathUtils.clamp(altitude * 0.02, 0.000003, 0.001);

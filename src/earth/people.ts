@@ -103,6 +103,13 @@ export class People {
   }
   /** Noch nicht angekommen (unsichtbar)? */
   unsichtbar(i: number): boolean { const l = this.seitLandung(i); return l !== null && l < -FALLZEIT; }
+  /** Heimat der Gemeinschaft (null = Stadt von Einwohner Nr. 1 wie bisher). */
+  heimat: { lat: number; lon: number; name: string } | null = null;
+  /** Heimat ändern (z. B. Amerika): alle Plätze neu berechnen (Reihen/Nummern bleiben gleich). */
+  setHeimat(h: { lat: number; lon: number; name: string } | null): void {
+    this.heimat = h; this.persons = []; this.headPos = [];
+    const n = this.shown; this.shown = 0; this.setPopulation(BigInt(n));
+  }
   /** Anzahl gezeigter Figuren. */
   get anzahl(): number { return this.shown; }
   /** Wie viele echte Menschen eine Figur darstellt. */
@@ -142,6 +149,12 @@ export class People {
   }
 
   private makePerson(i: number): Person {
+    if (i === 0 && this.heimat) {
+      const { lat, lon, name } = this.heimat;
+      const h = Math.max(0, sampleElevation(this.assets, lat, lon));
+      return { lat, lon, city: name, base: latLonToVec3(lat, lon, 1 + (h * RELIEF_EXAGGERATION) / EARTH_RADIUS_M), ...tangentFrame(lat, lon),
+        angle: 0, radius: 0.5, speed: 0.3, phase: 0, drinkEvery: 4 };
+    }
     if (i > 0 && i < GRUENDER) {
       // Gründer: neben Mensch Nr. 1 auf dem Hof
       const p0 = this.persons[0] ?? this.makePerson(0);
