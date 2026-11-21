@@ -52,3 +52,11 @@ Improve the technical quality; never change the visual language.
 ## 10. Science & honesty
 - Facts checked; simplifications named in the project's `disclaimer`, the on-screen disclaimer and the README.
 - Respectful, non-sexualised anatomy (neutral mannequin), humour only through wording, never through cartoon looks.
+
+## 10. Call to action in the middle (every episode)
+- Around the middle of the video (≈ 28–34 s) the narration contains one short line asking viewers to
+  like and subscribe (e.g. „Wenn du mehr Maschinen von innen sehen willst – Like und abonnieren.“),
+  placed between two content sentences, not as a break in the story. Count it in the 125–135 words.
+- Show `<SubscribeCTA at={…} />` (`src/engine/components/Overlay.tsx`) in the overlay, starting when the
+  line is spoken (≈ 4.2 s: card slides in, heart pops, button flips to „Abonniert ✓“).
+- No 3D callout and no HUD during the CTA window (the card sits at top ≈ 430 px); captions stay.

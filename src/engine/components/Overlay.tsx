@@ -38,3 +38,37 @@ export function SceneChip({ timeline, hideBefore = 0 }: { timeline: Timeline; hi
 export function Disclaimer({ text }: { text: string }) {
   return <div className="mx-disclaimer">{text}</div>;
 }
+
+/**
+ * Mid-video call to action (series rule): "Like & abonnieren" card that slides in,
+ * the heart pops, the subscribe button flips to "Abonniert ✓". Deterministic in t.
+ */
+export function SubscribeCTA({ at, duration = 4.2, line = 'Mehr Maschinen von innen' }: { at: number; duration?: number; line?: string }) {
+  const t = useTime((s) => s.time);
+  const end = at + duration;
+  if (t < at - 0.05 || t > end + 0.05) return null;
+  const v = envelope(t, at, at + 0.5, end - 0.5, end);
+  const k = t - at;
+  // heart: pop at +0.8 s, fills red
+  const liked = k > 0.8;
+  const pop = liked ? 1 + 0.35 * Math.max(0, 1 - (k - 0.8) / 0.35) * Math.sin(Math.min(1, (k - 0.8) / 0.35) * Math.PI) : 1;
+  // button: pressed at +1.7 s
+  const subbed = k > 1.7;
+  const press = k > 1.6 && k < 1.85 ? 0.92 : 1;
+  return (
+    <div className="mx-cta" style={{ opacity: v, transform: `translate(-50%, ${(1 - v) * -30}px) scale(${0.94 + 0.06 * v})` }}>
+      <div className="mx-cta-heart" style={{ transform: `scale(${pop})` }}>
+        <svg viewBox="0 0 24 24" width="76" height="76">
+          <path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.3 4.5 6 4.5c2.2 0 3.6 1.2 6 3.6 2.4-2.4 3.8-3.6 6-3.6 3.7 0 5.6 3.9 4 7.2C19.5 16.4 12 21 12 21z" fill={liked ? '#ff3b5c' : 'none'} stroke={liked ? '#ff3b5c' : '#fff'} strokeWidth="1.8" />
+        </svg>
+      </div>
+      <div className="mx-cta-text">
+        <div className="mx-cta-title">Like &amp; abonnieren</div>
+        <div className="mx-cta-sub">{line}</div>
+      </div>
+      <div className={`mx-cta-btn${subbed ? ' on' : ''}`} style={{ transform: `scale(${press})` }}>
+        {subbed ? 'Abonniert ✓' : 'Abonnieren'}
+      </div>
+    </div>
+  );
+}

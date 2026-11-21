@@ -50,3 +50,11 @@ body.mx-render, body.mx-render #root { width: 1080px; height: 1920px; overflow: 
 .mx-hud-scale { display:flex; justify-content:space-between; margin-top:6px; font: 500 18px 'JetBrains Mono', monospace; color:#7d8a99; }
 .mx-hud-meta { font: 600 24px/1.45 Inter, sans-serif; color:#cfd8e3; text-align:right; font-variant-numeric: tabular-nums; white-space:nowrap; }
 .mx-on { color:#58c4ff; } .mx-off { color:#8899aa; }
+/* mid-video call to action */
+.mx-cta { position: absolute; left: 50%; top: 430px; width: 900px; display: flex; align-items: center; gap: 26px; padding: 26px 30px; border-radius: 34px; background: rgba(8,12,18,0.82); border: 3px solid rgba(255,59,92,0.55); box-shadow: 0 10px 50px rgba(0,0,0,0.6); }
+.mx-cta-heart { width: 76px; height: 76px; flex: none; }
+.mx-cta-text { flex: 1; min-width: 0; }
+.mx-cta-title { font: 800 46px/1.1 Inter, sans-serif; color: #fff; }
+.mx-cta-sub { margin-top: 6px; font: 600 31px/1.2 Inter, sans-serif; color: #c9d6e2; }
+.mx-cta-btn { flex: none; padding: 20px 28px; border-radius: 18px; background: #ff3b5c; font: 800 34px Inter, sans-serif; color: #fff; white-space: nowrap; }
+.mx-cta-btn.on { background: #2b3440; color: #cfd8e2; }
