@@ -1,0 +1,19 @@
+[
+ {"say": "Ganz England suchte den gestohlenen WM-Pokal. Gefunden hat ihn ein Hund.", "cap": "Ganz England suchte den gestohlenen WM-Pokal. Gefunden hat ihn ein Hund.", "shots": ["h_search", "h_dog"], "pause": 0.35},
+ {"say": "London, neunzehnhundertsechsundsechzig. Vier Monate vor der Weltmeisterschaft wird der Pokal in einer Ausstellung gezeigt.", "cap": "London, 1966. Vier Monate vor der Weltmeisterschaft wird der Pokal in einer Ausstellung gezeigt.", "shots": ["london_wide", "hall", "trophy_case"]},
+ {"say": "Doch am zwanzigsten März ist die Vitrine plötzlich leer.", "cap": "Doch am 20. März ist die Vitrine plötzlich leer.", "shots": ["guard_walk", "empty_case"], "pause": 0.3},
+ {"say": "Gestohlen. Am helllichten Tag, obwohl Wachleute im Gebäude waren.", "cap": "Gestohlen. Am helllichten Tag, obwohl Wachleute im Gebäude waren.", "shots": ["thief", "guards"]},
+ {"say": "Ganz England ist entsetzt. Die Zeitungen berichten jeden Tag.", "cap": "Ganz England ist entsetzt. Die Zeitungen berichten jeden Tag.", "shots": ["shock", "newspaper"], "pause": 0.25},
+ {"say": "Dann meldet sich ein Erpresser. Er will fünfzehntausend Pfund, sonst wird der Pokal eingeschmolzen.", "cap": "Dann meldet sich ein Erpresser. Er will 15.000 Pfund, sonst wird der Pokal eingeschmolzen.", "shots": ["phone", "melt"]},
+ {"say": "Die Polizei stellt ihm eine Falle und schnappt ihn. Aber der Pokal ist nicht bei ihm.", "cap": "Die Polizei stellt ihm eine Falle und schnappt ihn. Aber der Pokal ist nicht bei ihm.", "shots": ["trap", "arrest", "no_trophy"], "pause": 0.3},
+ {"say": "Eine ganze Woche lang: keine Spur.", "cap": "Eine ganze Woche lang: keine Spur.", "shots": ["no_trace"], "pause": 0.3},
+ {"say": "Dann, am siebenundzwanzigsten März. David Corbett geht mit seinem Hund Pickles spazieren.", "cap": "Dann, am 27. März. David Corbett geht mit seinem Hund Pickles spazieren.", "shots": ["street", "walk"]},
+ {"say": "Plötzlich schnüffelt Pickles an einem Paket unter einer Hecke. Eingewickelt in Zeitungspapier.", "cap": "Plötzlich schnüffelt Pickles an einem Paket unter einer Hecke. Eingewickelt in Zeitungspapier.", "shots": ["sniff", "package"]},
+ {"say": "David reißt das Papier auf. Und darin: der WM-Pokal!", "cap": "David reißt das Papier auf. Und darin: der WM-Pokal!", "shots": ["unwrap", "reveal"], "pause": 0.35},
+ {"say": "Er bringt ihn sofort zur Polizei. Und die verdächtigen zuerst ihn selbst.", "cap": "Er bringt ihn sofort zur Polizei. Und die verdächtigen zuerst ihn selbst.", "shots": ["station", "suspect"], "pause": 0.25},
+ {"say": "Doch dann wird Pickles zum Helden. Er kommt ins Fernsehen, spielt in einem Film mit und bekommt ein Jahr lang Hundefutter geschenkt.", "cap": "Doch dann wird Pickles zum Helden. Er kommt ins Fernsehen, spielt in einem Film mit und bekommt ein Jahr lang Hundefutter geschenkt.", "shots": ["hero", "tv", "dogfood"]},
+ {"say": "Und im Sommer gewinnt England die Weltmeisterschaft. Im Finale gegen Deutschland, mit dem berühmten Wembley-Tor.", "cap": "Und im Sommer gewinnt England die Weltmeisterschaft. Im Finale gegen Deutschland, mit dem berühmten Wembley-Tor.", "shots": ["stadium", "goal"], "pause": 0.3},
+ {"say": "Zur Siegesfeier durfte auch Pickles mitkommen.", "cap": "Zur Siegesfeier durfte auch Pickles mitkommen.", "shots": ["party"], "pause": 0.35},
+ {"say": "Das ist wirklich passiert. Such nach Pickles und dem WM-Pokal.", "cap": "Das ist wirklich passiert. Such nach Pickles und dem WM-Pokal.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? Was hättest du mit dem Pokal gemacht? Schreib es in die Kommentare!", "cap": "Und du? Was hättest du mit dem Pokal gemacht? Schreib es in die Kommentare!", "shots": ["question"]}
+]
