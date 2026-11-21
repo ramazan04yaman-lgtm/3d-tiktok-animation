@@ -92,8 +92,9 @@ export const heatingCamera = new CameraPath([
   orbit(37.0, LENS.cond, 6, 4, 3.0, { fov: 38 }),
   orbit(40.4, LENS.cond, -6, 4, 3.1, { fov: 38 }),
   // thermostat: head, then the section magnifier
-  orbit(43.6, [2.0, FLOOR + 1.6, -1.9], 28, 8, 1.8, { fov: 38 }),
-  orbit(46.0, LENS.thermo, 10, 4, 2.6, { fov: 38 }),
+  orbit(42.3, [0.3, 4.5, -2.0], 14, 4, 7.2, { fov: 38 }),
+  orbit(44.4, [2.0, FLOOR + 1.6, -1.9], 28, 8, 1.8, { fov: 38 }),
+  orbit(46.6, LENS.thermo, 10, 4, 2.6, { fov: 38 }),
   orbit(49.4, LENS.thermo, -4, 4, 2.7, { fov: 38 }),
   // reveal: setting 3 vs setting 5 side by side
   orbit(52.6, [0, FLOOR + 2.3, 0.2], 4, 4, 5.0, { fov: 38 }),
@@ -120,7 +121,7 @@ export const boilerXray = (t: number) => ramp(t, 6.0, 7.4) * (1 - 0.7 * ramp(t, 
 /** radiator front panel turns to x-ray */
 export const radXray = (t: number) => ramp(t, 15.8, 17.4) * (1 - ramp(t, 23.4, 24.6));
 export const lensCond = (t: number) => envelope(t, T.condense[0] + 1.6, T.condense[0] + 2.6, T.condense[1] - 0.3, T.condense[1] + 0.5);
-export const lensThermo = (t: number) => envelope(t, T.thermo[0] + 1.6, T.thermo[0] + 2.6, T.thermo[1] - 0.2, T.thermo[1] + 0.5);
+export const lensThermo = (t: number) => envelope(t, T.thermo[0] + 3.0, T.thermo[0] + 4.0, T.thermo[1] - 0.2, T.thermo[1] + 0.5);
 export const lensCmp = (t: number) => ramp(t, T.reveal[0] + 0.3, T.reveal[0] + 1.3);
 /** condensation progress inside the magnifier */
 export const condense = (t: number) => ramp(t, T.condense[0] + 2.6, T.condense[1] - 0.5);
@@ -147,8 +148,8 @@ export const labels = {
   cold: (t: number) => envelope(t, 24.0, 24.4, 26.0, 26.4),
   vapour: (t: number) => envelope(t, 36.4, 36.8, 38.6, 39.0),
   cond: (t: number) => envelope(t, 38.8, 39.2, 41.4, 41.8),
-  wax: (t: number) => envelope(t, 44.6, 45.0, 47.4, 47.8),
-  valve: (t: number) => envelope(t, 47.6, 48.0, 49.8, 50.2),
+  wax: (t: number) => envelope(t, 46.2, 46.6, 47.8, 48.2),
+  valve: (t: number) => envelope(t, 48.2, 48.6, 49.9, 50.3),
   s3: (t: number) => envelope(t, 51.4, 51.8, 60, 61),
   s5: (t: number) => envelope(t, 51.8, 52.2, 60, 61),
 };
