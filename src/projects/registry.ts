@@ -3,6 +3,7 @@ import { dishwasherProject } from './dishwasher';
 import { espressoProject } from './espresso';
 import { gutProject } from './gut';
 import { heartProject } from './heart';
+import { heatingProject } from './heating';
 import { kettleProject } from './kettle';
 import { microwaveProject } from './microwave';
 import { papercutProject } from './papercut';
@@ -19,5 +20,6 @@ export const projects: Record<string, ExplainerProject> = {
   [showerProject.id]: showerProject,
   [spoonProject.id]: spoonProject,
   [dishwasherProject.id]: dishwasherProject,
+  [heatingProject.id]: heatingProject,
 };
 export const defaultProjectId = kettleProject.id;

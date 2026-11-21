@@ -1,0 +1,145 @@
+{
+ "source": "audio/voice_felix_heating.mp3",
+ "video": "out/heating/heating.mp4",
+ "output": "out/heating/heating_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 56.0 s at natural speed; pauses lengthened (each ≤ 0.7 s) to fill the video.",
+ "segments": [
+  {
+   "text": "Wenn du das Thermostat auf fünf drehst, wird dein Zimmer nicht schneller warm.",
+   "src": [
+    0,
+    4.278
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "Im Keller verbrennt die Therme Gas.",
+   "src": [
+    4.723,
+    6.925
+   ],
+   "at": 4.964
+  },
+  {
+   "text": "Die Flamme erhitzt Wasser auf bis zu siebzig Grad.",
+   "src": [
+    7.25,
+    10.208
+   ],
+   "at": 7.735
+  },
+  {
+   "text": "Eine Pumpe drückt es durch Rohre zu jedem Heizkörper –",
+   "src": [
+    10.444,
+    13.881
+   ],
+   "at": 11.185
+  },
+  {
+   "text": "immer im Kreis.",
+   "src": [
+    14.052,
+    15.177
+   ],
+   "at": 15.05
+  },
+  {
+   "text": "Im Heizkörper fließt es oben hinein, gibt Wärme ab und fließt unten kühler zurück.",
+   "src": [
+    15.398,
+    21.283
+   ],
+   "at": 16.652
+  },
+  {
+   "text": "Warme Luft steigt auf, kalte sinkt nach – die Raumluft wälzt sich um.",
+   "src": [
+    21.559,
+    24.74
+   ],
+   "at": 23.07
+  },
+  {
+   "text": "Wenn du mehr Maschinen",
+   "src": [
+    24.88,
+    26.85
+   ],
+   "at": 26.648
+  },
+  {
+   "text": "von innen sehen willst –",
+   "src": [
+    27.28,
+    29.54
+   ],
+   "at": 29.202
+  },
+  {
+   "text": "Like und abonnieren.",
+   "src": [
+    29.73,
+    31.04
+   ],
+   "at": 31.908
+  },
+  {
+   "text": "Das Clevere:",
+   "src": [
+    31.45,
+    32.3
+   ],
+   "at": 33.799
+  },
+  {
+   "text": "Die Abgase kühlen so stark ab, dass ihr Wasserdampf kondensiert und noch einmal Wärme abgibt.",
+   "src": [
+    32.52,
+    38.75
+   ],
+   "at": 35.126
+  },
+  {
+   "text": "Und das Thermostat?",
+   "src": [
+    39.192,
+    40.219
+   ],
+   "at": 41.941
+  },
+  {
+   "text": "Darin sitzt eine Wachskapsel.",
+   "src": [
+    40.438,
+    42.579
+   ],
+   "at": 43.444
+  },
+  {
+   "text": "Wird es warm, dehnt sie sich aus und drückt das Ventil zu.",
+   "src": [
+    42.831,
+    46.428
+   ],
+   "at": 46.093
+  },
+  {
+   "text": "Stufe fünf heißt also nur: Erst bei etwa achtundzwanzig Grad zumachen.",
+   "src": [
+    46.755,
+    51.516
+   ],
+   "at": 50.259
+  },
+  {
+   "text": "Solange es kalt ist, ist das Ventil auf drei genauso weit offen.",
+   "src": [
+    51.81,
+    55.739
+   ],
+   "at": 55.571
+  }
+ ]
+}
