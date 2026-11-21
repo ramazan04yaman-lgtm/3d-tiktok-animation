@@ -425,6 +425,7 @@ def stamp(c, x, y, s, p, rgb=RED):
 
 def follow_btn(c, x, y, p, pressed):
     if p <= 0: return
+    c = OV[0]
     c.save(); c.translate(x, y); s = back(p) * (0.92 if pressed else 1); c.scale(s, s)
     rrect(c, -190, -50, 380, 100, 50)
     if pressed: c.set_source_rgba(*ACC, 1); c.fill(); text(c, 0, 0, "✓ GEFOLGT", 40, 1, 0.05)
