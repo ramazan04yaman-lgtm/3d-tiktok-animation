@@ -18,7 +18,7 @@ def bokeh(c, T):
         c.arc((x + vx * T) % W, (y + vy * T) % H, r, 0, 2 * math.pi)
         c.set_source_rgba(1, 0.92, 0.8, a); c.fill()
 
-ACCENT = ["fehlern","verrückt","zurückfallen","note","regeln","niemand","funktioniert","schnellste","scheitern","aussortiert","weitergeht","folg","onlinebusiness","nicht","ignoriert","verkäufe","warum","beigebracht","wirklich","teuer","aufhörst","erkenntnis","aufbauen","lektionen","eine","falsche","richtige"]
+ACCENT = ["fehlern","verrückt","zurückfallen","note","regeln","niemand","funktioniert","schnellste","scheitern","aussortiert","augen","folg","onlinebusiness","nicht","ignoriert","verkäufe","warum","beigebracht","wirklich","teuer","aufhörst","erkenntnis","aufbauen","lektionen","eine","falsche","richtige"]
 def _n(s): return re.sub(r"[^0-9a-zäöüß]", "", s.lower())
 def build_caps():
     Wd = json.load(open('words.json')); ws = []
