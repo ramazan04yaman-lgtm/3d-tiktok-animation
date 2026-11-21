@@ -139,6 +139,7 @@ for s in P['shots']:
     if n=='arrest': put(t0,policewhistle(),0.25); put(t0,steps(d*0.45,10),0.3); put(at(0.42),boom(0.9),0.6); put(at(0.43),clunk(),0.6); put(at(0.5),clang()*0.3,0.2)
     if n=='no_trophy': put(at(0.1),rustle(0.6),0.3); put(at(0.35),bloop(),0.25); put(at(0.45),sad(),0.25)
     if n=='no_trace': [put(t0+k*d/8,swish(0.15),0.2) for k in range(1,8)]; put(at(0.68),clunk(),0.5); put(at(0.7),sad(),0.2)
+    if n=='cta': put(at(0.15),bark(),0.4); put(at(0.55),pop(),0.5); put(at(0.56),ding(),0.35); put(at(0.75),click(),0.5); put(at(0.76),sparkle(),0.3)
     if n=='street': put(t0,steps(d,3.2),0.18)
     if n=='walk': put(t0,steps(d,4),0.18); put(at(0.3),bark(),0.45)
     if n=='sniff': put(t0,sniffs(d,6),0.4); put(at(0.5),bloop(),0.2)

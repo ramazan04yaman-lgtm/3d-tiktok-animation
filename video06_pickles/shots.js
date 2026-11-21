@@ -867,6 +867,22 @@ export const SHOTS = {
     return r;
   },
   // ---------- PICKLES ----------
+  cta(ctx) {
+    const s = ctx.scene; londonStreet(s, { gardens: true, target: V(0, 0.5, -4.8), sr: 4 }); const d = dog(s, 0, -4.9, 0); d.g.position.y = 0.15;
+    const r = (u, t) => { d.sit(t); d.happy(t); d.wag(t, 16, 0.6); d.look(0, 0.4); d.head.rotation.z = Math.sin(t * 2.5) * 0.12; cam(ctx, V(0.3, 1.1, -1.9), V(0.15, 1.0, -2.3), V(0, 0.8, -4.9), V(0, 0.8, -4.9), u, 45); };
+    r.overlay = (g, W, H, u, T, t) => {
+      const kL = clamp((u - 0.45) * 4), kS = clamp((u - 0.62) * 4);
+      // like
+      if (u > 0.4) { const e = backOut(clamp((u - 0.4) * 5)); const liked = kL > 0.5; g.save(); g.translate(W * 0.28, H * 0.11); g.scale(e * (liked ? 1 + 0.15 * Math.sin(clamp((kL - 0.5) * 2) * Math.PI) : 1), e); g.fillStyle = 'rgba(15,15,20,0.75)'; g.beginPath(); g.arc(0, 0, W * 0.11, 0, 7); g.fill();
+        g.fillStyle = liked ? '#ff2d55' : '#fff'; g.beginPath(); const r0 = W * 0.045; g.moveTo(0, r0 * 1.3); g.bezierCurveTo(-r0 * 2.2, -r0 * 0.2, -r0 * 0.9, -r0 * 1.7, 0, -r0 * 0.6); g.bezierCurveTo(r0 * 0.9, -r0 * 1.7, r0 * 2.2, -r0 * 0.2, 0, r0 * 1.3); g.fill(); g.restore();
+        g.save(); g.globalAlpha = clamp((u - 0.4) * 5); g.font = `900 ${W * 0.045}px "Inter Display"`; g.textAlign = 'center'; g.fillStyle = '#fff'; g.shadowColor = 'rgba(0,0,0,0.7)'; g.shadowBlur = 10; g.fillText('LIKE', W * 0.28, H * 0.11 + W * 0.17); g.restore(); }
+      // subscribe button
+      if (u > 0.5) { const e = backOut(clamp((u - 0.5) * 5)); const done = kS > 0.5; g.save(); g.translate(W * 0.66, H * 0.11); g.scale(e * (done ? 0.95 : 1), e); g.fillStyle = done ? '#5a5a62' : '#e8202a'; g.beginPath(); g.roundRect(-W * 0.2, -W * 0.065, W * 0.4, W * 0.13, W * 0.065); g.fill(); g.fillStyle = '#fff'; g.font = `900 ${W * 0.05}px "Inter Display"`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(done ? 'ABONNIERT ✓' : 'ABONNIEREN', 0, 3); g.restore(); }
+      // tapping finger cursor
+      const cx = u < 0.55 ? W * 0.28 : W * 0.66, tap = (u > 0.42 && u < 0.5) || (u > 0.6 && u < 0.68); if (u > 0.38 && u < 0.85) { g.save(); g.translate(cx + W * 0.03, H * 0.11 + W * 0.04); g.scale(tap ? 0.85 : 1, tap ? 0.85 : 1); g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = W * 0.006; g.beginPath(); g.arc(0, 0, W * 0.03, 0, 7); g.fill(); g.stroke(); g.restore(); }
+      chip(g, W, H, 'GLEICH GEHT’S WEITER', '#2a5ad6', W / 2, H * 0.25, (u - 0.1) * 3, 0.045); };
+    return r;
+  },
   street(ctx) {
     const s = ctx.scene; londonStreet(s, { gardens: true, top: '#3b5ea8', mid: '#e8a070', bot: '#ffd29a', fog: 0xf0c8a0, sun: 0xffb070, dir: [12, 5, 8], sunCol: '#ffcf8a', si: 2.2, target: V(0, 1, -4.5), sr: 10 }); const P0 = 0.15;
     const dv = guy(s, DAVID, -3, P0, -4.3, Math.PI / 2); const d = dog(s, -2, -4.9, Math.PI / 2); d.g.position.y = P0; const ls = leash(s);

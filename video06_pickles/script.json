@@ -7,6 +7,7 @@
  {"say": "Dann meldet sich ein Erpresser. Er will fünfzehntausend Pfund, sonst wird der Pokal eingeschmolzen.", "cap": "Dann meldet sich ein Erpresser. Er will 15.000 Pfund, sonst wird der Pokal eingeschmolzen.", "shots": ["phone", "melt"]},
  {"say": "Die Polizei stellt ihm eine Falle und schnappt ihn. Aber der Pokal ist nicht bei ihm.", "cap": "Die Polizei stellt ihm eine Falle und schnappt ihn. Aber der Pokal ist nicht bei ihm.", "shots": ["trap", "arrest", "no_trophy"], "pause": 0.3},
  {"say": "Eine ganze Woche lang: keine Spur.", "cap": "Eine ganze Woche lang: keine Spur.", "shots": ["no_trace"], "pause": 0.3},
+ {"say": "Wie ein Hund den Pokal gefunden hat, erfährst du gleich. Lass vorher ein Like und ein Abo da!", "cap": "Wie ein Hund den Pokal gefunden hat, erfährst du gleich. Lass vorher ein Like und ein Abo da!", "shots": ["cta"], "pause": 0.3},
  {"say": "Dann, am siebenundzwanzigsten März. David Corbett geht mit seinem Hund Pickles spazieren.", "cap": "Dann, am 27. März. David Corbett geht mit seinem Hund Pickles spazieren.", "shots": ["street", "walk"]},
  {"say": "Plötzlich schnüffelt Pickles an einem Paket unter einer Hecke. Eingewickelt in Zeitungspapier.", "cap": "Plötzlich schnüffelt Pickles an einem Paket unter einer Hecke. Eingewickelt in Zeitungspapier.", "shots": ["sniff", "package"]},
  {"say": "David reißt das Papier auf. Und darin: der WM-Pokal!", "cap": "David reißt das Papier auf. Und darin: der WM-Pokal!", "shots": ["unwrap", "reveal"], "pause": 0.35},

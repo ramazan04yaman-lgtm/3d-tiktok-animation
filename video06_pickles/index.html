@@ -21,7 +21,7 @@ const noise = (t, s) => Math.sin(t * 13.1 + s) * 0.5 + Math.sin(t * 27.7 + s * 2
 // ---- keyword colours for subtitles
 const KEY = { yellow: ['LONDON', '1966', 'WM-POKAL', 'POKAL', 'WELTMEISTERSCHAFT', 'AUSSTELLUNG', '20', '27', 'MÄRZ', '15000', 'PFUND', 'DAVID', 'CORBETT', 'PICKLES', 'PAKET', 'HECKE', 'ZEITUNGSPAPIER', 'FERNSEHEN', 'FILM', 'HUNDEFUTTER', 'ENGLAND', 'DEUTSCHLAND', 'WEMBLEY-TOR', 'SIEGESFEIER', 'POLIZEI', 'HUND', 'WACHLEUTE', 'ZEITUNGEN'],
   red: ['GESTOHLEN', 'LEER', 'ERPRESSER', 'EINGESCHMOLZEN', 'KEINE', 'SPUR', 'VERDÄCHTIGEN', 'ENTSETZT', 'FALLE', 'NICHT'],
-  green: ['GEFUNDEN', 'HELDEN', 'GEWINNT', 'WIRKLICH', 'PASSIERT', 'MITKOMMEN', 'SCHNAPPT'] };
+  green: ['GEFUNDEN', 'HELDEN', 'GEWINNT', 'WIRKLICH', 'PASSIERT', 'MITKOMMEN', 'SCHNAPPT', 'LIKE', 'ABO'] };
 const COL = { yellow: '#FFD60A', red: '#FF453A', green: '#4CFF7A' };
 function keyCol(w) { const u = w.toUpperCase().replace(/[.,:!?]/g, ''); for (const k in KEY) if (KEY[k].includes(u)) return COL[k]; return null; }
 const isKey = w => !!keyCol(w.w);

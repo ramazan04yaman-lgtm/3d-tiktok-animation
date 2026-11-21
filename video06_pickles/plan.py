@@ -2,7 +2,7 @@
 import json
 T=json.load(open('build/timeline.json')); S=T['sentences']; D=T['duration']
 KEYS=set('HUND 1966 LEER GESTOHLEN ERPRESSER 15.000 EINGESCHMOLZEN SPUR PAKET WM-POKAL VERDÄCHTIGEN HELDEN DEUTSCHLAND WEMBLEY-TOR MITKOMMEN'.split())
-IRIS={1,8,13,15}
+IRIS={1,9,14,16}
 shots=[]; words=[]; chunks=[]; d=1
 for i,s in enumerate(S):
     st=s['t0'] if i else 0.0
