@@ -642,8 +642,8 @@ export const SHOTS = {
   emu_overtake(ctx) {
     const s = ctx.scene; outback(s, { target: V(0, 1, 0), sr: 12 }); const tk = makeTruck(); s.add(tk); const d1 = digger(s, 0, 0, 0, 0); tk.add(d1.g); d1.g.position.set(0, 0.95, -1.9); const gun = makeLewis(); gun.position.set(0, 1.55, -0.8); tk.add(gun); const e = emu(s, 2.4, -5, 0); const du = dust(s, 24);
     const r = (u, t) => { const z = t * 4; tk.position.set(0, Math.abs(Math.sin(t * 9)) * 0.25, z); tk.rotation.z = Math.sin(t * 11) * 0.06; tk.userData.wheels.forEach(w => w.rotation.x = z * 2.2); d1.expr('sad'); d1.look(1, 0); d1.head.rotation.y = -0.6 + u * 1.2;
-      e.run(t, 16); e.g.position.z = -5 + t * 9; e.expr('smug'); e.head.rotation.y = -0.7; e.look(-1, 0); du(t, i => i % 2 ? e.g.position : V((i % 4 < 2 ? 0.8 : -0.8), 0, z - 2.5), 2, 1, 1.8);
-      cam(ctx, V(7.5, 2.2, z + 1), V(7.5, 2.2, z + 3), V(1.2, 1.5, z - 0.5), V(1.6, 1.6, z + 4), u, 55); };
+      e.run(t, 16); e.g.position.z = -4 + t * 5.6; e.expr('smug'); e.head.rotation.y = -0.7; e.look(-1, 0); du(t, i => i % 2 ? e.g.position : V((i % 4 < 2 ? 0.8 : -0.8), 0, z - 2.5), 2, 1, 1.8);
+      const mz = (z + e.g.position.z) / 2; cam(ctx, V(10, 2.4, mz + 1.5), V(10, 2.4, mz + 1.5), V(1.2, 1.4, mz), V(1.2, 1.4, mz), u, 55); };
     r.overlay = (g, W, H, u, T, t) => { if (u > 0.5) bubble(g, W, H, 'TSCHÜSS!', (u - 0.5) * 2.2, 0.66, 0.24); };
     return r;
   },
