@@ -15,6 +15,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 7. **„Was wächst in deinem Duschkopf?“** — `--project shower`
 8. **„Der Riss im Holzlöffel“** — `--project spoon`
 9. **„Wie funktioniert eine Spülmaschine?“** — `--project dishwasher`
+10. **„Wie funktioniert eine Heizung?“** — `--project heating`
 
 ```bash
 npm install
@@ -227,3 +228,7 @@ Narration `audio/spoon-voice.json` (Felix, natural speed). Hook: dark line in th
 ## Episode 9 — Spülmaschine (dishwasher)
 
 Narration `audio/dishwasher-voice.json` (Felix, natural speed). Hook: spray arm spins with no motor of its own (0–6 s); inlet (~10 l HUD); softener magnifier (resin beads swap calcium for sodium); heater ring up to 70 °C; circulation pump feeds both spray arms; recoil arrows show the angled nozzles driving the arm; detergent flap opens, enzyme magnifier (amylase/protease cut starch and protein); sieve and recirculation; rinse-aid magnifier (droplets spread into a film); drying: steam condenses on the cooler walls; surprise: washing by hand often uses about four times as much water (water columns ≈ 10 l vs ≈ 40 l).
+
+## Episode 10 — Heizung (heating)
+
+Narration `audio/heating-voice.json` (Felix, natural speed). Hook: thermostat head turned from 3 to 5 — "Auf 5 = schneller warm?" (0–5 s); camera drops through the floor slab into the basement; gas condensing boiler turns to x-ray (blue burner flames, heat-exchanger coil, supply HUD to 70 °C); circulation pump, red supply / blue return pipes; radiator section (hot at the top, cooler at the bottom); convection roll in the room; mid-video like & subscribe CTA (`SubscribeCTA`); magnifier: water vapour in the exhaust condenses on the cold return-water tube and releases heat; magnifier: wax capsule expands, pin closes the valve as the room reaches 20 °C; surprise: setting 3 and 5 are equally open while the room is cold — 5 only means "close at ≈ 28 °C".
