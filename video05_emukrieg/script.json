@@ -1,0 +1,19 @@
+[
+ {"say": "Australien hat einmal einen Krieg verloren. Gegen Vögel.", "cap": "Australien hat einmal einen Krieg verloren. Gegen Vögel.", "shots": ["h_army", "h_emu"], "pause": 0.35},
+ {"say": "Westaustralien, neunzehnhundertzweiunddreißig. Nach dem Ersten Weltkrieg bekamen viele Soldaten Land, um Weizen anzubauen.", "cap": "Westaustralien, 1932. Nach dem Ersten Weltkrieg bekamen viele Soldaten Land, um Weizen anzubauen.", "shots": ["outback_wide", "farm", "farmer"]},
+ {"say": "Doch dann kamen die Emus. Rund zwanzigtausend Stück.", "cap": "Doch dann kamen die Emus. Rund 20.000 Stück.", "shots": ["emu_arrive", "emu_horde"], "pause": 0.25},
+ {"say": "Sie fraßen die Felder leer und rannten durch jeden Zaun.", "cap": "Sie fraßen die Felder leer und rannten durch jeden Zaun.", "shots": ["emu_eat", "fence_break"]},
+ {"say": "Die Farmer baten die Regierung um Hilfe. Und die schickte die Armee.", "cap": "Die Farmer baten die Regierung um Hilfe. Und die schickte die Armee.", "shots": ["farmer_letter", "minister"], "pause": 0.25},
+ {"say": "Major Meredith, zwei Soldaten, zwei Maschinengewehre und zehntausend Schuss Munition.", "cap": "Major Meredith, zwei Soldaten, zwei Maschinengewehre und 10.000 Schuss Munition.", "shots": ["major", "squad", "ammo"]},
+ {"say": "Am zweiten November begann der Emu-Krieg.", "cap": "Am 2. November begann der Emu-Krieg.", "shots": ["war_title"], "pause": 0.3},
+ {"say": "Doch die Emus dachten gar nicht daran, stehen zu bleiben.", "cap": "Doch die Emus dachten gar nicht daran, stehen zu bleiben.", "shots": ["standoff"]},
+ {"say": "Sobald geschossen wurde, rannten sie in alle Richtungen davon. Mit bis zu fünfzig Kilometern pro Stunde.", "cap": "Sobald geschossen wurde, rannten sie in alle Richtungen davon. Mit bis zu 50 km/h.", "shots": ["scatter", "scatter_top", "speedo"]},
+ {"say": "Also bauten die Soldaten ein Maschinengewehr auf einen Lastwagen.", "cap": "Also bauten die Soldaten ein Maschinengewehr auf einen Lastwagen.", "shots": ["truck"]},
+ {"say": "Aber der Lastwagen war zu langsam, und auf dem holprigen Boden konnte keiner zielen.", "cap": "Aber der Lastwagen war zu langsam, und auf dem holprigen Boden konnte keiner zielen.", "shots": ["truck_bumpy", "emu_overtake"], "pause": 0.3},
+ {"say": "Nach nur einer Woche zog die Armee ab. Und die Zeitungen lachten über sie.", "cap": "Nach nur einer Woche zog die Armee ab. Und die Zeitungen lachten über sie.", "shots": ["retreat", "newspaper"]},
+ {"say": "Ein zweiter Versuch folgte. Am Ende hatten sie fast zehntausend Schuss verbraucht.", "cap": "Ein zweiter Versuch folgte. Am Ende hatten sie fast 10.000 Schuss verbraucht.", "shots": ["second_try", "ammo_empty"], "pause": 0.25},
+ {"say": "Und die Emus? Die waren immer noch da.", "cap": "Und die Emus? Die waren immer noch da.", "shots": ["emus_still"], "pause": 0.3},
+ {"say": "Der Major sagte später sinngemäß: Mit Soldaten wie diesen Vögeln könnte man es mit jeder Armee der Welt aufnehmen.", "cap": "Der Major sagte später sinngemäß: Mit Soldaten wie diesen Vögeln könnte man es mit jeder Armee der Welt aufnehmen.", "shots": ["major_quote", "emu_army"], "pause": 0.35},
+ {"say": "Das ist wirklich passiert. Such nach dem großen Emu-Krieg.", "cap": "Das ist wirklich passiert. Such nach dem großen Emu-Krieg.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? Wer hätte bei dir gewonnen, die Armee oder die Emus? Schreib es in die Kommentare!", "cap": "Und du? Wer hätte bei dir gewonnen, die Armee oder die Emus? Schreib es in die Kommentare!", "shots": ["question"]}
+]
