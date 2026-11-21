@@ -1,0 +1,19 @@
+[
+ {"say": "Im Zweiten Weltkrieg gab es einen Soldaten, der Bier trank, Zigaretten fraß und Munition schleppte. Er war ein Bär.", "cap": "Im Zweiten Weltkrieg gab es einen Soldaten, der Bier trank, Zigaretten fraß und Munition schleppte. Er war ein Bär.", "shots": ["h_crate", "h_bear"], "pause": 0.35},
+ {"say": "Iran, neunzehnhundertzweiundvierzig. Polnische Soldaten treffen einen Jungen mit einem kleinen Bärenbaby.", "cap": "Iran, 1942. Polnische Soldaten treffen einen Jungen mit einem kleinen Bärenbaby.", "shots": ["desert", "boy_cub"]},
+ {"say": "Sie kaufen es ihm ab, für Schokolade, eine Dose Fleisch und ein Taschenmesser.", "cap": "Sie kaufen es ihm ab, für Schokolade, eine Dose Fleisch und ein Taschenmesser.", "shots": ["trade", "price"], "pause": 0.3},
+ {"say": "Sie nennen ihn Wojtek. Er trinkt Milch aus einer Wodkaflasche und schläft nachts bei den Soldaten im Zelt.", "cap": "Sie nennen ihn Wojtek. Er trinkt Milch aus einer Wodkaflasche und schläft nachts bei den Soldaten im Zelt.", "shots": ["name", "bottle", "tent"], "pause": 0.25},
+ {"say": "Wojtek wird riesig. Er ringt mit den Männern, trinkt Bier und frisst Zigaretten.", "cap": "Wojtek wird riesig. Er ringt mit den Männern, trinkt Bier und frisst Zigaretten.", "shots": ["grow", "wrestle", "beer"], "pause": 0.3},
+ {"say": "Einmal soll er sogar einen Spion im Duschhaus erwischt haben.", "cap": "Einmal soll er sogar einen Spion im Duschhaus erwischt haben.", "shots": ["shower", "spy"], "pause": 0.3},
+ {"say": "Wie ein Bär zum echten Soldaten wurde, erfährst du gleich. Lass vorher ein Like und ein Abo da!", "cap": "Wie ein Bär zum echten Soldaten wurde, erfährst du gleich. Lass vorher ein Like und ein Abo da!", "shots": ["cta"], "pause": 0.3},
+ {"say": "Neunzehnhundertvierundvierzig soll die Truppe nach Italien. Aber Tiere dürfen nicht mit aufs Schiff.", "cap": "1944 soll die Truppe nach Italien. Aber Tiere dürfen nicht mit aufs Schiff.", "shots": ["harbor", "no_animals"], "pause": 0.25},
+ {"say": "Also machen sie Wojtek einfach zum Soldaten. Mit Rang, Nummer und Soldbuch.", "cap": "Also machen sie Wojtek einfach zum Soldaten. Mit Rang, Nummer und Soldbuch.", "shots": ["enlist", "paybook"], "pause": 0.3},
+ {"say": "Dann kommt die Schlacht um Monte Cassino.", "cap": "Dann kommt die Schlacht um Monte Cassino.", "shots": ["cassino"], "pause": 0.2},
+ {"say": "Und Wojtek hilft mit. Er schleppt schwere Munitionskisten, genau wie die Männer.", "cap": "Und Wojtek hilft mit. Er schleppt schwere Munitionskisten, genau wie die Männer.", "shots": ["carry", "crates"], "pause": 0.3},
+ {"say": "Seine Einheit macht ihn zu ihrem Wappen. Und später wird er sogar befördert.", "cap": "Seine Einheit macht ihn zu ihrem Wappen. Und später wird er sogar befördert.", "shots": ["emblem", "promote"], "pause": 0.3},
+ {"say": "Nach dem Krieg kommt Wojtek nach Schottland, in den Zoo von Edinburgh.", "cap": "Nach dem Krieg kommt Wojtek nach Schottland, in den Zoo von Edinburgh.", "shots": ["scotland", "zoo"], "pause": 0.25},
+ {"say": "Wenn Besucher dort Polnisch sprechen, soll er jedes Mal aufgehorcht haben.", "cap": "Wenn Besucher dort Polnisch sprechen, soll er jedes Mal aufgehorcht haben.", "shots": ["polish"], "pause": 0.35},
+ {"say": "Heute steht in Edinburgh eine Statue von ihm.", "cap": "Heute steht in Edinburgh eine Statue von ihm.", "shots": ["statue"], "pause": 0.35},
+ {"say": "Das ist wirklich passiert. Such nach Wojtek, dem Soldatenbär.", "cap": "Das ist wirklich passiert. Such nach Wojtek, dem Soldatenbär.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? Hättest du dich getraut, mit Wojtek zu ringen? Schreib es in die Kommentare!", "cap": "Und du? Hättest du dich getraut, mit Wojtek zu ringen? Schreib es in die Kommentare!", "shots": ["question"]}
+]
