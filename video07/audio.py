@@ -60,6 +60,7 @@ s=TL[4]; sadd(ding(),s['start']+s['phr'][1]+1.8,0.25)
 s=TL[6]; sadd(ding(),s['start']+0.8,0.2)
 s=TL[7]; sadd(ding(),s['start']+s['phr'][1],0.25)
 s=TL[8]; sadd(impact(),s['start']+s['phr'][1]+0.2,0.4)
+s=TL[12]; sadd(pop(),s['start']+s['phr'][1],0.4); sadd(pop(),s['start']+s['phr'][1]+1.9,0.4)
 s=TL[11]; sadd(impact(),s['start']+s['phr'][1]+1.5,0.35); sadd(ding(),s['start']+s['phr'][1]+1.5,0.3)
 # ---------- voice + ducking
 w=wave.open('vo.wav'); vo=np.frombuffer(w.readframes(w.getnframes()),np.int16)/32768; vsr=w.getframerate()

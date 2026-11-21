@@ -10,6 +10,9 @@ S = json.load(open('script.json'))
 m = WhisperModel("small", device="cpu", compute_type="int8")
 segs, _ = m.transcribe(a, language="de", word_timestamps=True, initial_prompt=' '.join(' '.join(x) for x in S))
 W = [[w.word.strip(), round(w.start, 2), round(w.end, 2)] for s in segs for w in s.words]
+script_words = {re.sub(r'[^0-9a-zäöüß]', '', x.lower()) for sc in S for ph in sc for x in ph.split()}
+for w in W:
+    if w[0].lower().startswith('folgt') and 'folg' in script_words and 'folgt' not in script_words: w[0] = 'folg' + w[0][5:]
 json.dump(W, open('words.json', 'w'), ensure_ascii=False)
 n = lambda s: re.sub(r'[^0-9a-zäöüß]', '', s.lower())
 num = {'zwanzig': '20', 'zehn': '10', 'sechzig': '60', 'dreiundzwanzig': '23'}
