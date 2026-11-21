@@ -26,7 +26,7 @@ for b in range(nb):
     for k in range(8):
         add(tone(note(arp[k%4]),1.6,harm=(1,.4,.15,.08,.04),att=0.004,dec=0.6)*0.07*(1.0 if k%2==0 else .7),st+k*beat/2)
     # kick + hat after hook
-    if st>TL[1]['start']:
+    if st>1.5:
         for k in range(4):
             x=np.arange(int(0.35*SR))/SR
             kick=np.sin(2*np.pi*(45+90*np.exp(-x*30))*x)*np.exp(-x*9)
