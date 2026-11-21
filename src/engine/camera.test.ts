@@ -9,6 +9,7 @@ import { gutCamera } from '../projects/gut/script';
 import { papercutCamera } from '../projects/papercut/script';
 import { showerCamera } from '../projects/shower/script';
 import { spoonCamera } from '../projects/spoon/script';
+import { dishCamera } from '../projects/dishwasher/script';
 
 /** Analyse a path frame by frame like the exporter would see it. */
 function analyse(path: CameraPath, duration: number) {
@@ -53,6 +54,7 @@ describe('CameraPath', () => {
     ['papercut', papercutCamera],
     ['shower', showerCamera],
     ['spoon', spoonCamera],
+    ['dishwasher', dishCamera],
   ])('has continuous velocity (no jerks) on the %s camera path', (_name, path) => {
     const { maxSpeed, maxAccel } = analyse(path, 60);
     // Units are decimetres; < 6 dm/s is a calm dolly, accel bound rules out velocity jumps.

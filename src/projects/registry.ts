@@ -1,4 +1,5 @@
 import type { ExplainerProject } from '../engine/project';
+import { dishwasherProject } from './dishwasher';
 import { espressoProject } from './espresso';
 import { gutProject } from './gut';
 import { heartProject } from './heart';
@@ -17,5 +18,6 @@ export const projects: Record<string, ExplainerProject> = {
   [papercutProject.id]: papercutProject,
   [showerProject.id]: showerProject,
   [spoonProject.id]: spoonProject,
+  [dishwasherProject.id]: dishwasherProject,
 };
 export const defaultProjectId = kettleProject.id;
