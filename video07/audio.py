@@ -57,11 +57,11 @@ for i,s in enumerate(TL):
 s=TL[0]; sadd(riser(1.6),0.1,0.1); sadd(ding(),1.7,0.25)
 s=TL[1]; sadd(impact(),s['start']+1.0,0.3)
 s=TL[4]; sadd(ding(),s['start']+s['phr'][1]+1.8,0.25)
-s=TL[6]; sadd(ding(),s['start']+0.8,0.2)
-s=TL[7]; sadd(ding(),s['start']+s['phr'][1],0.25)
-s=TL[8]; sadd(impact(),s['start']+s['phr'][1]+0.2,0.4)
-s=TL[12]; sadd(pop(),s['start']+s['phr'][1],0.4); sadd(pop(),s['start']+s['phr'][1]+1.9,0.4)
-s=TL[11]; sadd(impact(),s['start']+s['phr'][1]+1.5,0.35); sadd(ding(),s['start']+s['phr'][1]+1.5,0.3)
+s=TL[5]; sadd(pop(),s['start']+s['phr'][1],0.4); sadd(pop(),s['start']+s['phr'][1]+1.9,0.4)
+s=TL[7]; sadd(ding(),s['start']+0.8,0.2)
+s=TL[8]; sadd(ding(),s['start']+s['phr'][1],0.25)
+s=TL[9]; sadd(impact(),s['start']+s['phr'][1]+0.2,0.4)
+s=TL[12]; sadd(impact(),s['start']+s['phr'][1]+1.5,0.35); sadd(ding(),s['start']+s['phr'][1]+1.5,0.3)
 # ---------- voice + ducking
 w=wave.open('vo.wav'); vo=np.frombuffer(w.readframes(w.getnframes()),np.int16)/32768; vsr=w.getframerate()
 vo=np.interp(np.arange(int(len(vo)*SR/vsr))/SR, np.arange(len(vo))/vsr, vo); V=np.zeros(N); V[:min(N,len(vo))]=vo[:N]

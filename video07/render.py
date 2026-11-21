@@ -18,7 +18,7 @@ def bokeh(c, T):
         c.arc((x + vx * T) % W, (y + vy * T) % H, r, 0, 2 * math.pi)
         c.set_source_rgba(1, 0.92, 0.8, a); c.fill()
 
-ACCENT = ["fehlern","verrückt","zurückfallen","note","regeln","niemand","funktioniert","schnellste","scheitern","aussortiert","onlinebusiness","nicht","ignoriert","verkäufe","warum","beigebracht","wirklich","teuer","aufhörst","erkenntnis","aufbauen","lektionen","eine","falsche","richtige","augen","folg"]
+ACCENT = ["fehlern","verrückt","zurückfallen","note","regeln","niemand","funktioniert","schnellste","scheitern","aussortiert","weitergeht","folg","onlinebusiness","nicht","ignoriert","verkäufe","warum","beigebracht","wirklich","teuer","aufhörst","erkenntnis","aufbauen","lektionen","eine","falsche","richtige"]
 def _n(s): return re.sub(r"[^0-9a-zäöüß]", "", s.lower())
 def build_caps():
     Wd = json.load(open('words.json')); ws = []
@@ -524,11 +524,11 @@ def cta(c, t, P):
         px, py = lerp(900, 760, eout(k2)), lerp(960, 740, eout(k2))
         c.new_path(); c.move_to(px, py); c.line_to(px, py + 56); c.line_to(px + 14, py + 42); c.line_to(px + 34, py + 48); c.close_path()
         col(c, 1, 1); c.fill()
-    pill(c, 540, 560, "MEHR LEKTIONEN", ap(t, 0.3, 0.3), 26)
+    pill(c, 540, 560, "KURZE PAUSE", ap(t, 0.3, 0.3), 26)
 
 CAM = [(540, 940, 1.1, 1.0), (540, 940, 1.0, 1.04), (540, 940, 1.0, 1.04), (540, 920, 1.0, 1.05),
-       (540, 900, 1.0, 1.04), (540, 920, 1.0, 1.03), (540, 920, 1.0, 1.04), (540, 900, 1.0, 1.05),
-       (540, 980, 1.05, 1.12), (540, 960, 1.0, 1.03), (540, 940, 1.0, 1.04), (540, 900, 0.95, 1.0), (540, 960, 1.0, 1.08)]
+       (540, 900, 1.0, 1.04), (540, 960, 1.0, 1.08), (540, 920, 1.0, 1.03), (540, 920, 1.0, 1.04), (540, 900, 1.0, 1.05),
+       (540, 980, 1.05, 1.12), (540, 960, 1.0, 1.03), (540, 940, 1.0, 1.04), (540, 900, 0.95, 1.0)]
 
 def camera(T):
     si = scene_at(T); s = TL[si]; t = T - s['start']; u = t / s['dur']
@@ -551,6 +551,8 @@ def draw(c, T):
     cx, cy, z = camera(T)
     for cc in (c, OV[0]):
         cc.translate(W / 2, H / 2); cc.scale(z, z); cc.translate(-cx, -cy)
+    if si == 5: cta(c, t, P); return
+    if si > 5: si -= 1
     if si in (1, 2, 8, 9, 10): ground(c, 1)
     if si == 0:
         nx = int(cl(t / 0.25, 0, 6))
@@ -726,8 +728,7 @@ def draw(c, T):
             c.new_path(); c.arc(920, y2, 40, 0, 2 * math.pi); c.set_source_rgba(*ACC, k); c.fill()
             c.move_to(902, y2); c.line_to(915, y2 + 14); c.line_to(940, y2 - 14); stroke(c, 0.05, k, 6)
         text(c, 540, y2 + 110, "RICHTIGE ANTWORT", 22, ap(t, P[1] + 1.6, 0.3), rgb=ACC, spacing=2)
-    elif si == 12:
-        cta(c, t, P)
+
 
 # ---------------------------------------------------------------- post
 OV = [None]
