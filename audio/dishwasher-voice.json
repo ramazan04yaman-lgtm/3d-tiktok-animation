@@ -1,0 +1,145 @@
+{
+ "source": "audio/voice_felix_dishwasher.mp3",
+ "video": "out/dishwasher/dishwasher.mp4",
+ "output": "out/dishwasher/dishwasher_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 56.5 s at natural speed; pauses lengthened (each ≤ 0.7 s) to fill the video.",
+ "segments": [
+  {
+   "text": "Die Sprüharme … drehen sich ganz ohne Motor.",
+   "src": [
+    0,
+    3.943
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "Wie geht das?",
+   "src": [
+    4.228,
+    5.087
+   ],
+   "at": 4.578
+  },
+  {
+   "text": "Zuerst strömen nur etwa zehn Liter Wasser in die Maschine.",
+   "src": [
+    5.584,
+    8.872
+   ],
+   "at": 6.029
+  },
+  {
+   "text": "Ein Enthärter mit Spezialsalz entfernt den Kalk.",
+   "src": [
+    9.102,
+    12.74
+   ],
+   "at": 9.797
+  },
+  {
+   "text": "Dann heizt ein Heizstab das Wasser auf bis zu siebzig Grad.",
+   "src": [
+    12.939,
+    17.139
+   ],
+   "at": 13.884
+  },
+  {
+   "text": "Eine Pumpe drückt das Wasser mit hohem Druck in die Sprüharme.",
+   "src": [
+    17.37,
+    21.143
+   ],
+   "at": 18.566
+  },
+  {
+   "text": "Es schießt schräg aus den Düsen –",
+   "src": [
+    21.398,
+    23.556
+   ],
+   "at": 22.845
+  },
+  {
+   "text": "und der Rückstoß dreht die Arme, wie bei einem Rasensprenger.",
+   "src": [
+    23.827,
+    27.503
+   ],
+   "at": 25.524
+  },
+  {
+   "text": "Die Tabs geben Enzyme frei.",
+   "src": [
+    28.018,
+    29.867
+   ],
+   "at": 29.794
+  },
+  {
+   "text": "Sie zerlegen Stärke und Eiweiß, also Nudelreste und Ei.",
+   "src": [
+    30.228,
+    34.28
+   ],
+   "at": 32.211
+  },
+  {
+   "text": "Ein Sieb fängt grobe Reste ab,",
+   "src": [
+    34.604,
+    36.97
+   ],
+   "at": 36.826
+  },
+  {
+   "text": "und dasselbe Wasser wird immer wieder hochgepumpt.",
+   "src": [
+    37.25,
+    40.121
+   ],
+   "at": 39.722
+  },
+  {
+   "text": "Beim Klarspülen sorgt Klarspüler dafür, dass das Wasser abperlt.",
+   "src": [
+    40.639,
+    44.961
+   ],
+   "at": 43.188
+  },
+  {
+   "text": "Danach kondensiert der Dampf an den kühleren Wänden –",
+   "src": [
+    45.192,
+    48.42
+   ],
+   "at": 47.991
+  },
+  {
+   "text": "so trocknet das Geschirr.",
+   "src": [
+    48.678,
+    50.056
+   ],
+   "at": 51.728
+  },
+  {
+   "text": "Das Überraschende:",
+   "src": [
+    50.643,
+    51.65
+   ],
+   "at": 53.713
+  },
+  {
+   "text": "Von Hand brauchst du … oft viermal so viel Wasser.",
+   "src": [
+    51.948,
+    56.23
+   ],
+   "at": 55.268
+  }
+ ]
+}

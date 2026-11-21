@@ -122,7 +122,7 @@ function Condensation() {
       const grow = Math.min(1, Math.max(0, c * 1.5 - hash2(i, 3) * 0.5));
       // big droplets run down the wall
       const run = grow > 0.8 && hash2(i, 4) < 0.3 ? (t * 0.4 + hash2(i, 5)) % 1 : 0;
-      const s = (0.02 + 0.03 * hash2(i, 6)) * grow;
+      const s = (0.04 + 0.05 * hash2(i, 6)) * grow;
       _m.compose(_p.set(side, y0 - run * 1.5, z), _q.identity(), _s.set(s * 0.5, s * (1 + run), s));
       mesh.setMatrixAt(i, _m);
     }
@@ -153,7 +153,7 @@ function Compare() {
   const H = 5.2;
   return (
     <group ref={g} position={[0, 0, 3.4]}>
-      {[-1.3, 1.3].map((x, i) => (
+      {[-0.85, 0.85].map((x, i) => (
         <group key={x} position={[x, 0, 0]}>
           <mesh material={mats.glass} position={[0, H / 2, 0]}>
             <cylinderGeometry args={[0.55, 0.55, H, 40, 1, true]} />

@@ -26,8 +26,8 @@ export function DishScene() {
       <Label position={[SUMP[0], 0.7, SUMP[2]]} text="Sieb" sub="fängt Essensreste ab" visible={L.sieve} offset={[80, -280]} accent="#2a8cff" />
       <Label position={[LENS.rinse[0], LENS.rinse[1] + 0.45, LENS.rinse[2]]} text="Klarspüler" sub="Wasser läuft als Film ab" visible={L.rinse} offset={[60, -300]} accent="#bfe6ff" />
       <Label position={[2.18, 3.6, 0.6]} text="Kühlere Wände" sub="Dampf kondensiert hier" visible={L.walls} offset={[-140, -280]} accent="#bfe6ff" />
-      <Label position={[-1.3, 1.4, 3.4]} text="Spülmaschine" sub="≈ 10 l" visible={L.machine} offset={[-120, -280]} accent="#7fd0ff" />
-      <Label position={[1.3, 5.3, 3.4]} text="Von Hand" sub="oft ≈ 40 l" visible={L.hand} offset={[40, -220]} accent="#7fd0ff" />
+      <Label position={[-0.85, 1.4, 3.4]} text="Spülmaschine" sub="≈ 10 l" visible={L.machine} offset={[-120, -280]} accent="#7fd0ff" />
+      <Label position={[0.85, 5.3, 3.4]} text="Von Hand" sub="oft ≈ 40 l" visible={L.hand} offset={[40, -220]} accent="#7fd0ff" />
     </>
   );
 }

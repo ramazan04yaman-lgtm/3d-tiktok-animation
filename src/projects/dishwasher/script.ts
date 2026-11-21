@@ -7,17 +7,17 @@ import { Timeline } from '../../engine/timeline';
  * T holds the narration-driven times (retimed to the recorded voice).
  */
 export const T = {
-  hook: [0, 6.6] as const,
-  inlet: [6.9, 11.4] as const,
-  soften: [11.8, 15.0] as const,
-  heat: [15.3, 20.4] as const,
-  pump: [20.7, 25.8] as const,
-  recoil: [26.0, 33.3] as const,
-  enzymes: [33.6, 40.4] as const,
-  filter: [40.7, 46.7] as const,
-  rinse: [46.9, 51.2] as const,
-  dry: [51.4, 56.9] as const,
-  compare: [57.0, 60] as const,
+  hook: [0, 5.8] as const,
+  inlet: [6.0, 9.6] as const,
+  soften: [9.8, 13.6] as const,
+  heat: [13.9, 18.3] as const,
+  pump: [18.6, 22.6] as const,
+  recoil: [22.8, 29.5] as const,
+  enzymes: [29.8, 36.5] as const,
+  filter: [36.8, 42.9] as const,
+  rinse: [43.2, 47.8] as const,
+  dry: [48.0, 53.4] as const,
+  compare: [53.7, 60] as const,
 };
 
 export const dishTimeline = new Timeline({
@@ -62,39 +62,39 @@ export const LENS = {
 const C: Vec3 = [0, 3.3, 0];
 
 export const dishCamera = new CameraPath([
-  // hook: lower spray arm spinning, extreme close-up
+  // hook: lower spray arm spinning
   orbit(0, [0.3, 1.5, 0.3], 16, 4, 3.4, { fov: 38, stop: true }),
-  orbit(3.4, [0.2, 1.4, 0.3], 26, 8, 2.9, { fov: 38 }),
-  orbit(6.4, C, 14, 8, 11.0, { fov: 38 }),
+  orbit(3.0, [0.2, 1.4, 0.3], 26, 8, 2.9, { fov: 38 }),
+  orbit(5.4, [0, 2.4, 0], 14, 8, 8.0, { fov: 38 }),
   // water in, softener, heating (base compartment)
-  orbit(9.2, [-0.8, 0.45, -0.4], 16, 2, 4.6, { fov: 38 }),
-  orbit(12.6, LENS.soft, 8, 4, 3.0, { fov: 38 }),
-  orbit(15.6, [0.4, 0.45, 0.3], 20, 3, 3.8, { fov: 38 }),
-  orbit(19.0, [0.55, 0.42, 0.3], 30, 2, 3.0, { fov: 38 }),
+  orbit(8.2, [-0.8, 0.45, -0.4], 16, 2, 4.6, { fov: 38 }),
+  orbit(11.0, LENS.soft, 8, 4, 3.0, { fov: 38 }),
+  orbit(14.2, [0.4, 0.45, 0.3], 20, 3, 3.8, { fov: 38 }),
+  orbit(17.2, [0.55, 0.42, 0.3], 30, 2, 3.0, { fov: 38 }),
   // pump & pipes, then the spray arm with recoil arrows
-  orbit(22.6, [0.2, 2.2, -0.2], 34, 10, 8.4, { fov: 38 }),
-  orbit(26.4, [0.3, 1.5, 0.3], 20, 14, 3.6, { fov: 38 }),
-  orbit(30.0, [0.2, 1.4, 0.2], 8, 30, 3.4, { fov: 38 }),
-  orbit(33.2, [0.6, 2.8, 1.4], 16, 8, 4.0, { fov: 38 }),
+  orbit(20.2, [0.2, 2.2, -0.2], 34, 10, 8.4, { fov: 38 }),
+  orbit(23.4, [0.3, 1.5, 0.3], 20, 14, 3.6, { fov: 38 }),
+  orbit(26.8, [0.2, 1.4, 0.2], 8, 30, 3.4, { fov: 38 }),
+  orbit(29.6, [0.6, 2.8, 1.4], 16, 8, 4.0, { fov: 38 }),
   // enzymes (magnifier on a plate)
-  orbit(35.6, LENS.enzyme, 6, 4, 2.0, { fov: 38 }),
-  orbit(39.6, LENS.enzyme, -4, 4, 2.1, { fov: 38 }),
+  orbit(31.8, LENS.enzyme, 6, 4, 2.0, { fov: 38 }),
+  orbit(35.6, LENS.enzyme, -4, 4, 2.1, { fov: 38 }),
   // filter & recirculation
-  orbit(42.4, [0, 0.55, 0.3], 22, 2, 3.4, { fov: 38 }),
-  orbit(46.0, C, 18, 10, 10.0, { fov: 38 }),
+  orbit(38.4, [0, 0.55, 0.3], 22, 2, 3.4, { fov: 38 }),
+  orbit(42.2, C, 18, 10, 10.0, { fov: 38 }),
   // rinse aid (magnifier on a glass), drying
-  orbit(48.6, LENS.rinse, -6, 4, 2.0, { fov: 38 }),
-  orbit(52.4, [1.75, 5.1, 0.2], 10, 4, 4.4, { fov: 38 }),
-  orbit(55.6, C, 20, 8, 10.4, { fov: 38 }),
+  orbit(44.8, LENS.rinse, -6, 4, 2.0, { fov: 38 }),
+  orbit(49.0, [1.75, 5.1, 0.2], 10, 4, 4.4, { fov: 38 }),
+  orbit(52.4, C, 20, 8, 10.4, { fov: 38 }),
   // comparison
-  orbit(58.2, [0, 3.0, 2.6], 10, 8, 9.6, { fov: 38 }),
+  orbit(56.0, [0, 3.0, 2.6], 10, 8, 9.6, { fov: 38 }),
   orbit(60, [0, 3.0, 2.6], 6, 8, 10.0, { fov: 38, stop: true }),
 ]);
 
 // ---------------------------------------------------------------------------------------------
 // Tracks
 /** pump running (0..1): hook spin, then the wash from the pump scene to the end of the rinse */
-export const pump = (t: number) => envelope(t, -1, 0, 5.8, 6.6) + envelope(t, T.pump[0] + 0.4, T.pump[0] + 1.4, T.rinse[1] - 0.4, T.rinse[1] + 0.4);
+export const pump = (t: number) => envelope(t, -1, 0, 5.4, 6.2) + envelope(t, T.pump[0] + 0.4, T.pump[0] + 1.4, T.rinse[1] - 0.4, T.rinse[1] + 0.4);
 /** spray arm angle: integral of ω ∝ pump (tabulated per frame) */
 const _ang: number[] = [];
 export const armAngleFast = (t: number) => {
@@ -136,7 +136,7 @@ export const compare = (t: number) => ramp(t, T.compare[0], T.compare[0] + 0.8);
 /** front door drawn as x-ray for the whole video (inside view from the first frame) */
 export const xray = (_t: number) => 1;
 /** dishes fade out while the spray arm is the subject (hook, recoil) */
-export const dishes = (t: number) => 1 - envelope(t, -1, 0, 6.0, 7.0) - envelope(t, T.recoil[0] - 0.4, T.recoil[0] + 0.4, T.recoil[1] - 0.2, T.recoil[1] + 0.6);
+export const dishes = (t: number) => 1 - envelope(t, -1, 0, 5.6, 6.6) - envelope(t, T.recoil[0] - 0.4, T.recoil[0] + 0.4, T.recoil[1] - 0.2, T.recoil[1] + 0.6);
 
 export const labels = {
   arm: (t: number) => envelope(t, 1.0, 1.4, 4.2, 4.6),
