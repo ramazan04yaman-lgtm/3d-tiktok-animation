@@ -14,6 +14,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 6. **„Warum schneidet Papier?“** — `--project papercut`
 7. **„Was wächst in deinem Duschkopf?“** — `--project shower`
 8. **„Der Riss im Holzlöffel“** — `--project spoon`
+9. **„Wie funktioniert eine Spülmaschine?“** — `--project dishwasher`
 
 ```bash
 npm install
@@ -222,3 +223,7 @@ Narration `audio/shower-voice.json` (Felix, natural speed). Hook: crooked jets +
 ## Episode 8 — Holzlöffel (spoon)
 
 Narration `audio/spoon-voice.json` (Felix, natural speed). Hook: dark line in the bowl = crack (0–7 s); magnified wood block (rings, open pores) + vessel magnifier (water, then fat creep in by capillarity); swelling/shrinking until the block cracks; sauce, meat juice and fat pressed into the V crack; dishwasher cycles (HUD) deepen it; bacteria colonise the moist gap, rinse water stays on top; surprise: on intact wood bacteria are drawn into the pores and mostly die as it dries (wooden-board studies, Univ. of Wisconsin, 1990s); fix: hand wash, dry, replace cracked spoons.
+
+## Episode 9 — Spülmaschine (dishwasher)
+
+Narration `audio/dishwasher-voice.json` (Felix, natural speed). Hook: spray arm spins with no motor of its own (0–6 s); inlet (~10 l HUD); softener magnifier (resin beads swap calcium for sodium); heater ring up to 70 °C; circulation pump feeds both spray arms; recoil arrows show the angled nozzles driving the arm; detergent flap opens, enzyme magnifier (amylase/protease cut starch and protein); sieve and recirculation; rinse-aid magnifier (droplets spread into a film); drying: steam condenses on the cooler walls; surprise: washing by hand often uses about four times as much water (water columns ≈ 10 l vs ≈ 40 l).
