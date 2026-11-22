@@ -57,6 +57,6 @@ const server = http.createServer((req, res) => {
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-c:a', 'aac', '-b:a', '192k',
     '-movflags', '+faststart', '-shortest', file], { stdio: 'inherit' });
   enc(path.join(build, 'mix.wav'), out);
-  enc(path.join(build, 'voice.wav'), out.replace('.mp4', '_nur-stimme.mp4'));
+  if (fs.existsSync(path.join(build, 'voice.wav'))) enc(path.join(build, 'voice.wav'), out.replace('.mp4', '_nur-stimme.mp4'));
   console.log('Fertig:', out);
 })();
