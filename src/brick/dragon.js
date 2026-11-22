@@ -207,7 +207,12 @@ window.renderAt = (t) => {
   camera.position.set(Math.cos(ang) * R, hh, Math.sin(ang) * R);
   const tg = t0.map((v, j) => lerp(v, t1[j], k));
   if (fireAmt > 0) { camera.position.x += Math.sin(t * 61) * .5 * fireAmt; camera.position.y += Math.cos(t * 47) * .5 * fireAmt; }
-  camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
+  camera.lookAt(tg[0], tg[1], tg[2]);
+  if (window.PROFILE) { // Standbild-Modus (z. B. Profilbild): eigene Kamera + Hintergrund
+    const [x, y, z, a, b2, c] = window.PROFILE.cam; camera.position.set(x, y, z); camera.lookAt(a, b2, c);
+    scene.background.set(window.PROFILE.bg); scene.fog = null; camera.fov = window.PROFILE.fov || 42;
+  }
+  camera.updateProjectionMatrix();
   renderer.render(scene, camera);
   // Schnitt-Punch
   const cutK = i === 0 ? 1 : clamp(lt / 0.3);
