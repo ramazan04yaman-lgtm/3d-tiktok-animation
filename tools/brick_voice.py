@@ -56,6 +56,10 @@ def main(vdir, pauses):
     for k, s in enumerate(spec["segments"]):
         ws = words[starts[k]: starts[k + 1] if k + 1 < len(starts) else len(words)]
         ws = [{"w": w["w"], "s": round(w["s"], 3), "e": round(w["e"], 3)} for w in ws]
+        for w in ws:  # Anzeige-Ersatz aus script.json ("show"), z. B. "1117" -> "1.117"
+            core = norm(w["w"])
+            for k2, v2 in s.get("show", {}).items():
+                if norm(k2) == core: w["show"] = v2 + (w["w"][-1] if w["w"][-1] in ".,!?" else "")
         start = 0.0 if k == 0 else round(ws[0]["s"] - 0.12, 3)
         segs.append({**s, "start": start, "end": ws[-1]["e"], "words": ws})
     # Bau-Keyframes

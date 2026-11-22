@@ -1,0 +1,17 @@
+{
+ "title": "Ich baue einen Sci-Fi-Blaster",
+ "page": "src/brick/blaster.html",
+ "events": {"chargeT": ["charge", "Energie"], "c10": ["charge", "10%"], "c50": ["charge", "50%"], "c100": ["charge", "100"]},
+ "segments": [
+  {"scene": "hook", "build": "start", "text": "Ich baue einen Sci-Fi-Blaster. Aus über tausend Steinen."},
+  {"scene": "stand", "build": "stand", "text": "Zuerst der Ständer, damit er später schwebt wie im Museum."},
+  {"scene": "grip", "build": "grip", "text": "Dann der Griff und die Energiezelle. Orange, mit einem Fenster, in dem später die Energie leuchtet."},
+  {"scene": "stock", "build": "stock", "show": {"innenhol": "innen hohl"}, "text": "Jetzt der Schaft. Weiß und innen hohl, damit er leicht bleibt."},
+  {"scene": "body", "build": "body", "text": "Das Gehäuse. Orange Platten und ein Leuchtstreifen an der Seite."},
+  {"scene": "barrel", "build": "barrel", "text": "Dann der Lauf, mit einem Emitter ganz vorne."},
+  {"scene": "sight", "build": "sight", "text": "Und zum Schluss das Visier."},
+  {"scene": "done", "show": {"1117": "1.117"}, "text": "Fertig. 1.117 Steine. Aber er kann noch mehr."},
+  {"scene": "charge", "text": "Energie wird geladen. Zehn Prozent. Fünfzig. Hundert."},
+  {"scene": "outro", "text": "Was soll ich als Nächstes bauen? Schreib es in die Kommentare."}
+ ]
+}

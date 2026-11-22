@@ -51,7 +51,15 @@ def make_mix(b, tl, parts, v=None, name="mix.wav"):
         L = int(0.5 * SR); s0 = int(tl["neonT"] * SR); tt = np.arange(L) / SR
         hum = (np.sin(2 * np.pi * 100 * tt) + .5 * np.sin(2 * np.pi * 200 * tt)) * np.exp(-tt * 5) * (np.sin(2 * np.pi * 18 * tt) > -.3) * .35
         e = min(n, s0 + L); sfx[s0:e] += hum[: e - s0]
-    impact = tl.get("fireT", tl.get("driveT", dur - 3))
+    if "chargeT" in tl:  # Aufladen: steigender Ton bis 100 %, dann Wumms
+        c0, c1 = tl["chargeT"], tl["c100"]; L = int((c1 - c0 + 0.3) * SR); s0 = int(c0 * SR); tt = np.arange(L) / SR
+        f = 180 + 900 * (tt / tt[-1]) ** 1.6; ph = 2 * np.pi * np.cumsum(f) / SR
+        wh = (np.sin(ph) + .4 * np.sin(2 * ph)) * (0.1 + 0.5 * (tt / tt[-1]) ** 1.5) * .35
+        e = min(n, s0 + L); sfx[s0:e] += wh[: e - s0]
+        L = int(1.6 * SR); s0 = int(c1 * SR); tt = np.arange(L) / SR
+        boom = (np.sin(2 * np.pi * (40 + 80 * np.exp(-tt * 6)) * tt) * .8 + np.sin(2 * np.pi * 880 * tt) * .15) * np.exp(-tt * 2.5)
+        e = min(n, s0 + L); sfx[s0:e] += boom[: e - s0] * .7
+    impact = tl.get("fireT", tl.get("driveT", tl.get("c100", dur - 3)))
     m = music(dur, [s["start"] for s in segs[1:]], impact, pulse_start=0.6, riser_len=2.5)[:n]
     venv = np.convolve(np.abs(v), np.ones(4410) / 4410, "same")
     duck = 1 - 0.45 * np.clip(venv / 0.05, 0, 1)

@@ -142,5 +142,79 @@ window.shot = (s) => {
   $('label').textContent = s.label; $('cap').innerHTML = s.cap;
   $('bar').style.opacity = s.bar === false ? 0 : 1; $('bar').firstChild.style.width = (s.p * 100) + '%';
 };
+// ================= Video-Modus (Timeline) =================
+const tlUrl = new URLSearchParams(location.search).get('tl');
+const TL = tlUrl ? await (await fetch(tlUrl)).json() : null;
+if (TL) {
+  const K = TL.keyframes;
+  bricks.forEach((b, i) => {
+    const target = i + 1; let t = K[K.length - 1][0];
+    for (let k = 1; k < K.length; k++) if (K[k][1] >= target) { const [t0, n0] = K[k - 1], [t1, n1] = K[k]; t = n1 === n0 ? t1 : t0 + (t1 - t0) * (target - n0) / (n1 - n0); break; }
+    b.land = t;
+  });
+}
+const CAM = {
+  hook:   [[70, 34, 96], [64, 30, 90], [9, 6, 0], [9, 6, 0]],
+  stand:  [[52, 22, 62], [42, 20, 68], [9, 5, 0], [9, 6, 0]],
+  grip:   [[62, 30, 80], [44, 36, 92], [9, 12, 0], [9, 15, 0]],
+  stock:  [[-64, 50, 92], [-36, 58, 104], [-12, 18, 0], [-8, 19, 0]],
+  body:   [[118, 84, 104], [100, 80, 112], [8, 20, 0], [8, 21, 0]],
+  barrel: [[124, 50, 70], [112, 46, 88], [30, 22, 0], [28, 22, 0]],
+  sight:  [[60, 96, 70], [76, 90, 78], [12, 28, 0], [12, 27, 0]],
+  done:   [[160, 54, 104], [168, 48, 100], [17, 19, 0], [17, 19, 0]],
+  charge: [[156, 40, 62], [134, 34, 50], [26, 22, 0], [28, 23, 0]],
+  outro:  [[150, 60, 110], [172, 70, 124], [13, 18, 0], [13, 18, 0]],
+};
+const chunks = [];
+if (TL) for (const s of TL.segments) {
+  let cur = [];
+  s.words.forEach((w, i) => { cur.push(w);
+    if (/[.,!?]$/.test(w.w) || cur.length === 3 || (cur.length === 2 && w.w.length > 9) || i === s.words.length - 1) { chunks.push(cur); cur = []; } });
+}
+function setCaption(t) {
+  const c = chunks.find((c, i) => t >= c[0].s && t < (chunks[i + 1] && chunks[i + 1][0].s - c[c.length - 1].e < .3 ? chunks[i + 1][0].s : c[c.length - 1].e + .25));
+  const cap = $('cap'); if (!c) { cap.innerHTML = ''; return; }
+  cap.style.transform = `scale(${0.75 + 0.25 * easeOut((t - c[0].s) / 0.12)})`;
+  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${(w.show || w.w).replace(/[.,]$/, '')}</span>`).join(' ');
+}
+const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'stand', 'grip', 'stock', 'body', 'barrel', 'sight', 'done'];
+function chargeAt(t) {
+  if (!TL || t < TL.chargeT) return 0;
+  const P = [[TL.chargeT, 0], [TL.c10, .1], [TL.c50, .5], [TL.c100, 1]];
+  for (let k = 1; k < P.length; k++) if (t < P[k][0]) { const [a, va] = P[k - 1], [b, vb] = P[k]; return lerp(va, vb, ease((t - a) / (b - a))); }
+  return 1;
+}
+window.renderAt = (t) => {
+  const SEG = TL.segments, i = SEG.findIndex((s, j) => t < (SEG[j + 1] ? SEG[j + 1].start : Infinity));
+  const s = SEG[i], st = i === 0 ? 0 : s.start, en = SEG[i + 1] ? SEG[i + 1].start : TL.duration, lt = t - st, ld = en - st;
+  const q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pos = new THREE.Vector3();
+  const ch = chargeAt(t), full = t >= TL.c100, pulse = full ? .85 + .15 * Math.sin(t * 9) : 1;
+  const shake = full && t - TL.c100 < .8 ? Math.sin(t * 70) * .25 * (1 - (t - TL.c100) / .8) : 0;
+  bricks.forEach(b => {
+    const f = clamp(1 - (b.land - t) / 0.4), k = easeOut(f);
+    pos.set(b.x, b.y + 16 * (1 - k) + (b.part !== 'stand' ? shake : 0), b.z); q.setFromEuler(e.set(0, (1 - k) * 1.2, 0)); sc.setScalar(f > 0 ? 1 : 0);
+    b.mesh.setMatrixAt(b.idx, m4.compose(pos, q, sc));
+  });
+  for (const L in meshes) { meshes[L].instanceMatrix.needsUpdate = true; meshes[L].instanceColor.needsUpdate = true; glowMeshes[L].instanceMatrix.needsUpdate = true; }
+  glowMat.emissiveIntensity = .15 + 3.5 * ch * pulse; glowLight.intensity = 1500 * ch * pulse;
+  muzzle.material.opacity = Math.min(1, ch * 1.2); muzzle.scale.setScalar((6 + 16 * ch) * pulse + (full ? Math.max(0, 1 - (t - TL.c100) / .5) * 20 : 0));
+  key1.intensity = 2.2 * (1 - .5 * ch);
+  const [c0, c1, t0, t1] = CAM[s.scene], k = ease(lt / ld);
+  camera.position.set(...c0.map((v, j) => lerp(v, c1[j], k)));
+  if (shake) { camera.position.x += Math.sin(t * 57) * .8; camera.position.y += Math.cos(t * 43) * .8; }
+  const tg = t0.map((v, j) => lerp(v, t1[j], k)); camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
+  const cutK = i === 0 ? 1 : clamp(lt / 0.3);
+  canvas.style.transform = `scale(${1 + 0.07 * (1 - easeOut(cutK))})`;
+  $('flash').style.background = full ? '#bff8ff' : '#fff';
+  $('flash').style.opacity = Math.max(i === 0 ? 0 : (1 - clamp(lt / 0.12)) * 0.35, full ? Math.max(0, 1 - (t - TL.c100) / .35) * .7 : 0);
+  const placed = bricks.reduce((a, b) => a + (b.land <= t ? 1 : 0), 0), building = BUILD.includes(s.scene);
+  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'charge' ? `ENERGIE ${Math.round(ch * 100)}%` : 'TEIL 2?';
+  $('label').style.background = building ? '#e8222c' : '#00a8c0';
+  $('bar').style.opacity = building || s.scene === 'charge' ? 1 : 0;
+  $('bar').firstChild.style.width = (s.scene === 'charge' ? ch * 100 : placed / bricks.length * 100) + '%';
+  $('bar').firstChild.style.background = s.scene === 'charge' ? 'linear-gradient(90deg,#00e5ff,#bff8ff)' : '';
+  setCaption(t);
+};
 await document.fonts.load('900 50px M');
 window.READY = true;
