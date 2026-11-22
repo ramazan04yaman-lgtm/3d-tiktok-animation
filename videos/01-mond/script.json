@@ -1,0 +1,12 @@
+{
+  "title": "Was wäre, wenn der Mond verschwindet?",
+  "segments": [
+    {"scene": "hook",   "label": "03:00 UHR", "text": "Heute Nacht um drei Uhr verschwindet der Mond. Einfach so."},
+    {"scene": "dark",   "label": "NACH 1 SEKUNDE", "text": "Zuerst merkst du kaum etwas. Aber ab jetzt ist jede Nacht so dunkel wie bei Neumond. Für immer."},
+    {"scene": "tide",   "label": "NACH 6 STUNDEN", "text": "Die Flut bleibt aus. Ohne den Mond schrumpfen die Gezeiten auf ein Drittel."},
+    {"scene": "rhythm", "label": "NACH 1 MONAT", "text": "Korallen, Krabben und Schildkröten verlieren ihren Takt. Viele vermehren sich nur im Rhythmus des Mondes."},
+    {"scene": "tilt",   "label": "NACH MILLIONEN JAHREN", "text": "Und dann das Schlimmste. Ohne den Mond als Anker beginnt die Erdachse zu taumeln."},
+    {"scene": "chaos",  "label": "ACHSE KIPPT", "text": "Am Nordpol brennt monatelang die Sonne. Und Europa versinkt in einem Winter, der nicht mehr endet."},
+    {"scene": "outro",  "label": "03:00 UHR", "text": "Alles nur, weil ein einziger Stein am Himmel fehlt."}
+  ]
+}

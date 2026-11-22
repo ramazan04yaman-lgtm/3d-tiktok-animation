@@ -1,0 +1,24 @@
+{
+  "name": "3d-tiktok-animation",
+  "version": "1.0.0",
+  "description": "Mein 3d Cartoon Animationprojekt",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramazan04yaman-lgtm/3d-tiktok-animation.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ramazan04yaman-lgtm/3d-tiktok-animation/issues"
+  },
+  "homepage": "https://github.com/ramazan04yaman-lgtm/3d-tiktok-animation#readme",
+  "dependencies": {
+    "@fontsource/montserrat": "^5.3.0",
+    "three": "^0.160.0"
+  }
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Szenario Renderer</title>
+<style>
+  @font-face { font-family: M; font-weight: 900; src: url(/node_modules/@fontsource/montserrat/files/montserrat-latin-900-normal.woff2); }
+  @font-face { font-family: M; font-weight: 800; src: url(/node_modules/@fontsource/montserrat/files/montserrat-latin-800-normal.woff2); }
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; font-family: M, sans-serif; }
+  #stage { position: absolute; inset: 0; transform-origin: 50% 45%; }
+  canvas { display: block; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #vignette { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%); }
+  /* Zeit-Label oben */
+  #label { position: absolute; top: 230px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    background: #e8222c; color: #fff; font-weight: 900; font-size: 58px; letter-spacing: 2px;
+    padding: 14px 34px 12px; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  #label .dot { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #fff; margin-right: 18px; vertical-align: 4px; }
+  /* Untertitel */
+  #cap { position: absolute; left: 70px; right: 70px; top: 1180px; text-align: center; line-height: 1.08;
+    font-weight: 900; font-size: 104px; color: #fff; text-transform: uppercase;
+    -webkit-text-stroke: 14px #000; paint-order: stroke fill; text-shadow: 0 8px 0 rgba(0,0,0,.65); }
+  #cap span { display: inline-block; margin: 0 14px; }
+  #cap span.on { color: #ffe02e; }
+  /* HUD */
+  #hud { position: absolute; left: 90px; right: 90px; top: 380px; opacity: 0; }
+  .meter { background: rgba(0,0,0,.55); border: 3px solid rgba(255,255,255,.25); border-radius: 22px; padding: 22px 30px; color: #fff; }
+  .meter .row { display: flex; justify-content: space-between; font-weight: 800; font-size: 40px; }
+  .meter .val { font-weight: 900; color: #ffe02e; }
+  .bar { margin-top: 16px; height: 26px; background: rgba(255,255,255,.15); border-radius: 13px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg,#ffe02e,#ff7a1a); border-radius: 13px; }
+  #phases { display: flex; justify-content: space-between; margin-top: 10px; }
+  #phases div { position: relative; width: 90px; height: 90px; }
+  #phases svg { width: 90px; height: 90px; }
+  #phases .x { position: absolute; inset: -6px; opacity: 0; }
+  #end { position: absolute; left: 0; right: 0; top: 760px; text-align: center; color: #fff; font-weight: 900;
+    font-size: 150px; -webkit-text-stroke: 16px #000; paint-order: stroke fill; opacity: 0; }
+  #end small { display: block; font-size: 62px; color: #ffe02e; -webkit-text-stroke: 10px #000; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="vignette"></div>
+<div id="hud"></div>
+<div id="label"></div>
+<div id="cap"></div>
+<div id="end">TEIL 2?<small>FOLGEN, SONST VERPASST DU'S</small></div>
+<div id="flash"></div>
+<script type="importmap">{ "imports": { "three": "/node_modules/three/build/three.module.js" } }</script>
+<script type="module" src="/src/scene.js"></script>
+</body>
+</html>
