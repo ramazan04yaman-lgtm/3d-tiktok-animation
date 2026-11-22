@@ -1,0 +1,59 @@
+{
+ "title": "Ich baue einen Drachen aus Klemmbausteinen",
+ "segments": [
+  {
+   "scene": "hook",
+   "build": "start",
+   "text": "Ich baue einen Drachen. Aus über tausend Steinen. Stein für Stein."
+  },
+  {
+   "scene": "legs",
+   "build": "legs",
+   "stretch": true,
+   "text": "Zuerst die Beine. Vier Stück, mit schwarzen Krallen, damit er später nicht umkippt."
+  },
+  {
+   "scene": "body",
+   "build": "body",
+   "stretch": true,
+   "text": "Dann der Körper. Hellgrün am Bauch, dunkelgrün am Rücken. Und innen ist er komplett hohl. Das spart mehr als die Hälfte der Steine."
+  },
+  {
+   "scene": "neck",
+   "build": "neck",
+   "stretch": true,
+   "text": "Jetzt wird es schwierig. Schwanz und Hals. Jede Reihe sitzt ein kleines Stück weiter außen, sonst kippt alles."
+  },
+  {
+   "scene": "wings",
+   "build": "wings",
+   "stretch": true,
+   "text": "Die Flügel. Hunderte rote Steine, und jeder einzelne muss genau sitzen."
+  },
+  {
+   "scene": "head",
+   "build": "head",
+   "stretch": true,
+   "text": "Zum Schluss der Kopf. Hörner aus weißen Steinen. Und zwei gelbe Augen."
+  },
+  {
+   "scene": "done",
+   "text": "Fertig. Tausendeinhundertachtundachtzig Steine. Sieht gut aus, oder?",
+   "show": {
+    "Tausendeinhundertachtundachtzig": "1.188"
+   }
+  },
+  {
+   "scene": "glow",
+   "text": "Aber dann fangen seine Augen an zu leuchten."
+  },
+  {
+   "scene": "fire",
+   "text": "Und er speit Feuer."
+  },
+  {
+   "scene": "outro",
+   "text": "Was soll ich als Nächstes bauen? Schreib es in die Kommentare."
+  }
+ ]
+}

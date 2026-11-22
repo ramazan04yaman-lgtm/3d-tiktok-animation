@@ -6,9 +6,9 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
 const args = process.argv.slice(2), vdir = path.resolve(args[0]);
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
-const FPS = +opt('fps', 30), WORKERS = +opt('workers', 3), preview = opt('preview', null);
+const FPS = +opt('fps', 30), WORKERS = +opt('workers', 3), preview = opt('preview', null), PAGE = opt('page', 'src/index.html');
 const build = path.join(vdir, 'build'), frames = path.join(vdir, 'frames');
-const tl = JSON.parse(fs.readFileSync(path.join(build, 'timeline.json')));
+const tlPath = path.join(build, 'timeline.json'), tl = fs.existsSync(tlPath) ? JSON.parse(fs.readFileSync(tlPath)) : null;
 
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2' };
 const server = http.createServer((req, res) => {
@@ -19,7 +19,7 @@ const server = http.createServer((req, res) => {
 
 (async () => {
   await new Promise(r => server.listen(0, r));
-  const url = `http://127.0.0.1:${server.address().port}/src/index.html?tl=/${path.relative(ROOT, build)}/timeline.json`;
+  const url = `http://127.0.0.1:${server.address().port}/${PAGE}` + (tl && !args.includes('--counts') ? `?tl=/${path.relative(ROOT, build)}/timeline.json` : '');
   const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   const open = async () => {
     const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
@@ -27,6 +27,11 @@ const server = http.createServer((req, res) => {
     await page.goto(url); await page.waitForFunction('window.READY === true', null, { timeout: 120000 });
     return page;
   };
+  if (args.includes('--counts')) { // Steinzahlen je Bauteil für die Audio-Timeline
+    const page = await open(); fs.mkdirSync(build, { recursive: true });
+    fs.writeFileSync(path.join(build, 'parts.json'), JSON.stringify(await page.evaluate('window.PARTS'), null, 1));
+    console.log(await page.evaluate('JSON.stringify(window.PARTS)')); await browser.close(); server.close(); return;
+  }
   if (preview) {
     const page = await open(); fs.mkdirSync(path.join(build, 'preview'), { recursive: true });
     for (const t of preview.split(',').map(Number)) {

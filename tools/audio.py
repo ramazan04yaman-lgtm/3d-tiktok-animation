@@ -66,7 +66,8 @@ def env(n, a=0.005, d=0.3):
     return np.minimum(1, t / a) * np.exp(-t / d)
 
 
-def music(dur, cuts, impact_t):
+def music(dur, cuts, impact_t, pulse_start=None, riser_len=None):
+    pulse_start = impact_t if pulse_start is None else pulse_start
     n = int(dur * SR); t = np.arange(n) / SR
     out = np.zeros((n, 2), np.float32)
     bpm = 100; beat = 60 / bpm
@@ -91,20 +92,20 @@ def music(dur, cuts, impact_t):
     rng = np.random.default_rng(1)
     hat_len = int(0.05 * SR); hat = rng.normal(0, 1, hat_len) * env(hat_len, 0.001, 0.012)
     hat = np.diff(np.concatenate([[0], hat]))  # Hochpass-artig
-    k = impact_t
+    k = pulse_start
     while k < dur - 0.3:
         for off, g in ((0, 0.55), (beat * 0.42, 0.35)):  # "ba-dum"
             s = int((k + off) * SR); e = min(n, s + kick_len)
             out[s:e] += (kick[: e - s] * g)[:, None]
         k += beat * 2
-    h = impact_t
+    h = pulse_start
     while h < dur - 0.1:
         s = int(h * SR); e = min(n, s + hat_len)
         out[s:e] += (hat[: e - s] * 0.05)[:, None]
         h += beat / 2
     # Arp-Glocke (spannend, hoch)
     notes = [440, 523.25, 659.25, 523.25, 392, 523.25, 587.33, 493.88]
-    j = 0; a = impact_t + bar
+    j = 0; a = pulse_start + bar
     bl = int(0.6 * SR); bt = np.arange(bl) / SR
     while a < dur - 0.6:
         f = notes[j % len(notes)]
@@ -124,11 +125,12 @@ def music(dur, cuts, impact_t):
     boom += rng.normal(0, 1, L) * np.exp(-tt * 9) * 0.4
     e = min(n, s + L); out[s:e] += (boom[: e - s] * 0.6)[:, None]
     # Riser vor dem Impact
-    L = int(impact_t * SR)
-    if L > 0:
+    rl = impact_t if riser_len is None else riser_len
+    L = int(rl * SR); s0 = int((impact_t - rl) * SR)
+    if L > 0 and s0 >= 0:
         tt = np.arange(L) / SR
         riser = np.sin(2 * np.pi * (200 + 900 * (tt / tt[-1]) ** 2) * tt) * (tt / tt[-1]) ** 2 * 0.06
-        out[:L] += riser[:, None]
+        out[s0:s0 + L] += riser[:, None]
     # Fade out
     fo = int(1.2 * SR); out[-fo:] *= np.linspace(1, 0, fo)[:, None]
     return out
