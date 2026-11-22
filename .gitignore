@@ -2,3 +2,4 @@ node_modules/
 voices/*.onnx
 videos/*/build/
 videos/*/frames/
+videos/*/voice/*.wav
