@@ -68,17 +68,22 @@ def main(vdir, pauses):
         elif s.get("build"): kf += [[s["start"] + 0.1, kf[-1][1]], [nxt(i) - 0.35, cum[s["build"]]]]
     kf.append([dur, parts["N"]])
     allw = [w for s in segs for w in s["words"]]
-    glow_t = next(w["s"] for w in allw if norm(w["w"]).startswith("augen") and w["s"] > segs[6]["start"])
-    fire_t = next(w["s"] for w in allw if "speit" in norm(w["w"]))
-    outro = next(s for s in segs if s["scene"] == "outro")
-    # Feuer-Szene beginnt mit "...speit"; Glow-Szene davor
-    for s in segs:
-        if s["scene"] == "fire" and s["start"] > fire_t: s["start"] = round(fire_t - 0.6, 3)
-    tl = {"title": spec["title"], "duration": dur, "keyframes": kf, "glowT": glow_t, "fireT": fire_t,
-          "fireEnd": outro["start"] + 1.2, "segments": segs}
+    if "events" in spec:  # generisch: Ereigniszeit = Start des ersten passenden Worts
+        # Ereignis: [Szene, Wort] -> Start des Worts (exakter Vergleich) innerhalb dieser Szene
+        ev = {k: next(w["s"] for s in segs if s["scene"] == sc for w in s["words"] if norm(w["w"]) == norm(wd))
+              for k, (sc, wd) in spec["events"].items()}
+        tl = {"title": spec["title"], "duration": dur, "keyframes": kf, **ev, "segments": segs}
+    else:  # Drache
+        glow_t = next(w["s"] for w in allw if norm(w["w"]).startswith("augen") and w["s"] > segs[6]["start"])
+        fire_t = next(w["s"] for w in allw if "speit" in norm(w["w"]))
+        outro = next(s for s in segs if s["scene"] == "outro")
+        for s in segs:
+            if s["scene"] == "fire" and s["start"] > fire_t: s["start"] = round(fire_t - 0.6, 3)
+        tl = {"title": spec["title"], "duration": dur, "keyframes": kf, "glowT": glow_t, "fireT": fire_t,
+              "fireEnd": outro["start"] + 1.2, "segments": segs}
     json.dump(tl, open(os.path.join(b, "timeline.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     make_mix(b, tl, parts, v)
-    print(f"Dauer {dur:.1f}s, Glow {glow_t:.2f}s, Feuer {fire_t:.2f}s")
+    print(f"Dauer {dur:.1f}s", {k: v for k, v in tl.items() if k.endswith("T")})
     for s in segs: print(f"  {s['scene']:6} {s['start']:6.2f}  {' '.join(w['w'] for w in s['words'])[:60]}")
 
 

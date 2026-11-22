@@ -1,0 +1,66 @@
+{
+ "title": "Ich baue ein Auto im GTA-6-Style",
+ "page": "src/brick/car.html",
+ "events": {
+  "nightT": [
+   "night",
+   "dunkel"
+  ],
+  "neonT": [
+   "neon",
+   "Neonlicht"
+  ],
+  "driveT": [
+   "neon",
+   "ab"
+  ]
+ },
+ "segments": [
+  {
+   "scene": "hook",
+   "build": "start",
+   "text": "Ich baue ein Auto im GTA-6-Style. Aus über tausend Steinen."
+  },
+  {
+   "scene": "wheels",
+   "build": "wheels",
+   "text": "Zuerst die Räder. Vier Stück, mit silbernen Felgen."
+  },
+  {
+   "scene": "chassis",
+   "build": "chassis",
+   "text": "Dann das Chassis. Dunkelgrau, ganz flach, damit es tief auf der Straße liegt."
+  },
+  {
+   "scene": "body",
+   "build": "body",
+   "text": "Jetzt die Karosserie. Pink, mit einem türkisen Streifen an der Seite. Typisch Miami."
+  },
+  {
+   "scene": "interior",
+   "build": "interior",
+   "text": "Innen weiße Ledersitze und ein türkiser Boden."
+  },
+  {
+   "scene": "details",
+   "build": "details",
+   "text": "Zum Schluss die Windschutzscheibe, ein Spoiler und die Scheinwerfer."
+  },
+  {
+   "scene": "done",
+   "text": "Fertig. 1.131 Steine. Sieht aus wie aus dem Spiel, oder?"
+  },
+  {
+   "scene": "night",
+   "text": "Aber warte, bis es dunkel wird."
+  },
+  {
+   "scene": "neon",
+   "text": "Neonlicht an. Und ab geht's."
+  },
+  {
+   "scene": "outro",
+   "text": "Welches Auto soll ich als Nächstes bauen? Schreib es in die Kommentare."
+  }
+ ]
+}

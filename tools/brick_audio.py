@@ -20,7 +20,7 @@ def click(rng):
 
 def make_mix(b, tl, parts, v=None, name="mix.wav"):
     """Musik + Klicks + Feuer aus der Timeline; optional mit Stimme v (mono, SR)."""
-    dur, segs, fire_t, fire_end = tl["duration"], tl["segments"], tl["fireT"], tl["fireEnd"]
+    dur, segs = tl["duration"], tl["segments"]
     n = int(dur * SR); v = np.zeros(n) if v is None else np.pad(v, (0, max(0, n - len(v))))[:n]
     rng = np.random.default_rng(3); clicks = np.zeros(n); K = np.array(tl["keyframes"], float)
     for k in range(1, parts["N"] + 1):
@@ -30,15 +30,32 @@ def make_mix(b, tl, parts, v=None, name="mix.wav"):
         rate = (n1 - n0) / max(t1 - t0, 1e-3)
         c = click(rng) * rng.uniform(.5, 1) * (0.32 if rate < 20 else 0.32 * (20 / rate) ** .5)
         s0 = int(t * SR); e = min(n, s0 + len(c)); clicks[s0:e] += c[: e - s0]
-    L = int((fire_end - fire_t + 0.8) * SR); s0 = int(fire_t * SR)
-    nz = np.convolve(rng.normal(0, 1, L), np.ones(40) / 40, "same") * 3
-    tt = np.arange(L) / SR; envf = np.minimum(1, tt / 0.15) * np.minimum(1, (tt[-1] - tt) / 0.8)
-    fire = nz * envf * (0.8 + 0.2 * np.sin(2 * np.pi * 9 * tt)) * 0.5
-    m = music(dur, [s["start"] for s in segs[1:]], fire_t, pulse_start=0.6, riser_len=2.5)[:n]
+    sfx = np.zeros(n)
+    if "fireT" in tl:  # Feuer-Rauschen
+        fire_t, fire_end = tl["fireT"], tl["fireEnd"]
+        L = int((fire_end - fire_t + 0.8) * SR); s0 = int(fire_t * SR)
+        nz = np.convolve(rng.normal(0, 1, L), np.ones(40) / 40, "same") * 3
+        tt = np.arange(L) / SR; envf = np.minimum(1, tt / 0.15) * np.minimum(1, (tt[-1] - tt) / 0.8)
+        f = nz * envf * (0.8 + 0.2 * np.sin(2 * np.pi * 9 * tt)) * 0.5
+        e = min(n, s0 + L); sfx[s0:e] += f[: e - s0]
+    if "driveT" in tl:  # Motor aufheulen + Reifenquietschen
+        d0 = tl["driveT"]; L = int(3.5 * SR); s0 = int(d0 * SR); tt = np.arange(L) / SR
+        rpm = 55 + 160 * (1 - np.exp(-tt * 1.4)); ph = 2 * np.pi * np.cumsum(rpm) / SR
+        eng = (np.sign(np.sin(ph)) * .35 + np.sin(2 * ph) * .4 + np.sin(3.01 * ph) * .25) * np.minimum(1, tt / .1) * np.exp(-np.maximum(0, tt - 1.6) * 1.3)
+        eng = np.convolve(eng, np.ones(12) / 12, "same") * 0.55
+        sq = np.sin(2 * np.pi * (2300 + 200 * np.sin(2 * np.pi * 13 * tt)) * tt) * np.exp(-tt * 2.2) * np.minimum(1, tt / .03)
+        sq += np.convolve(rng.normal(0, 1, L), np.ones(3) / 3, "same") * np.exp(-tt * 2.2) * .3
+        e = min(n, s0 + L); sfx[s0:e] += (eng + sq * .18)[: e - s0]
+    if "neonT" in tl:  # Neon-Brummen beim Einschalten
+        L = int(0.5 * SR); s0 = int(tl["neonT"] * SR); tt = np.arange(L) / SR
+        hum = (np.sin(2 * np.pi * 100 * tt) + .5 * np.sin(2 * np.pi * 200 * tt)) * np.exp(-tt * 5) * (np.sin(2 * np.pi * 18 * tt) > -.3) * .35
+        e = min(n, s0 + L); sfx[s0:e] += hum[: e - s0]
+    impact = tl.get("fireT", tl.get("driveT", dur - 3))
+    m = music(dur, [s["start"] for s in segs[1:]], impact, pulse_start=0.6, riser_len=2.5)[:n]
     venv = np.convolve(np.abs(v), np.ones(4410) / 4410, "same")
     duck = 1 - 0.45 * np.clip(venv / 0.05, 0, 1)
     mix = m * duck[:, None] * 0.85 + v[:, None] + clicks[:, None]
-    e = min(n, s0 + L); mix[s0:e] += fire[: e - s0, None]
+    mix += sfx[:, None]
     mix /= max(1, np.abs(mix).max() / 0.98)
     write_wav(os.path.join(b, name), mix)
 

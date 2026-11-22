@@ -184,5 +184,100 @@ window.shot = (s) => {
   $('label').textContent = s.label; $('cap').innerHTML = s.cap;
   $('bar').style.opacity = s.bar === false ? 0 : 1; $('bar').firstChild.style.width = (s.p * 100) + '%';
 };
+// ================= Video-Modus (Timeline) =================
+const tlUrl = new URLSearchParams(location.search).get('tl');
+const TL = tlUrl ? await (await fetch(tlUrl)).json() : null;
+if (TL) {
+  const K = TL.keyframes;
+  bricks.forEach((b, i) => {
+    const target = i + 1; let t = K[K.length - 1][0];
+    for (let k = 1; k < K.length; k++) if (K[k][1] >= target) { const [t0, n0] = K[k - 1], [t1, n1] = K[k]; t = n1 === n0 ? t1 : t0 + (t1 - t0) * (target - n0) / (n1 - n0); break; }
+    b.land = t;
+  });
+}
+const WR = 3 * 1.6, WY = 3 * 1.6 + 0, WX = 10 * 1.6; // Radradius/-mitte
+bricks.forEach(b => { if (b.part === 'wheels') b.wc = [b.x > 0 ? WX : -WX, WY]; });
+// Qualm + Bremsspuren
+const SMN = 160, smoke = new THREE.InstancedMesh(brickGeo(1), new THREE.MeshStandardMaterial({ color: 0xe6e0ea, transparent: true, opacity: .75, roughness: 1 }), SMN);
+scene.add(smoke);
+const skidM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, transparent: true, opacity: 0, roughness: 1 });
+const skids = [1, -1].map(sg => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, .12, 2.6), skidM); m.position.set(0, .26, sg * 11.2); scene.add(m); return m; });
+const CAM = {
+  hook:     [[60, 16, 74], [72, 22, 86], [2, 3, 0], [2, 5, 0]],
+  wheels:   [[72, 22, 86], [40, 20, 92], [0, 4, 0], [0, 4, 0]],
+  chassis:  [[86, 30, 50], [70, 40, 70], [0, 4, 0], [0, 4, 0]],
+  body:     [[90, 38, 68], [30, 34, 96], [2, 6, 0], [2, 6, 0]],
+  interior: [[-30, 80, 62], [-10, 82, 50], [-2, 5, 0], [-2, 5, 0]],
+  details:  [[80, 26, -60], [96, 22, 24], [2, 6, 0], [2, 6, 0]],
+  done:     [[90, 24, 84], [70, 18, 90], [2, 7, 0], [2, 7, 0]],
+  night:    [[70, 18, 90], [62, 12, 70], [2, 6, 0], [2, 6, 0]],
+  neon:     [[92, 14, 96], [98, 12, 88], [4, 5, 0], [10, 5, 0]],
+  outro:    [[30, 40, 92], [20, 52, 104], [18, 2, 0], [18, 2, 0]],
+};
+const chunks = [];
+if (TL) for (const s of TL.segments) {
+  let cur = [];
+  s.words.forEach((w, i) => { cur.push(w);
+    if (/[.,!?]$/.test(w.w) || cur.length === 3 || (cur.length === 2 && w.w.length > 9) || i === s.words.length - 1) { chunks.push(cur); cur = []; } });
+}
+function setCaption(t) {
+  const c = chunks.find((c, i) => t >= c[0].s && t < (chunks[i + 1] && chunks[i + 1][0].s - c[c.length - 1].e < .3 ? chunks[i + 1][0].s : c[c.length - 1].e + .25));
+  const cap = $('cap'); if (!c) { cap.innerHTML = ''; return; }
+  cap.style.transform = `scale(${0.75 + 0.25 * easeOut((t - c[0].s) / 0.12)})`;
+  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${w.w.replace(/[.,]$/, '')}</span>`).join(' ');
+}
+const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'wheels', 'chassis', 'body', 'interior', 'details', 'done'];
+window.renderAt = (t) => {
+  const SEG = TL.segments, i = SEG.findIndex((s, j) => t < (SEG[j + 1] ? SEG[j + 1].start : Infinity));
+  const s = SEG[i], st = i === 0 ? 0 : s.start, en = SEG[i + 1] ? SEG[i + 1].start : TL.duration, lt = t - st, ld = en - st;
+  const q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pos = new THREE.Vector3();
+  // Fahren: 0,7 s Burnout auf der Stelle, dann Beschleunigung
+  const td = t - TL.driveT, burn = td > 0 ? 1 : 0, mv = Math.max(0, td - .7), dx = 26 * mv * mv;
+  const spin = td > 0 ? (td < .7 ? td * 30 : .7 * 30 + dx / WR + mv * 20) : 0;
+  const shake = td > 0 && td < .9 ? Math.sin(t * 70) * .15 : 0;
+  bricks.forEach(b => {
+    const f = clamp(1 - (b.land - t) / 0.4), k = easeOut(f);
+    let x = b.x, y = b.y, rot = (1 - k) * 1.2, rz = 0;
+    if (b.wc && spin) { const ox = b.x - b.wc[0], oy = b.y + BH / 2 - b.wc[1], c = Math.cos(-spin), si = Math.sin(-spin);
+      x = b.wc[0] + ox * c - oy * si; y = b.wc[1] + ox * si + oy * c - BH / 2; rz = -spin; }
+    else if (!b.wc) y += shake;
+    pos.set(x + dx, y + 16 * (1 - k), b.z); q.setFromEuler(e.set(0, rot, rz)); sc.setScalar(f > 0 ? 1 : 0);
+    b.mesh.setMatrixAt(b.idx, m4.compose(pos, q, sc));
+  });
+  for (const L in meshes) { meshes[L].instanceMatrix.needsUpdate = true; meshes[L].instanceColor.needsUpdate = true; }
+  // Qualm
+  for (let n = 0; n < SMN; n++) {
+    const born = (n / SMN) * 1.4, age = td - born, side = n % 2 ? 1 : -1;
+    const vis = age > 0 && age < 2.2;
+    const a = n * 2.4;
+    pos.set(-WX - 2 - age * 6 + Math.cos(a) * age * 3 + (born > .7 ? 26 * (born - .7) ** 2 : 0), .6 + age * 3.2 + Math.sin(a) * age, side * (11 + Math.sin(a * 1.7) * age * 3));
+    q.setFromEuler(e.set(a, a * .5, age)); smoke.setMatrixAt(n, m4.compose(pos, q, sc.setScalar(vis ? 1 + age * 2.2 : 0)));
+  }
+  smoke.instanceMatrix.needsUpdate = true; smoke.material.opacity = .7;
+  skids.forEach(m => { const L = Math.max(.01, Math.min(dx + 3, 70)); m.scale.x = L; m.position.x = -WX + L / 2; });
+  skidM.opacity = td > 0 ? .75 : 0;
+  // Nacht / Neon
+  const night = TL.nightT && t > TL.nightT ? ease((t - TL.nightT) / 1.6) : 0;
+  const nOn = t > TL.neonT ? clamp((t - TL.neonT) / .25) * (t - TL.neonT < .5 ? (Math.sin(t * 80) > -.2 ? 1 : .2) : 1) : 0;
+  skyU.night.value = night; sun.visible = night < .5;
+  key1.intensity = 2.6 * (1 - night * .85); fill.intensity = 1.1 * (1 - night * .6); front.intensity = 1.2 * (1 - night * .7);
+  scene.fog.color.set(night > .5 ? 0x1a0a2a : 0xff8a9a);
+  neon.material.opacity = .55 * nOn; neon.position.x = dx; neonLight.intensity = 2500 * nOn; neonLight.position.x = dx;
+  beams.forEach(b => { b.material.opacity = .05 * nOn; b.position.x = 25 + dx; }); headLight.intensity = 900 * nOn; headLight.position.x = 26 + dx; headLight.target.position.x = 70 + dx;
+  // Kamera
+  const [c0, c1, t0, t1] = CAM[s.scene], k = ease(lt / ld);
+  camera.position.set(...c0.map((v, j) => lerp(v, c1[j], k)));
+  if (td > 0 && td < 1.2) { camera.position.x += Math.sin(t * 57) * .4; camera.position.y += Math.cos(t * 43) * .4; }
+  const tg = t0.map((v, j) => lerp(v, t1[j], k)); camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
+  const cutK = i === 0 ? 1 : clamp(lt / 0.3);
+  canvas.style.transform = `scale(${1 + 0.07 * (1 - easeOut(cutK))})`;
+  $('flash').style.opacity = i === 0 ? 0 : (1 - clamp(lt / 0.12)) * 0.35;
+  const placed = bricks.reduce((a, b) => a + (b.land <= t ? 1 : 0), 0), building = BUILD.includes(s.scene);
+  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'night' ? 'WARTE…' : s.scene === 'neon' ? 'NACHTS IN MIAMI' : 'TEIL 2?';
+  $('label').style.background = building ? '#e8222c' : '#ff2d95';
+  $('bar').style.opacity = building ? 1 : 0; $('bar').firstChild.style.width = (placed / bricks.length * 100) + '%';
+  setCaption(t);
+};
 await document.fonts.load('900 50px M');
 window.READY = true;
