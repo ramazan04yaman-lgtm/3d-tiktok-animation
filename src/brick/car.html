@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Brick Build</title>
+<style>
+  @font-face { font-family: M; font-weight: 900; src: url(/node_modules/@fontsource/montserrat/files/montserrat-latin-900-normal.woff2); }
+  html, body { margin:0; width:1080px; height:1920px; overflow:hidden; background:#000; font-family:M,sans-serif; }
+  #label { position:absolute; top:230px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#e8222c; color:#fff;
+    font-weight:900; font-size:58px; padding:14px 34px 12px; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.5); }
+  #bar { position:absolute; top:340px; left:140px; right:140px; height:22px; background:rgba(255,255,255,.18); border-radius:11px; overflow:hidden; }
+  #bar i { display:block; height:100%; background:linear-gradient(90deg,#ffe02e,#ff7a1a); }
+  #cap { position:absolute; left:60px; right:60px; top:1240px; text-align:center; line-height:1.08; font-weight:900; font-size:100px;
+    color:#fff; text-transform:uppercase; -webkit-text-stroke:14px #000; paint-order:stroke fill; text-shadow:0 8px 0 rgba(0,0,0,.65); }
+  #cap span { display:inline-block; margin:0 12px; }
+</style></head><body>
+<div id="label"></div><div id="bar"><i></i></div><div id="cap"></div><div id="flash" style="position:absolute;inset:0;background:#fff;opacity:0"></div>
+<script type="importmap">{ "imports": { "three": "/node_modules/three/build/three.module.js", "three/addons/": "/node_modules/three/examples/jsm/" } }</script>
+<script type="module" src="/src/brick/car.js"></script>
+</body></html>
