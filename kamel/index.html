@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:M;font-weight:900;src:url(../node_modules/@fontsource/montserrat/files/montserrat-latin-900-normal.woff2)}
+@font-face{font-family:M;font-weight:800;src:url(../node_modules/@fontsource/montserrat/files/montserrat-latin-800-normal.woff2)}
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#000}
+canvas{position:absolute;left:0;top:0}
+#ui{position:absolute;inset:0;pointer-events:none;font-family:M,'Noto Color Emoji',sans-serif}
+#cap{position:absolute;left:0;right:0;top:860px;text-align:center;font-weight:900;font-size:80px;color:#fff;letter-spacing:1px;
+ -webkit-text-stroke:11px #000;paint-order:stroke fill;text-shadow:0 4px 0 rgba(0,0,0,.5);transform-origin:50% 50%}
+#cta{position:absolute;left:50%;top:1560px;transform:translateX(-50%);background:#000;color:#fff;font-weight:800;font-size:38px;padding:8px 26px;border-radius:14px}
+#badge{position:absolute;left:50%;top:1560px;transform:translateX(-50%);background:#000;color:#fff;font-weight:800;font-size:38px;padding:8px 26px;border-radius:14px}
+.pill{position:absolute;transform:translate(-50%,-50%);background:#111c;border:5px solid #f3c63f;color:#fff;font-weight:900;font-size:56px;
+ padding:8px 30px;border-radius:24px;white-space:nowrap;box-shadow:0 8px 20px #0006}
+.lab{position:absolute;transform:translate(-50%,-100%);color:#fff;font-weight:900;font-size:40px;-webkit-text-stroke:7px #3a3a3a;paint-order:stroke fill;white-space:nowrap}
+.dot{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:#fff;border:4px solid #000}
+svg{position:absolute;left:0;top:0}
+</style></head>
+<body>
+<div id="ui">
+ <svg id="svg" width="1080" height="1920"></svg>
+ <div id="labels"></div>
+ <div id="badge" style="display:none">Teil 11</div><div id="cta" style="display:none">Welches Tier als Nächstes? 👇</div>
+ <div id="cap"></div>
+</div>
+<script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js","three/addons/":"../node_modules/three/examples/jsm/"}}</script>
+<script type="module" src="scene.js"></script>
+</body></html>
