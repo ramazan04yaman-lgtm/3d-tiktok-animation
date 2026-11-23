@@ -1205,3 +1205,4 @@ export function bigText(g, txt, x, y, size, u) {
   const gr = g.createLinearGradient(0, -size / 2, 0, size / 2); gr.addColorStop(0, '#ffffff'); gr.addColorStop(1, '#c9d3dd'); g.fillStyle = gr; g.fillText(txt, 0, 0);
   g.lineWidth = size * 0.03; g.strokeStyle = '#3a3f48'; g.strokeText(txt, 0, 0); g.restore();
 }
+export { guy, lights, fedora, magnifier, bear, beret, dog, cam, sparkle };
