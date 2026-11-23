@@ -146,8 +146,6 @@ for k in range(8): addS(crunch(), WT(1, 'schnee') + k * 0.35, 0.8)
 addS(grind(2.2), WT(4, 'schleift') - 0.3, 0.7); addS(grind(2.0), WT(5, 'backenzähne'), 0.5)
 addS(growl(1.6), WT(8, 'höhlenlöwen'), 0.7); addS(thud(), WT(9, 'horn'), 0.8); addS(whoosh(0.6), WT(9, 'horn') - 0.2, 0.8)
 addS(sparkle(), WT(12, 'gebaut'), 0.7)
-# Eiszeit-Ambiente: Schneesturm-Wind
-sfx[:int(S[10]['start'] * SR)] += wind(S[10]['start'], 0.5)[:int(S[10]['start'] * SR)]
 # ---- Voice ----
 w = wave.open('build/voice.wav'); v = np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float32) / 32768
 v = np.interp(np.arange(N) * (w.getframerate() / SR), np.arange(len(v)), v)
