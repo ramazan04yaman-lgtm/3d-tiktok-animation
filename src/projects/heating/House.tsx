@@ -38,7 +38,7 @@ function tube(curve: THREE.Curve<THREE.Vector3>, r: number, seg = 64) {
   return new THREE.TubeGeometry(curve, seg, r, 14, false);
 }
 
-function woodTexture() {
+export function woodTexture() {
   const c = document.createElement('canvas');
   c.width = 1024;
   c.height = 1024;

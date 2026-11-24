@@ -1,0 +1,180 @@
+{
+ "source": "audio/voice_aircon.mp3",
+ "video": "out/aircon/aircon.mp4",
+ "output": "out/aircon/aircon_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 53.0 s (Leo); slowed to 0.95 and pauses lengthened (each ≤ 0.72 s) to fill the video.",
+ "segments": [
+  {
+   "text": "Eine Klimaanlage macht keine Kälte.",
+   "src": [
+    0,
+    2.34
+   ],
+   "at": 0.1,
+   "tempo": 0.95
+  },
+  {
+   "text": "Sie trägt die Wärme aus deinem Zimmer nach draußen.",
+   "src": [
+    2.66,
+    5.28
+   ],
+   "at": 3.095,
+   "tempo": 0.95
+  },
+  {
+   "text": "Der Trick steckt in einem Kältemittel, das durch Rohre kreist.",
+   "src": [
+    5.76,
+    9.03
+   ],
+   "at": 6.44,
+   "tempo": 0.95
+  },
+  {
+   "text": "Drinnen saugt ein Lüfter warme Raumluft über eiskalte Lamellen.",
+   "src": [
+    9.39,
+    13.33
+   ],
+   "at": 10.428,
+   "tempo": 0.95
+  },
+  {
+   "text": "Das Kältemittel darin verdampft und nimmt dabei die Wärme auf –",
+   "src": [
+    13.7,
+    17.2
+   ],
+   "at": 15.124,
+   "tempo": 0.95
+  },
+  {
+   "text": "wie Schweiß auf deiner Haut.",
+   "src": [
+    17.42,
+    18.86
+   ],
+   "at": 19.306,
+   "tempo": 0.95
+  },
+  {
+   "text": "Die feuchte Luft kühlt ab, Wasser kondensiert und tropft heraus.",
+   "src": [
+    19.27,
+    23.35
+   ],
+   "at": 21.385,
+   "tempo": 0.95
+  },
+  {
+   "text": "Wenn du mehr Maschinen von innen sehen willst –",
+   "src": [
+    23.73,
+    25.93
+   ],
+   "at": 26.232,
+   "tempo": 0.95
+  },
+  {
+   "text": "Like und abonnieren.",
+   "src": [
+    26.04,
+    27.37
+   ],
+   "at": 29.009,
+   "tempo": 0.95
+  },
+  {
+   "text": "Draußen presst ein Kompressor das Gas zusammen.",
+   "src": [
+    27.88,
+    30.63
+   ],
+   "at": 31.006,
+   "tempo": 0.95
+  },
+  {
+   "text": "Dadurch wird es heißer als die Sommerluft.",
+   "src": [
+    30.93,
+    33.16
+   ],
+   "at": 34.426,
+   "tempo": 0.95
+  },
+  {
+   "text": "Ein Ventilator bläst über das Gitter,",
+   "src": [
+    33.45,
+    35.62
+   ],
+   "at": 37.295,
+   "tempo": 0.95
+  },
+  {
+   "text": "das Gas gibt seine Wärme ab und wird wieder flüssig.",
+   "src": [
+    35.76,
+    38.79
+   ],
+   "at": 40.05,
+   "tempo": 0.95
+  },
+  {
+   "text": "Dann zischt es durch ein enges Ventil,",
+   "src": [
+    39.09,
+    41.3
+   ],
+   "at": 43.765,
+   "tempo": 0.95
+  },
+  {
+   "text": "der Druck fällt, und es wird eiskalt.",
+   "src": [
+    41.41,
+    43.9
+   ],
+   "at": 46.552,
+   "tempo": 0.95
+  },
+  {
+   "text": "Das Überraschende:",
+   "src": [
+    44.31,
+    45.32
+   ],
+   "at": 49.736,
+   "tempo": 0.95
+  },
+  {
+   "text": "Erfunden wurde die Klimaanlage nicht für Menschen,",
+   "src": [
+    45.58,
+    48.43
+   ],
+   "at": 51.311,
+   "tempo": 0.95
+  },
+  {
+   "text": "sondern neunzehnhundertzwei für eine Druckerei –",
+   "src": [
+    48.57,
+    51.12
+   ],
+   "at": 54.782,
+   "tempo": 0.95
+  },
+  {
+   "text": "gegen feuchtes Papier.",
+   "src": [
+    51.43,
+    52.86
+   ],
+   "at": 57.995,
+   "tempo": 0.95
+  }
+ ]
+}
