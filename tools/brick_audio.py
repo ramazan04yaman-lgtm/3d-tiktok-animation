@@ -24,7 +24,7 @@ def make_mix(b, tl, parts, v=None, name="mix.wav"):
     dur, segs = tl["duration"], tl["segments"]
     n = int(dur * SR); v = np.zeros(n) if v is None else np.pad(v, (0, max(0, n - len(v))))[:n]
     rng = np.random.default_rng(3); clicks = np.zeros(n); K = np.array(tl["keyframes"], float)
-    for k in range(1, parts["N"] + 1):
+    for k in range(1, int(min(parts["N"], K[:, 1].max())) + 1):
         j = np.searchsorted(K[:, 1], k)
         t0, n0 = K[j - 1]; t1, n1 = K[j]
         t = t1 if n1 == n0 else t0 + (t1 - t0) * (k - n0) / (n1 - n0)

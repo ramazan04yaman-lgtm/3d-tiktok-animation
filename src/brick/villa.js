@@ -146,5 +146,74 @@ window.shot = (s) => {
   $('cap').innerHTML = s.cap || '';
   $('bar').firstChild.style.width = (placed / bricks.length * 100) + '%';
 };
+// ================= Video-Modus (Timeline) =================
+const ease = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const lerp = (a, b, k) => a + (b - a) * k;
+const canvas = renderer.domElement; canvas.style.transformOrigin = '50% 45%';
+const tlUrl = new URLSearchParams(location.search).get('tl');
+const TL = tlUrl ? await (await fetch(tlUrl)).json() : null;
+let PREVIEW = Infinity, TARGET = 0;
+if (TL) {
+  const K = TL.keyframes; TARGET = K[K.length - 1][1];
+  bricks.forEach((b, i) => {
+    const target = i + 1; b.land = Infinity;
+    for (let k = 1; k < K.length; k++) if (K[k][1] >= target) { const [t0, n0] = K[k - 1], [t1, n1] = K[k]; b.land = n1 === n0 ? t1 : t0 + (t1 - t0) * (target - n0) / (n1 - n0); break; }
+  });
+  PREVIEW = TL.segments[TL.segments.length - 1].end + 0.5;
+}
+const CAM = {
+  intro:   [[110, 70, 150], [80, 50, 124], [2, 8, 0], [2, 8, 0]],
+  rules:   [[80, 50, 124], [34, 46, 122], [2, 8, 0], [2, 8, 0]],
+  project: [[-64, 42, 112], [-24, 34, 114], [0, 8, 0], [0, 8, 0]],
+  count:   [[78, 40, 108], [66, 34, 100], [2, 6, 2], [2, 6, 2]],
+  status:  [[56, 28, 90], [70, 32, 98], [2, 6, 2], [2, 7, 2]],
+  outro:   [[74, 40, 112], [96, 50, 128], [2, 9, 2], [2, 10, 2]],
+};
+const chunks = [];
+if (TL) for (const s of TL.segments) {
+  let cur = [];
+  s.words.forEach((w, i) => { cur.push(w);
+    if (/[.,!?]$/.test(w.w) || cur.length === 3 || (cur.length === 2 && w.w.length > 9) || i === s.words.length - 1) { chunks.push(cur); cur = []; } });
+}
+function setCaption(t) {
+  const c = chunks.find((c, i) => t >= c[0].s && t < (chunks[i + 1] && chunks[i + 1][0].s - c[c.length - 1].e < .3 ? chunks[i + 1][0].s : c[c.length - 1].e + .25));
+  const cap = $('cap'); if (!c) { cap.innerHTML = ''; return; }
+  cap.style.transform = `scale(${0.75 + 0.25 * easeOut((t - c[0].s) / 0.12)})`;
+  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${(w.show || w.w).replace(/[.,]$/, '')}</span>`).join(' ');
+}
+window.renderAt = (t) => {
+  const SEG = TL.segments, i = SEG.findIndex((s, j) => t < (SEG[j + 1] ? SEG[j + 1].start : Infinity));
+  const s = SEG[i], st = i === 0 ? 0 : s.start, en = SEG[i + 1] ? SEG[i + 1].start : TL.duration, lt = t - st, ld = en - st;
+  const zero = new THREE.Matrix4().makeScale(0, 0, 0), q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(1, 1, 1), pos = new THREE.Vector3();
+  const prev = t >= PREVIEW;
+  let placed = 0;
+  bricks.forEach(b => {
+    const f = clamp(1 - (b.land - t) / 0.4);
+    if (f > 0 && f >= 1) placed++;
+    if (prev || f > 0) {
+      const k = prev && !(f > 0) ? 1 : easeOut(f);
+      pos.set(b.x, b.y + 14 * (1 - k), b.z); q.setFromEuler(e.set(0, 1 - k, 0));
+      solid[b.L].setMatrixAt(b.idx, m4.compose(pos, q, sc)); ghost[b.L].setMatrixAt(b.idx, zero);
+    } else { solid[b.L].setMatrixAt(b.idx, zero); ghost[b.L].setMatrixAt(b.idx, m4.makeTranslation(b.x, b.y, b.z)); }
+  });
+  for (const L in solid) { solid[L].instanceMatrix.needsUpdate = ghost[L].instanceMatrix.needsUpdate = true; solid[L].instanceColor.needsUpdate = ghost[L].instanceColor.needsUpdate = true; }
+  const [c0, c1, t0, t1] = CAM[s.scene], k = ease(lt / ld);
+  camera.position.set(...c0.map((v, j) => lerp(v, c1[j], k)));
+  const tg = t0.map((v, j) => lerp(v, t1[j], k)); camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
+  const cutK = i === 0 ? 1 : clamp(lt / 0.3);
+  canvas.style.transform = `scale(${1 + 0.07 * (1 - easeOut(cutK))})`;
+  $('flash').style.opacity = Math.max(i === 0 ? 0 : (1 - clamp(lt / 0.12)) * 0.35, prev ? Math.max(0, 1 - (t - PREVIEW) / .4) * .8 : 0);
+  let lab, bar = false;
+  if (prev) lab = 'SO WIRD SIE FERTIG';
+  else if (s.scene === 'intro') lab = 'FOLLOWER-STADT';
+  else if (s.scene === 'rules') lab = t >= TL.rK ? '1 KOMMENTAR = 5 STEINE' : t >= TL.rL ? '1 LIKE = 1 STEIN' : t >= TL.rF ? '1 FOLLOWER = 10 STEINE' : 'DIE REGELN';
+  else if (s.scene === 'project') lab = 'PROJEKT 1: VILLA';
+  else { lab = `VILLA: ${fmt(placed)} / ${fmt(bricks.length)} STEINE`; bar = true; }
+  $('label').textContent = lab;
+  $('label').style.background = prev ? '#00a8c0' : '#e8222c';
+  $('bar').style.opacity = bar ? 1 : 0; $('bar').firstChild.style.width = (placed / bricks.length * 100) + '%';
+  if (prev) $('cap').innerHTML = `<span>NOCH</span> <span style="color:#ffe02e">${fmt(bricks.length - TARGET)}</span> <span>STEINE</span>`; else setCaption(t);
+};
 await document.fonts.load('900 50px M');
 window.READY = true;

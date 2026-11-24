@@ -1,0 +1,48 @@
+{
+ "title": "Follower-Stadt: Villa – Stand 61 Follower",
+ "page": "src/brick/villa.html",
+ "tail": 4.2,
+ "events": {
+  "rF": [
+   "rules",
+   "Follower"
+  ],
+  "rL": [
+   "rules",
+   "Like"
+  ],
+  "rK": [
+   "rules",
+   "Kommentar"
+  ]
+ },
+ "segments": [
+  {
+   "scene": "intro",
+   "text": "Wir bauen eine Stadt. Und ihr baut mit."
+  },
+  {
+   "scene": "rules",
+   "text": "Jeder Follower setzt zehn Steine. Jeder Like einen. Jeder Kommentar fünf."
+  },
+  {
+   "scene": "project",
+   "text": "Unser erstes Projekt: eine Luxusvilla mit Pool. Hier wohnen die ersten hundert Follower."
+  },
+  {
+   "scene": "count",
+   "build": 420,
+   "text": "Ihr seid jetzt einundsechzig. Das sind sechshundertzehn Steine."
+  },
+  {
+   "scene": "status",
+   "build": 610,
+   "text": "Das Erdgeschoss steht schon. Noch über zweitausend Steine bis zum Dach."
+  },
+  {
+   "scene": "outro",
+   "text": "Wer zieht als Nächstes ein?"
+  }
+ ],
+ "match_words": 2
+}

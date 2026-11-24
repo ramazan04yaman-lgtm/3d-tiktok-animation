@@ -33,8 +33,9 @@ def main(vdir, pauses):
     # Segmentanfänge: erstes Wort jedes Skript-Segments der Reihe nach in der Aufnahme suchen
     starts, pos = [], 0
     for s in spec["segments"]:
-        first = norm(s["text"].split()[0])
-        while pos < len(words) and norm(words[pos]["w"]) != first: pos += 1
+        first = norm(s["text"].split()[0]); mw = spec.get("match_words", 1)
+        second = norm(s["text"].split()[1]) if mw > 1 and len(s["text"].split()) > 1 else None
+        while pos < len(words) and not (norm(words[pos]["w"]) == first and (second is None or pos + 1 < len(words) and norm(words[pos + 1]["w"]) == second)): pos += 1
         if pos == len(words): sys.exit(f"Satzanfang nicht gefunden: {s['text'][:30]}")
         starts.append(pos); pos += 1
     # Pausen einfügen (Sekunden vor dem Segment, dessen erstes Wort passt)
@@ -49,7 +50,7 @@ def main(vdir, pauses):
     pieces.append(raw[int(last * SR):])
     voice = np.concatenate(pieces)
     for w, sh in zip(words, shift): w["s"] += sh; w["e"] += sh
-    dur = round(min(len(voice) / SR, words[-1]["e"] + 0.3) + TAIL, 3)
+    dur = round(min(len(voice) / SR, words[-1]["e"] + 0.3) + spec.get("tail", TAIL), 3)
     voice = np.pad(voice, (0, max(0, int(dur * SR) - len(voice))))[: int(dur * SR)]
     v = voice / (np.abs(voice).max() + 1e-6) * 0.9
     segs = []
@@ -69,8 +70,8 @@ def main(vdir, pauses):
     kf = [[0.0, 0]]
     for i, s in enumerate(segs):
         if s.get("build") == "start": kf += [[0.35, 0], [nxt(i) - 0.05, 6]]
-        elif s.get("build"): kf += [[s["start"] + 0.1, kf[-1][1]], [nxt(i) - 0.35, cum[s["build"]]]]
-    kf.append([dur, parts["N"]])
+        elif s.get("build"): kf += [[s["start"] + 0.1, kf[-1][1]], [nxt(i) - 0.35, s["build"] if isinstance(s["build"], int) else cum[s["build"]]]]
+    kf.append([dur, kf[-1][1] if any(isinstance(s.get("build"), int) for s in segs) else parts["N"]])
     allw = [w for s in segs for w in s["words"]]
     if "events" in spec:  # generisch: Ereigniszeit = Start des ersten passenden Worts
         # Ereignis: [Szene, Wort] -> Start des Worts (exakter Vergleich) innerhalb dieser Szene
