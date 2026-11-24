@@ -149,3 +149,5 @@ function mood(m) { const P = { day: [0x7fb0de, 0xf4e2c0, 0xffdcaa, 3.3, 1.45, 0x
 // Staub
 { const n = 300, g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3)); G.dust = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xc8a46a, size: 0.06, map: dotTex, transparent: true, depthWrite: false })); G.dust.userData.n = n; scene.add(G.dust); }
 function dust(o, T, k, dir = V(-1, 0, 0)) { G.dust.visible = k > 0; if (k <= 0) return; const a = G.dust.geometry.attributes.position.array, r = rng(3); for (let i = 0; i < G.dust.userData.n; i++) { const ph = (T * 1.5 + r()) % 1; a[i * 3] = o.x + dir.x * ph * (0.8 + r()) + (r() - 0.5) * 0.4; a[i * 3 + 1] = 0.03 + ph * (0.3 + r() * 0.4); a[i * 3 + 2] = o.z + dir.z * ph + (r() - 0.5) * 0.5; } G.dust.geometry.attributes.position.needsUpdate = true; }
+// Termitenhügel / Felsen auf der Renn-Bahn entfernen (verdecken sonst die Kamera)
+sav.children.forEach(m => { if (m.isMesh && (m.geometry.type === 'ConeGeometry' || m.geometry.type === 'DodecahedronGeometry') && Math.abs(m.position.z - 7) < 5) m.visible = false; });
