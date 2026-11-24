@@ -21,8 +21,8 @@ const server = http.createServer((req, res) => {
   const steine = Math.min(N, F * 10 + L + K * 5), fmt = n => n.toLocaleString('de-DE');
   const cap = `<span>${F} FOLLOWER</span> = <span style="color:#ffe02e">${fmt(F * 10)} STEINE</span>`;
   const shots = [
-    ['stand', { placed: steine, falling: 25, cam: [62, 40, 86, 2, 10, -4], cap }],
-    ['fertig', { placed: N, cam: [62, 40, 86, 2, 12, -4], label: `VILLA: ${fmt(N)} / ${fmt(N)} STEINE`, cap: 'SO SIEHT SIE <span style="color:#ffe02e">FERTIG</span> AUS' }],
+    ['stand', { placed: steine, falling: 25, cam: [74, 40, 112, 2, 9, 2], cap }],
+    ['fertig', { placed: N, cam: [74, 40, 112, 2, 10, 2], label: `VILLA: ${fmt(N)} / ${fmt(N)} STEINE`, cap: 'SO SIEHT SIE <span style="color:#ffe02e">FERTIG</span> AUS' }],
   ];
   for (const [name, s] of shots) {
     await page.evaluate(s => window.shot(s), s);
