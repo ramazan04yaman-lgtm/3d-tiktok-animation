@@ -16,6 +16,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 8. **„Der Riss im Holzlöffel“** — `--project spoon`
 9. **„Wie funktioniert eine Spülmaschine?“** — `--project dishwasher`
 10. **„Wie funktioniert eine Heizung?“** — `--project heating`
+11. **„Wie funktioniert eine Klimaanlage?“** — `--project aircon`
 
 ```bash
 npm install
@@ -232,3 +233,7 @@ Narration `audio/dishwasher-voice.json` (Felix, natural speed). Hook: spray arm 
 ## Episode 10 — Heizung (heating)
 
 Narration `audio/heating-voice.json` (Felix, natural speed). Hook: thermostat head turned from 3 to 5 — "Auf 5 = schneller warm?" (0–5 s); camera drops through the floor slab into the basement; gas condensing boiler turns to x-ray (blue burner flames, heat-exchanger coil, supply HUD to 70 °C); circulation pump, red supply / blue return pipes; radiator section (hot at the top, cooler at the bottom); convection roll in the room; mid-video like & subscribe CTA (`SubscribeCTA`); magnifier: water vapour in the exhaust condenses on the cold return-water tube and releases heat; magnifier: wax capsule expands, pin closes the valve as the room reaches 20 °C; surprise: setting 3 and 5 are equally open while the room is cold — 5 only means "close at ≈ 28 °C".
+
+## Episode 11 — Klimaanlage (aircon)
+
+Narration `audio/aircon-voice.json` (ElevenLabs "Leo", slowed to 0.95, pauses lengthened). Hook: section through the exterior wall — the indoor unit blows cold air while heat leaves at the outdoor unit ("Macht sie Kälte?"); pipe insulation turns transparent, colour-coded refrigerant loop; indoor unit section (fin packs, copper tubes, cross-flow fan); magnifier: liquid refrigerant evaporates and takes up heat; condensate on the fins, in the tray and at the hose; mid-video like & subscribe CTA; outdoor unit: compressor (HUD to 70 °C), fan and condenser; magnifier: expansion valve (40 → 5 °C, frost); surprise: invented in 1902 (Willis Carrier) for a Brooklyn print shop — humid paper curls, the humidity HUD drops from 85 % to 45 %.
