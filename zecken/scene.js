@@ -808,8 +808,8 @@ const shots = [
     const d = T > WP(10, 'gras') ? [...kidTicks(kids[0], 3), ...kidTicks(kids[1], 3)].filter((x, i) => i % 3 !== 0) : []; dotsSet(d); camFix(V(3.0, 1.3, 2.2), V(5.6, 0.6, -0.6), 44);
     label3('HOHES GRAS', V(5.9, 0.5, -1.5), clamp((T - WP(10, 'gras')) / 0.3), -150, -260); chip('🌾 SPIELEN AM ZAUN', 540, 470, clamp((T - WP(10, 'kinder')) / 0.3), '#e8483b'); icon(false, 540, 1340, clamp((T - WP(10, 'zaun')) / 0.25)); },
   // 11: Helle, lange Kleidung – Zecken sofort sehen – abends absuchen
-  (T) => { const tA = WP(11, 'abends'); const eve = T > tA - 0.2; if (eve) mood('dusk'); const P = V(1.0, 0, 3.0); poseKid(kids[0], { pos: P, yaw: 0.4, light: 1, T }); const tk = kidTicks(kids[0], 5); dotsSet(eve ? tk.slice(0, Math.max(0, 5 - Math.floor((T - tA) * 2.2))) : tk);
-    camFix(P.clone().add(V(0.9, 1.0, 2.9)), P.clone().add(V(0, 0.68, 0)), 40); if (eve) lens(tk[Math.max(0, 4 - Math.floor((T - tA) * 2.2))].p, 1); else tk.forEach((t, i) => ring(t.p, clamp((T - WP(11, 'zecken') - i * 0.08) / 0.3), '#e8323c', 34));
+  (T) => { const tA = WP(11, 'abends'); const eve = T > tA - 0.2; if (eve) mood('dusk'); const P = V(1.0, 0, 3.0); poseKid(kids[0], { pos: P, yaw: 0.4, light: 1, T }); const tk = kidTicks(kids[0], 5); dotsSet(eve ? tk.slice(0, Math.max(0, 5 - Math.floor(Math.max(0, T - tA) * 2.2))) : tk);
+    camFix(P.clone().add(V(0.9, 1.0, 2.9)), P.clone().add(V(0, 0.68, 0)), 40); if (eve) lens(tk[clamp(4 - Math.floor(Math.max(0, T - tA) * 2.2), 0, 4)].p, 1); else tk.forEach((t, i) => ring(t.p, clamp((T - WP(11, 'zecken') - i * 0.08) / 0.3), '#e8323c', 34));
     chip(eve ? '🌙 ABENDS ABSUCHEN' : '👕 HELLE KLEIDUNG', 540, 470, clamp((T - WP(11, 'helle')) / 0.3), '#2fbf5b'); icon(true, 540, 1340, clamp((T - WP(11, 'abgesucht')) / 0.25)); },
   // 12: Glückwunsch – zeckensicherer Garten
   (T) => { mood('dusk'); const u = T - S[12].start; poseQ(dog, { pos: V(-0.6, 0, 2.2), yaw: 0.8, wag: 1, T }); kids.forEach((k, j) => poseKid(k, { pos: V(1.4 + j * 0.6, 0, 2.6 - j * 0.3), yaw: -0.4, light: 1, T }));
