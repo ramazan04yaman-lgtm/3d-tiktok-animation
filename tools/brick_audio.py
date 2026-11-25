@@ -39,7 +39,13 @@ def make_mix(b, tl, parts, v=None, name="mix.wav"):
         tt = np.arange(L) / SR; envf = np.minimum(1, tt / 0.15) * np.minimum(1, (tt[-1] - tt) / 0.8)
         f = nz * envf * (0.8 + 0.2 * np.sin(2 * np.pi * 9 * tt)) * 0.5
         e = min(n, s0 + L); sfx[s0:e] += f[: e - s0]
-    if "driveT" in tl:  # Motor aufheulen + Reifenquietschen
+    if "driveT" in tl and tl.get("jet"):  # Turbine: steigendes Heulen + Rauschen
+        d0 = tl["driveT"]; L = int(5.5 * SR); s0 = int(d0 * SR); tt = np.arange(L) / SR
+        f = 300 + 1500 * (1 - np.exp(-tt * .8)); ph = 2 * np.pi * np.cumsum(f) / SR
+        nz = np.convolve(rng.normal(0, 1, L), np.ones(30) / 30, "same") * 3
+        jet = (np.sin(ph) * .25 + nz * .6) * np.minimum(1, tt / 1.2) * np.exp(-np.maximum(0, tt - 3.5) * 1.2)
+        e = min(n, s0 + L); sfx[s0:e] += jet[: e - s0] * .6
+    elif "driveT" in tl:  # Motor aufheulen + Reifenquietschen
         d0 = tl["driveT"]; L = int(3.5 * SR); s0 = int(d0 * SR); tt = np.arange(L) / SR
         rpm = 55 + 160 * (1 - np.exp(-tt * 1.4)); ph = 2 * np.pi * np.cumsum(rpm) / SR
         eng = (np.sign(np.sin(ph)) * .35 + np.sin(2 * ph) * .4 + np.sin(3.01 * ph) * .25) * np.minimum(1, tt / .1) * np.exp(-np.maximum(0, tt - 1.6) * 1.3)

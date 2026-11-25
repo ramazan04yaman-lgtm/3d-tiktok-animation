@@ -77,7 +77,7 @@ def main(vdir, pauses):
         # Ereignis: [Szene, Wort] -> Start des Worts (exakter Vergleich) innerhalb dieser Szene
         ev = {k: next(w["s"] for s in segs if s["scene"] == sc for w in s["words"] if norm(w["w"]) == norm(wd))
               for k, (sc, wd) in spec["events"].items()}
-        tl = {"title": spec["title"], "duration": dur, "keyframes": kf, **ev, "segments": segs}
+        tl = {"title": spec["title"], "duration": dur, "keyframes": kf, **ev, **spec.get("extra", {}), "segments": segs}
     else:  # Drache
         glow_t = next(w["s"] for w in allw if norm(w["w"]).startswith("augen") and w["s"] > segs[6]["start"])
         fire_t = next(w["s"] for w in allw if "speit" in norm(w["w"]))

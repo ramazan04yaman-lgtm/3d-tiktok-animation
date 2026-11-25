@@ -1,0 +1,18 @@
+{
+ "title": "Ich baue einen Privatjet",
+ "page": "src/brick/jet.html",
+ "match_words": 2,
+ "extra": {"jet": 1},
+ "events": {"driveT": ["takeoff", "Triebwerke"]},
+ "segments": [
+  {"scene": "hook", "build": "start", "text": "Ich baue einen Privatjet. Aus über tausend Steinen."},
+  {"scene": "gear", "build": "gear", "text": "Zuerst das Fahrwerk. Drei Beine, damit er sicher steht."},
+  {"scene": "fuselage", "build": "fuselage", "text": "Dann der Rumpf. Weiß, mit einem goldenen Streifen und einer Reihe Fenster."},
+  {"scene": "wings", "build": "wings", "text": "Jetzt die Flügel. Nach hinten gepfeilt, mit goldenen Spitzen."},
+  {"scene": "engines", "build": "tail", "text": "Die Triebwerke kommen hinten an den Rumpf. Und ganz oben das Leitwerk."},
+  {"scene": "done", "show": {"1390": "1.390"}, "text": "Fertig. 1.390 Steine. Mein eigener Privatjet."},
+  {"scene": "wait", "text": "Aber stehen bleibt er nicht."},
+  {"scene": "takeoff", "text": "Triebwerke an. Und abheben."},
+  {"scene": "outro", "text": "Wohin soll er als Nächstes fliegen? Schreib es in die Kommentare."}
+ ]
+}

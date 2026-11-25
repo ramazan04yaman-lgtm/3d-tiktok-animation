@@ -150,7 +150,7 @@ const mat = new THREE.MeshStandardMaterial({ roughness: .22, metalness: 0 });
 const meshes = {};
 for (let L = 1; L <= 4; L++) {
   meshes[L] = new THREE.InstancedMesh(brickGeo(L), mat, Math.max(1, bricks.filter(b => b.L === L).length));
-  meshes[L].castShadow = meshes[L].receiveShadow = true; meshes[L].userData.n = 0; scene.add(meshes[L]);
+  meshes[L].castShadow = meshes[L].receiveShadow = true; meshes[L].userData.n = 0; meshes[L].frustumCulled = false; scene.add(meshes[L]);
 }
 const col = new THREE.Color();
 bricks.forEach(b => { b.mesh = meshes[b.L]; b.idx = b.mesh.userData.n++; b.mesh.setColorAt(b.idx, col.set(b.c)); });
@@ -165,6 +165,7 @@ for (const s of [1, -1]) {
   cone.position.set(25, 7, s * 7.2); scene.add(cone); beams.push(cone);
 }
 const headLight = new THREE.SpotLight(0xfff1c0, 0, 80, .5, .6); headLight.position.set(26, 7, 0); headLight.target.position.set(70, 0, 0); scene.add(headLight, headLight.target);
+const SKY = scene.children.find(o => o.isMesh && o.material.isShaderMaterial && o.geometry.type === 'SphereGeometry');
 const camera = new THREE.PerspectiveCamera(42, W / H, .1, 1000);
 const $ = id => document.getElementById(id);
 
@@ -208,16 +209,15 @@ scene.add(smoke);
 const skidM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, transparent: true, opacity: 0, roughness: 1 });
 const skids = [1, -1].map(sg => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, .12, 2.6), skidM); m.position.set(0, .26, sg * 11.2); scene.add(m); return m; });
 const CAM = {
-  hook:     [[60, 16, 74], [72, 22, 86], [2, 3, 0], [2, 5, 0]],
-  wheels:   [[72, 22, 86], [40, 20, 92], [0, 4, 0], [0, 4, 0]],
-  chassis:  [[86, 30, 50], [70, 40, 70], [0, 4, 0], [0, 4, 0]],
-  body:     [[90, 38, 68], [30, 34, 96], [2, 6, 0], [2, 6, 0]],
-  interior: [[-30, 80, 62], [-10, 82, 50], [-2, 5, 0], [-2, 5, 0]],
-  details:  [[80, 26, -60], [96, 22, 24], [2, 6, 0], [2, 6, 0]],
-  done:     [[90, 24, 84], [70, 18, 90], [2, 7, 0], [2, 7, 0]],
-  night:    [[70, 18, 90], [62, 12, 70], [2, 6, 0], [2, 6, 0]],
-  neon:     [[92, 14, 96], [98, 12, 88], [4, 5, 0], [10, 5, 0]],
-  outro:    [[30, 40, 92], [20, 52, 104], [18, 2, 0], [18, 2, 0]],
+  hook:     [[110, 40, 140], [125, 44, 153], [0, 6, 0], [0, 8, 0]],
+  gear:     [[90, 30, 110], [72, 28, 122], [0, 4, 0], [0, 5, 0]],
+  fuselage: [[125, 52, 153], [100, 48, 160], [0, 10, 0], [0, 11, 0]],
+  wings:    [[91, 117, 130], [60, 120, 120], [0, 8, 0], [0, 8, 0]],
+  engines:  [[-117, 44, 130], [-90, 50, 140], [-13, 13, 0], [-13, 14, 0]],
+  done:     [[143, 52, 156], [150, 46, 150], [0, 13, 0], [0, 13, 0]],
+  wait:     [[150, 46, 150], [130, 30, 130], [0, 12, 0], [8, 12, 0]],
+  takeoff:  [[60, 20, 150], [70, 26, 160], [10, 12, 0], [18, 14, 0]],
+  outro:    [[70, 26, 160], [80, 30, 175], [18, 14, 0], [26, 16, 0]],
 };
 const chunks = [];
 if (TL) for (const s of TL.segments) {
@@ -229,15 +229,15 @@ function setCaption(t) {
   const c = chunks.find((c, i) => t >= c[0].s && t < (chunks[i + 1] && chunks[i + 1][0].s - c[c.length - 1].e < .3 ? chunks[i + 1][0].s : c[c.length - 1].e + .25));
   const cap = $('cap'); if (!c) { cap.innerHTML = ''; return; }
   cap.style.transform = `scale(${0.75 + 0.25 * easeOut((t - c[0].s) / 0.12)})`;
-  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${w.w.replace(/[.,]$/, '')}</span>`).join(' ');
+  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${(w.show || w.w).replace(/[.,]$/, '')}</span>`).join(' ');
 }
-const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'wheels', 'chassis', 'body', 'interior', 'details', 'done'];
+const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'gear', 'fuselage', 'wings', 'engines', 'done'];
 window.renderAt = (t) => {
   const SEG = TL.segments, i = SEG.findIndex((s, j) => t < (SEG[j + 1] ? SEG[j + 1].start : Infinity));
   const s = SEG[i], st = i === 0 ? 0 : s.start, en = SEG[i + 1] ? SEG[i + 1].start : TL.duration, lt = t - st, ld = en - st;
   const q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pos = new THREE.Vector3();
   // Fahren: 0,7 s Burnout auf der Stelle, dann Beschleunigung
-  const td = t - TL.driveT, burn = td > 0 ? 1 : 0, mv = Math.max(0, td - .7), dx = 26 * mv * mv;
+  const td = t - TL.driveT, burn = td > 0 ? 1 : 0, mv = Math.max(0, td - .7), dx = mv < 2.5 ? 9 * mv * mv : 56.25 + 45 * (mv - 2.5);
   const spin = td > 0 ? (td < .7 ? td * 30 : .7 * 30 + dx / WR + mv * 20) : 0;
   const shake = td > 0 && td < .9 ? Math.sin(t * 70) * .15 : 0;
   bricks.forEach(b => {
@@ -246,6 +246,8 @@ window.renderAt = (t) => {
     if (b.wc && spin) { const ox = b.x - b.wc[0], oy = b.y + BH / 2 - b.wc[1], c = Math.cos(-spin), si = Math.sin(-spin);
       x = b.wc[0] + ox * c - oy * si; y = b.wc[1] + ox * si + oy * c - BH / 2; rz = -spin; }
     else if (!b.wc) y += shake;
+    { const pitch = clamp((dx - 35) / 70) * .22, climb = Math.max(0, dx - 35) * .3, c = Math.cos(pitch), si = Math.sin(pitch);
+      const px = x * c - y * si, py = x * si + y * c; x = px; y = py + climb; rz += pitch; }
     pos.set(x + dx, y + 16 * (1 - k), b.z); q.setFromEuler(e.set(0, rot, rz)); sc.setScalar(f > 0 ? 1 : 0);
     b.mesh.setMatrixAt(b.idx, m4.compose(pos, q, sc));
   });
@@ -253,14 +255,14 @@ window.renderAt = (t) => {
   // Qualm
   for (let n = 0; n < SMN; n++) {
     const born = (n / SMN) * 1.4, age = td - born, side = n % 2 ? 1 : -1;
-    const vis = age > 0 && age < 2.2;
+    const vis = false;
     const a = n * 2.4;
     pos.set(-WX - 2 - age * 6 + Math.cos(a) * age * 3 + (born > .7 ? 26 * (born - .7) ** 2 : 0), .6 + age * 3.2 + Math.sin(a) * age, side * (11 + Math.sin(a * 1.7) * age * 3));
     q.setFromEuler(e.set(a, a * .5, age)); smoke.setMatrixAt(n, m4.compose(pos, q, sc.setScalar(vis ? 1 + age * 2.2 : 0)));
   }
   smoke.instanceMatrix.needsUpdate = true; smoke.material.opacity = .7;
   skids.forEach(m => { const L = Math.max(.01, Math.min(dx + 3, 70)); m.scale.x = L; m.position.x = -WX + L / 2; });
-  skidM.opacity = td > 0 ? .75 : 0;
+  skidM.opacity = 0;
   // Nacht / Neon
   const night = TL.nightT && t > TL.nightT ? ease((t - TL.nightT) / 1.6) : 0;
   const nOn = t > TL.neonT ? clamp((t - TL.neonT) / .25) * (t - TL.neonT < .5 ? (Math.sin(t * 80) > -.2 ? 1 : .2) : 1) : 0;
@@ -273,13 +275,17 @@ window.renderAt = (t) => {
   const [c0, c1, t0, t1] = CAM[s.scene], k = ease(lt / ld);
   camera.position.set(...c0.map((v, j) => lerp(v, c1[j], k)));
   if (td > 0 && td < 1.2) { camera.position.x += Math.sin(t * 57) * .4; camera.position.y += Math.cos(t * 43) * .4; }
-  const tg = t0.map((v, j) => lerp(v, t1[j], k)); camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
+  const tg = t0.map((v, j) => lerp(v, t1[j], k));
+  if (s.scene === 'takeoff' || s.scene === 'outro') { const fx = dx, fy = Math.max(0, dx - 35) * .3;
+    camera.position.x += fx; camera.position.y += fy; tg[0] += fx; tg[1] += fy; }
+  camera.lookAt(tg[0], tg[1], tg[2]);
+  SKY.position.copy(camera.position); camera.updateProjectionMatrix();
   renderer.render(scene, camera);
   const cutK = i === 0 ? 1 : clamp(lt / 0.3);
   canvas.style.transform = `scale(${1 + 0.07 * (1 - easeOut(cutK))})`;
   $('flash').style.opacity = i === 0 ? 0 : (1 - clamp(lt / 0.12)) * 0.35;
   const placed = bricks.reduce((a, b) => a + (b.land <= t ? 1 : 0), 0), building = BUILD.includes(s.scene);
-  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'night' ? 'WARTE…' : s.scene === 'neon' ? 'NACHTS IN MIAMI' : 'TEIL 2?';
+  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'wait' ? 'ABFLUGBEREIT' : s.scene === 'takeoff' ? 'START FREIGEGEBEN' : 'TEIL 2?';
   $('label').style.background = building ? '#e8222c' : '#ff2d95';
   $('bar').style.opacity = building ? 1 : 0; $('bar').firstChild.style.width = (placed / bricks.length * 100) + '%';
   setCaption(t);
