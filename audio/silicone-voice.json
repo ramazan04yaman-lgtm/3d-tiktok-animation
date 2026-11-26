@@ -1,0 +1,249 @@
+{
+ "source": "audio/voice_silicone.mp3",
+ "video": "out/silicone/silicone.mp4",
+ "output": "out/silicone/silicone_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Felix, natural speed (69.6 s); pauses lengthened slightly to fill the 72 s video.",
+ "segments": [
+  {
+   "text": "Wenn deine Silikonfuge in der Dusche schwarz wird,",
+   "src": [
+    0,
+    2.88
+   ],
+   "at": 0.1
+  },
+  {
+   "text": "bringt Putzen gar nichts.",
+   "src": [
+    3.02,
+    4.58
+   ],
+   "at": 3.194
+  },
+  {
+   "text": "Der Schimmel sitzt nicht auf der Fuge –",
+   "src": [
+    4.73,
+    6.88
+   ],
+   "at": 4.978
+  },
+  {
+   "text": "er wächst hinein.",
+   "src": [
+    7.09,
+    8.22
+   ],
+   "at": 7.412
+  },
+  {
+   "text": "Und oft ist die Fuge von Anfang an falsch gemacht.",
+   "src": [
+    8.52,
+    11.64
+   ],
+   "at": 8.916
+  },
+  {
+   "text": "Fehler Nummer eins:",
+   "src": [
+    12.11,
+    13.28
+   ],
+   "at": 12.541
+  },
+  {
+   "text": "Das Silikon klebt an drei Seiten.",
+   "src": [
+    13.56,
+    15.78
+   ],
+   "at": 14.065
+  },
+  {
+   "text": "Bewegt sich die Wanne, reißt es –",
+   "src": [
+    16.18,
+    18.06
+   ],
+   "at": 16.737
+  },
+  {
+   "text": "und Wasser läuft dahinter.",
+   "src": [
+    18.19,
+    19.71
+   ],
+   "at": 18.821
+  },
+  {
+   "text": "Fehler Nummer zwei:",
+   "src": [
+    20.19,
+    21.31
+   ],
+   "at": 20.853
+  },
+  {
+   "text": "Seifenreste und Feuchtigkeit bleiben stehen.",
+   "src": [
+    21.63,
+    24.14
+   ],
+   "at": 22.364
+  },
+  {
+   "text": "Das ist Futter für Schimmel.",
+   "src": [
+    24.47,
+    26.06
+   ],
+   "at": 25.273
+  },
+  {
+   "text": "Wenn du wissen willst, wie es richtig geht –",
+   "src": [
+    26.51,
+    28.4
+   ],
+   "at": 27.353
+  },
+  {
+   "text": "Like und abonnieren.",
+   "src": [
+    28.62,
+    30.02
+   ],
+   "at": 29.537
+  },
+  {
+   "text": "So geht’s richtig:",
+   "src": [
+    30.48,
+    31.75
+   ],
+   "at": 31.434
+  },
+  {
+   "text": "Altes Silikon komplett rausschneiden.",
+   "src": [
+    31.98,
+    34.35
+   ],
+   "at": 33.008
+  },
+  {
+   "text": "Fuge reinigen,",
+   "src": [
+    34.58,
+    35.64
+   ],
+   "at": 35.682
+  },
+  {
+   "text": "mit Alkohol abwischen und gut trocknen lassen.",
+   "src": [
+    35.78,
+    38.59
+   ],
+   "at": 36.956
+  },
+  {
+   "text": "Ist die Fuge tief, kommt eine Rundschnur hinein –",
+   "src": [
+    38.95,
+    41.65
+   ],
+   "at": 40.188
+  },
+  {
+   "text": "so klebt das Silikon nur an zwei Seiten und kann sich dehnen.",
+   "src": [
+    41.95,
+    45.5
+   ],
+   "at": 43.262
+  },
+  {
+   "text": "Ränder abkleben,",
+   "src": [
+    45.83,
+    47.02
+   ],
+   "at": 47.211
+  },
+  {
+   "text": "Sanitärsilikon einspritzen,",
+   "src": [
+    47.21,
+    49.09
+   ],
+   "at": 48.665
+  },
+  {
+   "text": "mit Spülwasser glatt abziehen und das Klebeband sofort entfernen.",
+   "src": [
+    49.3,
+    53.32
+   ],
+   "at": 50.829
+  },
+  {
+   "text": "Dann vierundzwanzig Stunden nicht duschen.",
+   "src": [
+    53.58,
+    56.13
+   ],
+   "at": 55.183
+  },
+  {
+   "text": "Danach gilt:",
+   "src": [
+    56.4,
+    57.21
+   ],
+   "at": 58.077
+  },
+  {
+   "text": "nach jedem Duschen kurz abziehen und lüften.",
+   "src": [
+    57.4,
+    60
+   ],
+   "at": 59.151
+  },
+  {
+   "text": "Und das Überraschende:",
+   "src": [
+    60.34,
+    61.44
+   ],
+   "at": 62.158
+  },
+  {
+   "text": "Eine Silikonfuge gilt offiziell als Wartungsfuge.",
+   "src": [
+    61.73,
+    65.19
+   ],
+   "at": 63.622
+  },
+  {
+   "text": "Sie ist gar nicht für die Ewigkeit gemacht –",
+   "src": [
+    65.5,
+    67.55
+   ],
+   "at": 67.466
+  },
+  {
+   "text": "alle paar Jahre muss sie neu.",
+   "src": [
+    67.71,
+    69.36
+   ],
+   "at": 69.75
+  }
+ ]
+}

@@ -72,3 +72,41 @@ export function SubscribeCTA({ at, duration = 4.2, line = 'Mehr Maschinen von in
     </div>
   );
 }
+
+/** "Richtig gemacht" series: series chip at the top (no progress bar, light style) */
+export function SeriesChip({ series, title, from = 0 }: { series: string; title: string; from?: number }) {
+  const t = useTime((s) => s.time);
+  const v = envelope(t, from, from + 0.5, 1e9, 1e9 + 1);
+  return (
+    <div className="rg-chip" style={{ opacity: v }}>
+      <span className="rg-chip-series">{series}</span>
+      {title}
+    </div>
+  );
+}
+
+/** big ✕ / ✓ verdict stamp (wrong vs. right) */
+export function Verdict({ kind, text, visible }: { kind: 'bad' | 'good'; text: string; visible: (t: number) => number }) {
+  const t = useTime((s) => s.time);
+  const v = visible(t);
+  if (v < 0.005) return null;
+  return (
+    <div className={`rg-verdict rg-${kind}`} style={{ opacity: Math.min(1, v * 1.4), transform: `translateX(-50%) scale(${0.7 + 0.3 * v})` }}>
+      <span className="rg-verdict-ico">{kind === 'bad' ? '✕' : '✓'}</span>
+      {text}
+    </div>
+  );
+}
+
+/** closing card over the last seconds */
+export function EndCard({ at, title, line }: { at: number; title: string; line: string }) {
+  const t = useTime((s) => s.time);
+  const v = envelope(t, at, at + 0.6, 1e9, 1e9 + 1);
+  if (v < 0.005) return null;
+  return (
+    <div className="rg-end" style={{ opacity: v, transform: `translate(-50%, ${(1 - v) * 30}px)` }}>
+      <div className="rg-end-title">{title}</div>
+      <div className="rg-end-line">{line}</div>
+    </div>
+  );
+}
