@@ -647,7 +647,7 @@ function camFix(pos, look, fov = 40) { LOOK = look.clone(); camera.position.copy
 const WP = (i, pre, n) => WT(i, pre, n);
 const FX = 0.6; const FP = () => V(FX, twigY(FX), 0); const BACKP = () => FP().add(V(0.12, 0.3, 0)); // Platz auf ihrem Rücken
 function maleOnBack(T, extra = {}) { poseMantis(mal, Object.assign({ pos: BACKP(), yaw: -Math.PI / 2, pitch: -0.12, T }, extra)); }
-const side = (look, d = 3.0, up = 0.35, fov = 40) => { const L = look.clone().add(V(-0.25, 0.32 * d / 4, 0)); camFix(L.clone().add(V(0.15, 0.15, d * 0.72)), L, 42); };
+const side = (look, d = 3.0, up = 0.35, fov = 40, k = 0.6, ox = -0.4) => { const L = look.clone().add(V(ox, 0.3 * d / 4, 0)); camFix(L.clone().add(V(0.12, 0.1, d * k)), L, 42); };
 
 // ---------- Reset ----------
 function resetWorld() { rex.root.visible = false; ui = []; svg = []; badge.style.display = 'none'; cta.style.display = 'none'; }
@@ -664,7 +664,7 @@ const shots = [
   // 1: Sie ist viel größer – alles, was sich bewegt, landet in ihren Fangarmen
   (T) => { const tF = WP(1, 'fangarmen'), tB = WP(1, 'bewegt'); const st = T > tF - 0.4 ? clamp(1 - Math.abs(T - tF + 0.2) / 0.25) : 0; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, strike: st, T }); poseMantis(mal, { pos: V(1.75, twigY(1.75), 0), yaw: -Math.PI / 2, T });
     const fh = headW(fem); G.fly.visible = T < tF; G.fly.position.set(fh.x - 0.55 + 0.1 * Math.sin(T * 3), fh.y - 0.1 + 0.08 * Math.sin(T * 5), 0.1); G.fly.rotation.y = Math.PI / 2; G.fly.userData[-1].rotation.z = Math.sin(T * 60) * 0.5; G.fly.userData[1].rotation.z = -Math.sin(T * 60) * 0.5;
-    if (T < tB) { side(V(0.95, 1.3, 0), 4.3); label3('♀️ GROSS', headW(fem), clamp((T - WP(1, 'größer')) / 0.3), -60, -230); label3('♂️ KLEIN', headW(mal), clamp((T - WP(1, 'größer') - 0.2) / 0.3), 80, -230); } else camFix(fh.clone().add(V(-0.3, 0.1, 1.2)), fh.clone().add(V(-0.3, -0.1, 0)), 40);
+    if (T < tB) { side(V(0.95, 1.3, 0), 4.3); label3('♀️ GROSS', headW(fem), clamp((T - WP(1, 'größer')) / 0.3), -60, -230); label3('♂️ KLEIN', headW(mal), clamp((T - WP(1, 'größer') - 0.2) / 0.3), 80, -230); } else camFix(fh.clone().add(V(-0.15, 0.15, 1.0)), fh.clone().add(V(-0.05, -0.15, 0)), 40);
     burst(fh.clone().add(V(-0.4, 0, 0)), clamp((T - tF) / 0.6), 'SCHNAPP!'); chip('🦵 FANGARME', 540, 470, clamp((T - tB) / 0.3), '#e8483b'); icon(false, 540, 1340, clamp((T - tF - 0.3) / 0.25)); },
   // 2: Langsam anschleichen – erstarren, wenn sie den Kopf dreht
   (T) => { const t0 = S[2].start, tE = WP(2, 'erstarrst'); const look = T > tE - 0.2 && T < tE + 1.3; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: look ? 1.3 : 0, T }); const k = clamp((T - t0) / (S[2].end - t0)); const mx = lerp(2.0, 1.3, k);
@@ -696,7 +696,7 @@ const shots = [
     chip(T < WP(8, 'mahlzeit') ? '🥚 EIWEISS FÜR EIER' : '🍗 PERFEKTE MAHLZEIT', 540, 470, clamp((T - WP(8, 'eier')) / 0.3), '#f3c63f'); icon(true, 540, 1340, clamp((T - WP(8, 'mahlzeit') - 0.2) / 0.25)); },
   // 9: Eipaket aus Schaum mit über 100 Eiern an einem Zweig
   (T) => { const tS = WP(9, 'schaum'); const op = G.twigC.getPoint(0.42).add(V(0, -0.05, 0)); G.ooth.position.copy(op); oothSet(clamp((T - tS + 0.2) / 2.0)); poseMantis(fem, { pos: V(op.x + 0.75, twigY(op.x + 0.75), 0), yaw: -Math.PI / 2, T });
-    side(op.clone().add(V(0.3, 0.1, 0)), 2.4, 0.4, 40); const n = Math.round(100 * clamp((T - tS) / (WP(9, 'hundert') - tS + 0.2))); label3('EIPAKET', op.clone().add(V(0, -0.1, 0)), clamp((T - WP(9, 'eipaket')) / 0.3), -150, 250);
+    side(op.clone().add(V(0.3, 0.3, 0)), 2.6, 0.4, 40, 0.72, -0.25); const n = Math.round(100 * clamp((T - tS) / (WP(9, 'hundert') - tS + 0.2))); label3('EIPAKET', op.clone().add(V(0, -0.1, 0)), clamp((T - WP(9, 'eipaket')) / 0.3), -150, 250);
     chip(`🥚 ${n >= 100 ? '100+' : n} EIER`, 540, 470, clamp((T - tS) / 0.3), '#2fbf5b'); icon(true, 540, 1340, clamp((T - WP(9, 'zweig')) / 0.25)); },
   // 10: In der Natur endet höchstens etwa jede vierte Paarung so
   (T) => { const tV = WP(10, 'vierte'); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, T }); const mx = lerp(1.3, 3.0, clamp((T - S[10].start) / 3)); poseMantis(mal, { pos: V(mx, twigY(mx), 0), yaw: Math.PI / 2, walk: T * 3, walkK: 1, T }); side(V(1.3, 1.3, 0), 4.6);
@@ -704,7 +704,7 @@ const shots = [
     chip('📊 HÖCHSTENS 1 VON 4', 540, 470, clamp((T - WP(10, 'natur')) / 0.3), '#2fbf5b'); },
   // 11: Glückwunsch – Gottesanbeterin
   (T) => { mood('dusk'); const u = T - S[11].start; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: 0.4 * Math.sin(T), T }); const op = G.twigC.getPoint(0.42).add(V(0, -0.05, 0)); G.ooth.position.copy(op); oothSet(1); const a = 0.3 + u * 0.18;
-    const c = FP().add(V(-0.2, 0.5, 0)); cam(c.clone().add(V(Math.sin(a) * 2.6, 0.35, Math.cos(a) * 2.6)), c, 42, T, 0.003); cta.style.display = T > WP(11, 'gebaut') ? 'block' : 'none';
+    const c = FP().add(V(-0.2, 0.5, 0)); cam(c.clone().add(V(Math.sin(a) * 2.1, 0.3, Math.cos(a) * 2.1)), c, 42, T, 0.003); cta.style.display = T > WP(11, 'gebaut') ? 'block' : 'none';
     chip('🦗 GOTTESANBETERIN', 540, 470, clamp((T - WP(11, 'gottesanbeterin')) / 0.3), '#2fbf5b'); },
 ];
 shots.forEach((f, i) => { shots[i] = T => { stage(i, T); f(T); }; });
