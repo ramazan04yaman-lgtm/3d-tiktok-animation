@@ -17,6 +17,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 9. **„Wie funktioniert eine Spülmaschine?“** — `--project dishwasher`
 10. **„Wie funktioniert eine Heizung?“** — `--project heating`
 11. **„Wie funktioniert eine Klimaanlage?“** — `--project aircon`
+12. **„Wie funktioniert das Gehirn?“** — `--project brain`
 
 ```bash
 npm install
@@ -237,3 +238,7 @@ Narration `audio/heating-voice.json` (Felix, natural speed). Hook: thermostat he
 ## Episode 11 — Klimaanlage (aircon)
 
 Narration `audio/aircon-voice.json` (ElevenLabs "Leo", slowed to 0.95, pauses lengthened). Hook: section through the exterior wall — the indoor unit blows cold air while heat leaves at the outdoor unit ("Macht sie Kälte?"); pipe insulation turns transparent, colour-coded refrigerant loop; indoor unit section (fin packs, copper tubes, cross-flow fan); magnifier: liquid refrigerant evaporates and takes up heat; condensate on the fins, in the tray and at the hose; mid-video like & subscribe CTA; outdoor unit: compressor (HUD to 70 °C), fan and condenser; magnifier: expansion valve (40 → 5 °C, frost); surprise: invented in 1902 (Willis Carrier) for a Brooklyn print shop — humid paper curls, the humidity HUD drops from 85 % to 45 %.
+
+## Episode 12 — Gehirn (brain)
+
+Narration `audio/brain-voice.json` (ElevenLabs "Zayn", slowed to 0.95, pauses lengthened). Hook: SDF brain with gyri under a glowing light bulb — "Nur 20 Watt" (0–8 s); the cortex turns to x-ray and the camera dives into a neuron network; dendrite inputs, the cell fires, the spike jumps node to node along the myelinated axon (HUD to 400 km/h); synaptic cleft cliffhanger, mid-video like & subscribe CTA; magnifier: vesicles fuse, transmitters cross and dock on receptors; up to 10 000 contacts on the target cell; learning: four co-firing pulses strengthen the connection, a memory pattern lights up; surprise: back outside, skull + layer magnifier — scalp and dura carry pain fibres, brain tissue has none (awake brain surgery).
