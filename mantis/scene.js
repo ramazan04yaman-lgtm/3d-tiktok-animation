@@ -548,7 +548,7 @@ soilTex.wrapS = soilTex.wrapT = THREE.RepeatWrapping; soilTex.repeat.set(40, 40)
 // Riesige Grashalme (Makro)
 { const g = new THREE.PlaneGeometry(0.18, 1, 1, 10); g.translate(0, 0.5, 0); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setX(i, p.getX(i) * (1 - y * 0.85)); p.setZ(i, 0.35 * y * y); } g.computeVertexNormals();
   const N = 900, r = rng(4); const im = new THREE.InstancedMesh(g, M(0xffffff, { side: THREE.DoubleSide, roughness: 0.6 }), N); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
-  for (let i = 0; i < N; i++) { let x, z; do { x = (r() - 0.5) * 30; z = (r() - 0.5) * 30 - 4; } while (z > -1.2 && z < 8 && Math.abs(x) < 7); const h = 1.5 + r() * 3.5; m4.compose(V(x, 0, z), q.setFromEuler(new THREE.Euler((r() - 0.5) * 0.3, r() * 6.3, (r() - 0.5) * 0.3)), V(1 + r(), h, 1)); im.setMatrixAt(i, m4); c.setHSL(0.24 + r() * 0.06, 0.5, 0.22 + r() * 0.16); im.setColorAt(i, c); }
+  for (let i = 0; i < N; i++) { let x, z; do { x = (r() - 0.5) * 30; z = (r() - 0.5) * 30 - 4; } while (z > -2.2 && Math.abs(x) < 9); const h = 1.5 + r() * 3.5; m4.compose(V(x, 0, z), q.setFromEuler(new THREE.Euler((r() - 0.5) * 0.3, r() * 6.3, (r() - 0.5) * 0.3)), V(1 + r(), h, 1)); im.setMatrixAt(i, m4); c.setHSL(0.24 + r() * 0.06, 0.5, 0.22 + r() * 0.16); im.setColorAt(i, c); }
   im.castShadow = true; macro.add(im); }
 // Blüten im Hintergrund
 { const r = rng(6); const pm = [M(0xf2d24a), M(0xe86a9a), M(0xf4f2ec), M(0x9a6ad8)]; for (let i = 0; i < 16; i++) { const f = new THREE.Group(); const x = (r() - 0.5) * 16, z = -3 - r() * 8, h = 2 + r() * 2.5; f.position.set(x, h, z); macro.add(f); const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, h, 6), M(0x4a7a2a)); stem.position.y = -h / 2; f.add(stem);
@@ -556,12 +556,14 @@ soilTex.wrapS = soilTex.wrapT = THREE.RepeatWrapping; soilTex.repeat.set(40, 40)
 // Zweig
 const barkM = M(0x6a4a2e, { roughness: 0.95, bumpMap: scaleTex, bumpScale: 1.5 });
 G.twigC = new THREE.CatmullRomCurve3([V(-4, 0.7, 0), V(-1.5, 1.0, 0.05), V(1, 1.1, -0.05), V(3, 1.0, 0), V(5, 1.3, 0.1)]); macro.add(new THREE.Mesh(new THREE.TubeGeometry(G.twigC, 80, 0.06, 10), barkM));
-{ const r = rng(2); for (let k = 0; k < 6; k++) { const p = G.twigC.getPoint(0.1 + k * 0.15); const c = new THREE.CatmullRomCurve3([p, p.clone().add(V((r() - 0.5) * 0.6, 0.5 + r() * 0.4, (r() - 0.5) * 0.5)), p.clone().add(V((r() - 0.5) * 1.2, 1.0 + r() * 0.6, (r() - 0.5) * 0.8))]); macro.add(new THREE.Mesh(new THREE.TubeGeometry(c, 16, 0.025, 6), barkM));
+{ const r = rng(2); for (let k = 0; k < 6; k++) { const p = G.twigC.getPoint(0.1 + k * 0.15); if (p.x > -0.9 && p.x < 2.8) continue; const c = new THREE.CatmullRomCurve3([p, p.clone().add(V((r() - 0.5) * 0.6, 0.5 + r() * 0.4, (r() - 0.5) * 0.5)), p.clone().add(V((r() - 0.5) * 1.2, 1.0 + r() * 0.6, (r() - 0.5) * 0.8))]); macro.add(new THREE.Mesh(new THREE.TubeGeometry(c, 16, 0.025, 6), barkM));
     const lf = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 8), M(0x4e8a2e, { side: THREE.DoubleSide })); lf.scale.set(1, 0.08, 0.45); lf.position.copy(c.getPoint(1)); lf.rotation.set(r(), r() * 3, r()); macro.add(lf); } }
 const twigY = x => { let best = 0, bd = 9; for (let i = 0; i <= 60; i++) { const p = G.twigC.getPoint(i / 60); const d = Math.abs(p.x - x); if (d < bd) { bd = d; best = p.y; } } return best + 0.06; };
 // ---------- Gottesanbeterin ----------
 function legSeg(len, r0, r1, m) { const g = new THREE.CylinderGeometry(r1, r0, len, 7); g.translate(0, -len / 2, 0); const mesh = new THREE.Mesh(g, m); mesh.castShadow = true; return mesh; }
-function makeMantis({ s = 1, col = 0x6ab83a, col2 = 0x9ad85a } = {}) { const m = { root: new THREE.Group(), s }; scene.add(m.root); const bm = M(col, { roughness: 0.5 }), wm = M(col2, { roughness: 0.4, transparent: true, opacity: 0.9, side: THREE.DoubleSide }), em = M(0xc8e070, { roughness: 0.15 });
+const veinTex = canvasTex(128, 256, (g, w, h) => { g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(40,70,20,0.55)'; g.lineWidth = 2; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(w / 2, h * 0.02); g.quadraticCurveTo(w * (0.15 + k * 0.12), h * 0.4, w * (0.05 + k * 0.15), h); g.stroke(); } g.lineWidth = 1; for (let y = 10; y < h; y += 14) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y + 4); g.stroke(); } });
+veinTex.colorSpace = THREE.SRGBColorSpace;
+function makeMantis({ s = 1, col = 0x6ab83a, col2 = 0x9ad85a } = {}) { const m = { root: new THREE.Group(), s }; scene.add(m.root); const bm = M(col, { roughness: 0.45, bumpMap: scaleTex, bumpScale: 0.25 }), wm = M(0xffffff, { map: veinTex, color: col2, roughness: 0.35, transparent: true, opacity: 0.92, side: THREE.DoubleSide }), em = M(0xd8e890, { roughness: 0.1, metalness: 0.1 }); const dm = M(0x3a4a1a, { roughness: 0.4 });
   m.mats = [bm]; m.body = new THREE.Group(); m.root.add(m.body);
   // Hinterleib (segmentiert)
   const ab = new THREE.Group(); ab.position.set(0, 0, -0.1); m.body.add(ab); m.abd = ab; { const g = new THREE.SphereGeometry(1, 24, 16); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const z = p.getZ(i); const t = (1 - z) / 2; p.setX(i, p.getX(i) * (0.75 + 0.25 * Math.sin(Math.PI * Math.min(1, t * 1.3)))); p.setY(i, p.getY(i) - 0.15 * z * z + 0.05); } g.computeVertexNormals();
@@ -571,18 +573,19 @@ function makeMantis({ s = 1, col = 0x6ab83a, col2 = 0x9ad85a } = {}) { const m =
   m.gang = new THREE.Mesh(new THREE.SphereGeometry(0.025, 12, 10), M(0xffd24a, { emissive: 0xffb000, emissiveIntensity: 1.2 })); m.gang.position.set(0, -0.01, -0.36); ab.add(m.gang);
   // Brust (lange Vorderbrust, schräg nach oben)
   m.thor = new THREE.Group(); m.thor.position.set(0, 0.0, 0.0); m.body.add(m.thor); m.thor.rotation.x = -0.75;
-  const pt = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.035, 0.32, 10), bm); pt.rotation.x = Math.PI / 2; pt.position.z = 0.16; pt.castShadow = true; m.thor.add(pt);
+  const pt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.034, 0.32, 12), bm); pt.rotation.x = Math.PI / 2; pt.position.z = 0.16; pt.castShadow = true; m.thor.add(pt); const shd = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), bm); shd.scale.set(0.04, 0.018, 0.06); shd.position.set(0, 0.01, 0.27); m.thor.add(shd);
   // Kopf (dreieckig, große Augen)
   m.neck = new THREE.Group(); m.neck.position.set(0, 0, 0.33); m.thor.add(m.neck); m.head = new THREE.Group(); m.neck.add(m.head); m.head.rotation.x = 0.75;
-  const hd = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), bm); hd.scale.set(0.055, 0.045, 0.035); m.head.add(hd); const jaw = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.06, 8), bm); jaw.rotation.x = Math.PI; jaw.position.set(0, -0.05, 0.012); m.head.add(jaw);
-  for (const sg of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 14, 10), em); e.position.set(sg * 0.05, 0.015, 0.0); m.head.add(e); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), M(0x1a2a0a)); pu.position.set(sg * 0.06, 0.012, 0.025); m.head.add(pu);
+  { const g = new THREE.SphereGeometry(1, 24, 16); const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); const k = y < 0 ? 1 + y * 0.78 : 1 - y * y * 0.15; p.setX(i, p.getX(i) * k); p.setY(i, y < 0 ? y * 1.45 : y * 0.8); } g.computeVertexNormals(); const hd = new THREE.Mesh(g, bm); hd.scale.set(0.068, 0.045, 0.03); m.head.add(hd); }
+  const jaw = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.03, 6), dm); jaw.rotation.x = Math.PI; jaw.position.set(0, -0.07, 0.01); m.head.add(jaw); for (let k = 0; k < 3; k++) { const oc = new THREE.Mesh(new THREE.SphereGeometry(0.004, 6, 4), M(0x8a2a1a)); oc.position.set((k - 1) * 0.01, 0.028 + (k === 1 ? 0.006 : 0), 0.026); m.head.add(oc); }
+  for (const sg of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 12), em); e.scale.set(0.9, 1.1, 0.95); e.position.set(sg * 0.066, 0.02, 0.0); m.head.add(e); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.009, 8, 6), M(0x1a2a0a)); pu.position.set(sg * 0.074, 0.018, 0.027); m.head.add(pu);
     const an = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(sg * 0.015, 0.04, 0.01), V(sg * 0.05, 0.15, 0.08), V(sg * 0.12, 0.22, 0.2)]), 10, 0.003, 4), bm); m.head.add(an); }
   // Fangarme
   m.raps = []; for (const sg of [-1, 1]) { const cx = new THREE.Group(); cx.position.set(sg * 0.03, -0.01, 0.27); m.thor.add(cx); const c1 = legSeg(0.11, 0.018, 0.014, bm); cx.add(c1); const fe = new THREE.Group(); fe.position.y = -0.11; cx.add(fe); const f1 = legSeg(0.14, 0.022, 0.016, bm); fe.add(f1);
-    for (let k = 0; k < 5; k++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.005, 0.025, 4), M(0x3a5a1a)); sp.position.set(0, -0.03 - k * 0.022, 0.016); sp.rotation.x = 1.2; fe.add(sp); } const ti = new THREE.Group(); ti.position.y = -0.14; fe.add(ti); const t1 = legSeg(0.11, 0.012, 0.007, bm); ti.add(t1);
+    for (let k = 0; k < 6; k++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.035, 4), dm); sp.position.set(0, -0.025 - k * 0.02, 0.018); sp.rotation.x = 1.25; fe.add(sp); } const kn0 = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), bm); kn0.position.y = -0.14; fe.add(kn0); const ti = new THREE.Group(); ti.position.y = -0.14; fe.add(ti); const t1 = legSeg(0.11, 0.012, 0.007, bm); ti.add(t1); const hook = new THREE.Mesh(new THREE.ConeGeometry(0.006, 0.03, 4), dm); hook.position.set(0, -0.11, 0.01); hook.rotation.x = 2.2; ti.add(hook);
     m.raps.push({ cx, fe, ti, sg }); }
   // Lauf-Beine (Mitte + hinten)
-  m.legs = []; for (const [sg, z] of [[-1, 0.02], [1, 0.02], [-1, -0.08], [1, -0.08]]) { const h = new THREE.Group(); h.position.set(sg * 0.04, -0.02, z); m.body.add(h); const a = legSeg(0.2, 0.01, 0.007, bm); h.add(a); const kn = new THREE.Group(); kn.position.y = -0.2; h.add(kn); const b = legSeg(0.2, 0.007, 0.004, bm); kn.add(b); m.legs.push({ h, kn, sg, z }); }
+  m.legs = []; for (const [sg, z] of [[-1, 0.02], [1, 0.02], [-1, -0.08], [1, -0.08]]) { const h = new THREE.Group(); h.position.set(sg * 0.04, -0.02, z); m.body.add(h); const a = legSeg(0.2, 0.01, 0.007, bm); h.add(a); const kn = new THREE.Group(); kn.position.y = -0.2; h.add(kn); const kj = new THREE.Mesh(new THREE.SphereGeometry(0.01, 8, 6), bm); kn.add(kj); const ft = legSeg(0.06, 0.004, 0.003, dm); ft.position.y = -0.2; ft.rotation.z = sg * 0.9; kn.add(ft); const b = legSeg(0.2, 0.007, 0.004, bm); kn.add(b); m.legs.push({ h, kn, sg, z }); }
   return m; }
 // pose: strike 0..1 (Fangarme ausfahren), headY (Kopfdrehung), walk Phase, headless, glow (Ganglion), lean
 function poseMantis(m, { pos, yaw = 0, headY = 0, headP = 0, strike = 0, walk = 0, walkK = 0, headless = false, glow = 0, vis = true, eat = 0, T = 0, pitch = 0, lift = 0 } = {}) { m.root.visible = vis; if (!vis) return; m.root.position.copy(pos); m.root.rotation.set(pitch, yaw, 0, 'YXZ'); m.root.scale.setScalar(m.s);
@@ -654,31 +657,31 @@ function stage(i, T) {
 }
 const shots = [
   // 0: Männchen – die gefährlichste Partnerin
-  (T) => { badge.style.display = T < 2.4 ? 'block' : 'none'; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: lerp(0, 0.9, ease(clamp((T - 1) / 1))), T }); poseMantis(mal, { pos: V(2.0, twigY(2.0), 0), yaw: -Math.PI / 2, T });
-    const fh = headW(fem); if (T < 1.6) camFix(fh.clone().add(V(-0.5, 0.05, 0.75)), fh, 38); else side(V(1.1, 1.35, 0), 5.6);
+  (T) => { badge.style.display = T < 2.4 ? 'block' : 'none'; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: lerp(0, 0.9, ease(clamp((T - 1) / 1))), T }); poseMantis(mal, { pos: V(1.75, twigY(1.75), 0), yaw: -Math.PI / 2, T });
+    const fh = headW(fem); if (T < 1.6) camFix(fh.clone().add(V(-0.5, 0.05, 0.75)), fh, 38); else side(V(0.95, 1.3, 0), 4.3);
     if (T > 1.6) { label3('♀️ SIE', headW(fem), clamp((T - 1.7) / 0.3), -100, -220); label3('♂️ DU', headW(mal), clamp((T - 1.9) / 0.3), 100, -220); }
     chip('⚠️ GEFÄHRLICHE PARTNERIN', 540, 470, clamp((T - 0.1) / 0.25), '#e8483b'); icon(false, 540, 1340, clamp((T - WP(0, 'partnerin')) / 0.25)); },
   // 1: Sie ist viel größer – alles, was sich bewegt, landet in ihren Fangarmen
-  (T) => { const tF = WP(1, 'fangarmen'), tB = WP(1, 'bewegt'); const st = T > tF - 0.4 ? clamp(1 - Math.abs(T - tF + 0.2) / 0.25) : 0; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, strike: st, T }); poseMantis(mal, { pos: V(2.0, twigY(2.0), 0), yaw: -Math.PI / 2, T });
+  (T) => { const tF = WP(1, 'fangarmen'), tB = WP(1, 'bewegt'); const st = T > tF - 0.4 ? clamp(1 - Math.abs(T - tF + 0.2) / 0.25) : 0; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, strike: st, T }); poseMantis(mal, { pos: V(1.75, twigY(1.75), 0), yaw: -Math.PI / 2, T });
     const fh = headW(fem); G.fly.visible = T < tF; G.fly.position.set(fh.x - 0.55 + 0.1 * Math.sin(T * 3), fh.y - 0.1 + 0.08 * Math.sin(T * 5), 0.1); G.fly.rotation.y = Math.PI / 2; G.fly.userData[-1].rotation.z = Math.sin(T * 60) * 0.5; G.fly.userData[1].rotation.z = -Math.sin(T * 60) * 0.5;
-    if (T < tB) { side(V(1.1, 1.35, 0), 5.6); label3('♀️ GROSS', headW(fem), clamp((T - WP(1, 'größer')) / 0.3), -60, -230); label3('♂️ KLEIN', headW(mal), clamp((T - WP(1, 'größer') - 0.2) / 0.3), 80, -230); } else camFix(fh.clone().add(V(-0.3, 0.1, 1.2)), fh.clone().add(V(-0.3, -0.1, 0)), 40);
+    if (T < tB) { side(V(0.95, 1.3, 0), 4.3); label3('♀️ GROSS', headW(fem), clamp((T - WP(1, 'größer')) / 0.3), -60, -230); label3('♂️ KLEIN', headW(mal), clamp((T - WP(1, 'größer') - 0.2) / 0.3), 80, -230); } else camFix(fh.clone().add(V(-0.3, 0.1, 1.2)), fh.clone().add(V(-0.3, -0.1, 0)), 40);
     burst(fh.clone().add(V(-0.4, 0, 0)), clamp((T - tF) / 0.6), 'SCHNAPP!'); chip('🦵 FANGARME', 540, 470, clamp((T - tB) / 0.3), '#e8483b'); icon(false, 540, 1340, clamp((T - tF - 0.3) / 0.25)); },
   // 2: Langsam anschleichen – erstarren, wenn sie den Kopf dreht
   (T) => { const t0 = S[2].start, tE = WP(2, 'erstarrst'); const look = T > tE - 0.2 && T < tE + 1.3; poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: look ? 1.3 : 0, T }); const k = clamp((T - t0) / (S[2].end - t0)); const mx = lerp(2.0, 1.3, k);
-    poseMantis(mal, { pos: V(mx, twigY(mx), 0), yaw: -Math.PI / 2, walk: look ? 0 : T * 2.5, walkK: look ? 0 : 0.8, T }); side(V(0.9, 1.35, 0), 5.0);
+    poseMantis(mal, { pos: V(mx, twigY(mx), 0), yaw: -Math.PI / 2, walk: look ? 0 : T * 2.5, walkK: look ? 0 : 0.8, T }); side(V(0.8, 1.3, 0), 3.9);
     chip(look ? '🧊 ERSTARREN' : '🐌 GANZ LANGSAM', 540, 470, clamp((T - WP(2, 'schleichst')) / 0.3), '#2fbf5b'); icon(true, 540, 1340, clamp((T - WP(2, 'dreht')) / 0.25)); },
   // 3: Sie dreht den Kopf fast bis nach hinten – sieht dich trotzdem
   (T) => { const tK = WP(3, 'kopf'); const hy = lerp(0, 2.6, ease(clamp((T - tK + 0.2) / 1.2))); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: hy, T }); poseMantis(mal, { pos: V(1.3, twigY(1.3), 0), yaw: -Math.PI / 2, T });
-    const fh = headW(fem); camFix(fh.clone().add(V(0.9, 0.25, 0.9)), fh.clone().add(V(0.3, -0.05, 0)), 40); ring(fh, clamp((T - WP(3, 'hinten')) / 0.3), '#e8323c', 80);
+    const fh = headW(fem); camFix(fh.clone().add(V(-0.55, 0.12, 0.62)), fh.clone().add(V(0.12, -0.04, 0)), 34); ring(fh, clamp((T - WP(3, 'hinten')) / 0.3), '#e8323c', 80);
     chip('👀 KOPF DREHT NACH HINTEN', 540, 470, clamp((T - tK) / 0.3), '#e8483b'); icon(false, 540, 1340, clamp((T - WP(3, 'trotzdem')) / 0.25)); },
   // 4: Im richtigen Moment auf ihren Rücken springen
   (T) => { const tS = WP(4, 'springst'); const j = ease(clamp((T - tS) / 0.6)); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: lerp(1.0, 0, clamp((T - tS) / 0.5)), T });
     const a = V(1.3, twigY(1.3), 0), b = BACKP(); const p = a.clone().lerp(b, j); p.y += Math.sin(j * Math.PI) * 0.6; poseMantis(mal, { pos: p, yaw: -Math.PI / 2, pitch: -0.12 * j, T });
-    side(V(0.8, 1.4, 0), 4.0); label3('RÜCKEN', BACKP(), clamp((T - WP(4, 'rücken')) / 0.3), 160, -230);
+    side(V(0.75, 1.35, 0), 3.4); label3('RÜCKEN', BACKP(), clamp((T - WP(4, 'rücken')) / 0.3), 160, -230);
     chip('🦘 AUF DEN RÜCKEN', 540, 470, clamp((T - tS) / 0.3), '#2fbf5b'); icon(true, 540, 1340, clamp((T - WP(4, 'erreichen')) / 0.25)); },
   // 5: Manchmal dreht sie sich um und beißt den Kopf ab (Comic, ohne Blut)
   (T) => { const tB = WP(5, 'beißt'), tA = WP(5, 'ab', 1); const turn = ease(clamp((T - WP(5, 'dreht')) / 0.8)); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: lerp(0, 2.5, turn), strike: clamp((T - tB + 0.3) / 0.3) * clamp((tA + 0.6 - T) / 0.3), T });
-    maleOnBack(T, { headless: T > tA }); side(V(0.6, 1.45, 0), 3.4); burst(headW(fem).add(V(0.2, 0.1, 0)), clamp((T - tA) / 0.7), 'HAPS!'); if (T > tA) flash(clamp(1 - (T - tA) / 0.3), '255,255,255');
+    maleOnBack(T, { headless: T > tA }); side(V(0.55, 1.45, 0), 2.6); burst(headW(fem).add(V(0.2, 0.1, 0)), clamp((T - tA) / 0.7), 'HAPS!'); if (T > tA) flash(clamp(1 - (T - tA) / 0.3), '255,255,255');
     chip('😱 KOPF AB', 540, 470, clamp((T - tA) / 0.3), '#e8483b'); icon(false, 540, 1340, clamp((T - tA - 0.2) / 0.25)); },
   // 6: Ohne Kopf paart sich der Körper weiter – Steuerung im Hinterleib
   (T) => { const tS = WP(6, 'steuerung'); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, headY: 2.4, eat: 1, strike: 0.2, T }); maleOnBack(T, { headless: true, glow: T > tS - 0.3 ? 1 : 0, lift: 0.01 * Math.sin(T * 6) });
@@ -696,7 +699,7 @@ const shots = [
     side(op.clone().add(V(0.3, 0.1, 0)), 2.4, 0.4, 40); const n = Math.round(100 * clamp((T - tS) / (WP(9, 'hundert') - tS + 0.2))); label3('EIPAKET', op.clone().add(V(0, -0.1, 0)), clamp((T - WP(9, 'eipaket')) / 0.3), -150, 250);
     chip(`🥚 ${n >= 100 ? '100+' : n} EIER`, 540, 470, clamp((T - tS) / 0.3), '#2fbf5b'); icon(true, 540, 1340, clamp((T - WP(9, 'zweig')) / 0.25)); },
   // 10: In der Natur endet höchstens etwa jede vierte Paarung so
-  (T) => { const tV = WP(10, 'vierte'); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, T }); const mx = lerp(1.3, 3.0, clamp((T - S[10].start) / 3)); poseMantis(mal, { pos: V(mx, twigY(mx), 0), yaw: Math.PI / 2, walk: T * 3, walkK: 1, T }); side(V(1.5, 1.35, 0), 5.8);
+  (T) => { const tV = WP(10, 'vierte'); poseMantis(fem, { pos: FP(), yaw: -Math.PI / 2, T }); const mx = lerp(1.3, 3.0, clamp((T - S[10].start) / 3)); poseMantis(mal, { pos: V(mx, twigY(mx), 0), yaw: Math.PI / 2, walk: T * 3, walkK: 1, T }); side(V(1.3, 1.3, 0), 4.6);
     for (let k = 0; k < 4; k++) { const ok = k < 3; const x = 300 + k * 160, y = 1330; const a = clamp((T - tV + 0.2 - k * 0.12) / 0.3); if (a > 0) svg.push(`<g transform="translate(${x},${y}) scale(${back(a)})"><circle r="62" fill="${ok ? '#2fbf5b' : '#e8323c'}" stroke="#000" stroke-width="8"/><text y="22" text-anchor="middle" font-size="64" font-family="Noto Color Emoji">${ok ? '♂️' : '💀'}</text></g>`); }
     chip('📊 HÖCHSTENS 1 VON 4', 540, 470, clamp((T - WP(10, 'natur')) / 0.3), '#2fbf5b'); },
   // 11: Glückwunsch – Gottesanbeterin
