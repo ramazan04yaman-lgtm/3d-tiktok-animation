@@ -68,9 +68,10 @@ export const siliconeCamera = new CameraPath([
   orbit(37.6, J, 6, 20, 2.4, { fov: 38 }),
   // backing rod in the section: two-sided adhesion, the joint can stretch
   orbit(40.8, BLOCK, 8, 10, 6.2, { fov: 38 }),
-  orbit(44.4, BLOCK, -6, 10, 6.0, { fov: 38 }),
+  orbit(43.6, BLOCK, 12, 10, 6.2, { fov: 38 }),
+  orbit(45.9, BLOCK, 16, 12, 6.6, { fov: 38 }),
   // tape, gun, smoothing, tape off
-  orbit(47.6, [3.4, 1.3, 0.15], 20, 24, 2.4, { fov: 38 }),
+  orbit(48.4, [3.4, 1.3, 0.15], 20, 24, 2.4, { fov: 38 }),
   orbit(50.2, [5.0, 1.3, 0.15], 14, 22, 2.2, { fov: 38 }),
   orbit(53.0, [6.0, 1.3, 0.15], 10, 22, 2.0, { fov: 38 }),
   // wait 24 h, then care: squeegee + airing
@@ -88,7 +89,7 @@ export const siliconeCamera = new CameraPath([
 export const mouldOld = (t: number) => 0.7 + 0.3 * ramp(t, 25.2, 27.0);
 export const sponge = (t: number) => envelope(t, 0.4, 0.8, 3.0, 3.4);
 /** section block: visible + which state it shows */
-export const block = (t: number) => envelope(t, 4.6, 5.6, 10.6, 11.4) + envelope(t, 13.0, 13.8, 20.6, 21.4) + envelope(t, 40.1, 40.9, 46.8, 47.6);
+export const block = (t: number) => envelope(t, 4.6, 5.6, 10.6, 11.4) + envelope(t, 13.0, 13.8, 20.6, 21.4) + envelope(t, 40.1, 40.9, 45.4, 46.0);
 export const blockMode = (t: number): 'mould' | 'wrong' | 'right' => (t < 12 ? 'mould' : t < 30 ? 'wrong' : 'right');
 export const hyphae = (t: number) => ramp(t, 5.8, 8.6);
 export const drop = (t: number) => ramp(t, 16.8, 17.5);
@@ -97,7 +98,7 @@ export const behind = (t: number) => ramp(t, 18.9, 20.6);
 /** right section: backing rod, silicone, flexing tray */
 export const rodIn = (t: number) => ramp(t, 40.6, 41.8);
 export const fillRight = (t: number) => ramp(t, 42.4, 43.4);
-export const flex = (t: number) => (t > 44.0 && t < 46.6 ? 0.5 - 0.5 * Math.cos(((t - 44.0) / 1.3) * Math.PI * 2) : 0);
+export const flex = (t: number) => (t > 44.0 && t < 45.3 ? 0.5 - 0.5 * Math.cos(((t - 44.0) / 1.3) * Math.PI * 2) : 0);
 /** mistake 2 */
 export const drops = (t: number) => ramp(t, 22.4, 23.4) * (1 - ramp(t, 31.0, 31.8));
 export const soap = (t: number) => ramp(t, 23.0, 24.4) * (1 - ramp(t, 31.0, 31.8));
@@ -129,8 +130,8 @@ export const tags = {
   cutAll: (t: number) => envelope(t, 33.4, 33.8, 35.2, 35.6),
   alcohol: (t: number) => envelope(t, 36.6, 37.0, 38.2, 38.6),
   dry: (t: number) => envelope(t, 38.4, 38.8, 39.8, 40.2),
-  rod: (t: number) => envelope(t, 41.0, 41.4, 46.4, 46.8),
-  two: (t: number) => envelope(t, 43.4, 43.8, 46.4, 46.8),
+  rod: (t: number) => envelope(t, 41.0, 41.4, 45.0, 45.4),
+  two: (t: number) => envelope(t, 43.4, 43.8, 45.0, 45.4),
   tape: (t: number) => envelope(t, 47.4, 47.8, 48.6, 49.0),
   sanitary: (t: number) => envelope(t, 48.8, 49.2, 50.6, 51.0),
   water2: (t: number) => envelope(t, 51.0, 51.4, 53.0, 53.4),

@@ -18,6 +18,7 @@ Episodes (one shared series look — same studio, materials, x-ray/section style
 10. **„Wie funktioniert eine Heizung?“** — `--project heating`
 11. **„Wie funktioniert eine Klimaanlage?“** — `--project aircon`
 12. **„Wie funktioniert das Gehirn?“** — `--project brain`
+13. **„Richtig gemacht #1: Schimmel in der Silikonfuge“** — `--project silicone` (new series, bright style, 72 s)
 
 ```bash
 npm install
@@ -242,3 +243,9 @@ Narration `audio/aircon-voice.json` (ElevenLabs "Leo", slowed to 0.95, pauses le
 ## Episode 12 — Gehirn (brain)
 
 Narration `audio/brain-voice.json` (ElevenLabs "Zayn", slowed to 0.95, pauses lengthened). Hook: SDF brain with gyri under a glowing light bulb — "Nur 20 Watt" (0–8 s); the cortex turns to x-ray and the camera dives into a neuron network; dendrite inputs, the cell fires, the spike jumps node to node along the myelinated axon (HUD to 400 km/h); synaptic cleft cliffhanger, mid-video like & subscribe CTA; magnifier: vesicles fuse, transmitters cross and dock on receptors; up to 10 000 contacts on the target cell; learning: four co-firing pulses strengthen the connection, a memory pattern lights up; surprise: back outside, skull + layer magnifier — scalp and dura carry pain fibres, brain tissue has none (awake brain surgery).
+
+## Series „Richtig gemacht“ — #1 Silikonfuge (silicone)
+
+New DIY series in a bright style, 70–90 s, structure „✕ Falsch gemacht → ✓ So geht's richtig“. New engine pieces: `WordCaptions` (word-by-word captions with highlighted key words, timings in `words.json`), `Tag` (white 3D tags with ✕/✓ pointing at the object), `SeriesChip`, `Verdict`, `EndCard`.
+
+Narration `audio/silicone-voice.json` (ElevenLabs "Felix", natural speed). Hook: mouldy silicone joint on a tiled shower tray — scrubbing doesn't help, the hyphae grow into the silicone (magnified section block); mistake 1: three-sided adhesion, the tray moves, the joint tears, water runs behind; mistake 2: water and soap film stay on the joint; mid-video like & subscribe CTA; the right way: cut out, clean, dry, backing rod (two-sided adhesion, the joint can stretch), tape, gun, smoother, tape off, 24 h curing, squeegee + airing; surprise: a silicone joint is a maintenance joint (DIN 52460) — the clock jumps to 2031, the joint yellows and gets new spots.
