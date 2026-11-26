@@ -207,17 +207,21 @@ scene.add(smoke);
 const skidM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, transparent: true, opacity: 0, roughness: 1 });
 const skids = [1, -1].map(sg => { const m = new THREE.Mesh(new THREE.BoxGeometry(1, .12, 2.6), skidM); m.position.set(0, .26, sg * 11.2); scene.add(m); return m; });
 const CAM = {
-  hook:     [[60, 16, 74], [72, 22, 86], [2, 3, 0], [2, 5, 0]],
-  wheels:   [[72, 22, 86], [40, 20, 92], [0, 4, 0], [0, 4, 0]],
-  chassis:  [[86, 30, 50], [70, 40, 70], [0, 4, 0], [0, 4, 0]],
-  body:     [[90, 38, 68], [30, 34, 96], [2, 6, 0], [2, 6, 0]],
-  interior: [[-30, 80, 62], [-10, 82, 50], [-2, 5, 0], [-2, 5, 0]],
-  details:  [[80, 26, -60], [96, 22, 24], [2, 6, 0], [2, 6, 0]],
-  done:     [[90, 24, 84], [70, 18, 90], [2, 7, 0], [2, 7, 0]],
-  night:    [[70, 18, 90], [62, 12, 70], [2, 6, 0], [2, 6, 0]],
-  neon:     [[92, 14, 96], [98, 12, 88], [4, 5, 0], [10, 5, 0]],
-  outro:    [[30, 40, 92], [20, 52, 104], [18, 2, 0], [18, 2, 0]],
+  hook:    [[90, 30, 110], [100, 34, 118], [4, 4, 0], [4, 6, 0]],
+  tracks:  [[80, 30, 96], [64, 28, 104], [4, 3, 0], [4, 4, 0]],
+  hull:    [[110, 52, 90], [90, 48, 104], [4, 6, 0], [4, 7, 0]],
+  turret:  [[-40, 70, 96], [-20, 74, 104], [4, 9, 0], [4, 9, 0]],
+  gun:     [[30, 30, 112], [60, 32, 106], [14, 10, 0], [16, 10, 0]],
+  details: [[90, 60, 84], [100, 56, 92], [0, 12, 0], [2, 12, 0]],
+  done:    [[118, 40, 104], [126, 36, 98], [10, 9, 0], [10, 9, 0]],
+  wait:    [[126, 36, 98], [110, 26, 92], [10, 8, 0], [14, 8, 0]],
+  go:      [[50, 26, 132], [80, 30, 132], [18, 8, 0], [32, 9, 0]],
+  outro:   [[80, 30, 132], [100, 40, 150], [32, 9, 0], [34, 10, 0]],
 };
+const D = 34, TX = -1.6;
+const DX = td => td <= .7 ? 0 : D * ease((td - .7) / 3.2);
+const TA = td => -0.8 * ease((td - 4.3) / 1.8);
+bricks.forEach(b => { b.tur = ['turret', 'gun'].includes(b.part) || (b.part === 'details' && b.y >= 8.5); });
 const chunks = [];
 if (TL) for (const s of TL.segments) {
   let cur = [];
@@ -228,15 +232,15 @@ function setCaption(t) {
   const c = chunks.find((c, i) => t >= c[0].s && t < (chunks[i + 1] && chunks[i + 1][0].s - c[c.length - 1].e < .3 ? chunks[i + 1][0].s : c[c.length - 1].e + .25));
   const cap = $('cap'); if (!c) { cap.innerHTML = ''; return; }
   cap.style.transform = `scale(${0.75 + 0.25 * easeOut((t - c[0].s) / 0.12)})`;
-  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${w.w.replace(/[.,]$/, '')}</span>`).join(' ');
+  cap.innerHTML = c.map(w => `<span style="${t >= w.s && t < w.e + .05 ? 'color:#ffe02e' : ''}">${(w.show || w.w).replace(/[.,]$/, '')}</span>`).join(' ');
 }
-const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'wheels', 'chassis', 'body', 'interior', 'details', 'done'];
+const fmt = n => n.toLocaleString('de-DE'), BUILD = ['hook', 'tracks', 'hull', 'turret', 'gun', 'details', 'done'];
 window.renderAt = (t) => {
   const SEG = TL.segments, i = SEG.findIndex((s, j) => t < (SEG[j + 1] ? SEG[j + 1].start : Infinity));
   const s = SEG[i], st = i === 0 ? 0 : s.start, en = SEG[i + 1] ? SEG[i + 1].start : TL.duration, lt = t - st, ld = en - st;
   const q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), pos = new THREE.Vector3();
   // Fahren: 0,7 s Burnout auf der Stelle, dann Beschleunigung
-  const td = t - TL.driveT, burn = td > 0 ? 1 : 0, mv = Math.max(0, td - .7), dx = 26 * mv * mv;
+  const td = t - TL.driveT, burn = td > 0 ? 1 : 0, mv = Math.max(0, td - .7), dx = DX(td), ta = td > 0 ? TA(td) : 0;
   const spin = td > 0 ? (td < .7 ? td * 30 : .7 * 30 + dx / WR + mv * 20) : 0;
   const shake = td > 0 && td < .9 ? Math.sin(t * 70) * .15 : 0;
   bricks.forEach(b => {
@@ -245,16 +249,18 @@ window.renderAt = (t) => {
     if (b.wc && spin) { const ox = b.x - b.wc[0], oy = b.y + BH / 2 - b.wc[1], c = Math.cos(-spin), si = Math.sin(-spin);
       x = b.wc[0] + ox * c - oy * si; y = b.wc[1] + ox * si + oy * c - BH / 2; rz = -spin; }
     else if (!b.wc) y += shake;
-    pos.set(x + dx, y + 16 * (1 - k), b.z); q.setFromEuler(e.set(0, rot, rz)); sc.setScalar(f > 0 ? 1 : 0);
+    let zz = b.z;
+    if (b.tur && ta) { const ox = x - TX, c = Math.cos(ta), si = Math.sin(ta); x = TX + ox * c + zz * si; zz = -ox * si + zz * c; }
+    pos.set(x + dx, y + 16 * (1 - k), zz); q.setFromEuler(e.set(0, rot + (b.tur ? ta : 0), rz)); sc.setScalar(f > 0 ? 1 : 0);
     b.mesh.setMatrixAt(b.idx, m4.compose(pos, q, sc));
   });
   for (const L in meshes) { meshes[L].instanceMatrix.needsUpdate = true; meshes[L].instanceColor.needsUpdate = true; }
   // Qualm
   for (let n = 0; n < SMN; n++) {
-    const born = (n / SMN) * 1.4, age = td - born, side = n % 2 ? 1 : -1;
+    const born = (n / SMN) * 4, age = td - born, side = n % 2 ? 1 : -1;
     const vis = age > 0 && age < 2.2;
     const a = n * 2.4;
-    pos.set(-WX - 2 - age * 6 + Math.cos(a) * age * 3 + (born > .7 ? 26 * (born - .7) ** 2 : 0), .6 + age * 3.2 + Math.sin(a) * age, side * (11 + Math.sin(a * 1.7) * age * 3));
+    pos.set(-WX - 2 - age * 6 + Math.cos(a) * age * 3 + DX(born), .6 + age * 3.2 + Math.sin(a) * age, side * (11 + Math.sin(a * 1.7) * age * 3));
     q.setFromEuler(e.set(a, a * .5, age)); smoke.setMatrixAt(n, m4.compose(pos, q, sc.setScalar(vis ? 1 + age * 2.2 : 0)));
   }
   smoke.instanceMatrix.needsUpdate = true; smoke.material.opacity = .7;
@@ -271,14 +277,14 @@ window.renderAt = (t) => {
   // Kamera
   const [c0, c1, t0, t1] = CAM[s.scene], k = ease(lt / ld);
   camera.position.set(...c0.map((v, j) => lerp(v, c1[j], k)));
-  if (td > 0 && td < 1.2) { camera.position.x += Math.sin(t * 57) * .4; camera.position.y += Math.cos(t * 43) * .4; }
+  if (td > 0 && td < 4) { camera.position.x += Math.sin(t * 57) * .4; camera.position.y += Math.cos(t * 43) * .4; }
   const tg = t0.map((v, j) => lerp(v, t1[j], k)); camera.lookAt(tg[0], tg[1], tg[2]); camera.updateProjectionMatrix();
   renderer.render(scene, camera);
   const cutK = i === 0 ? 1 : clamp(lt / 0.3);
   canvas.style.transform = `scale(${1 + 0.07 * (1 - easeOut(cutK))})`;
   $('flash').style.opacity = i === 0 ? 0 : (1 - clamp(lt / 0.12)) * 0.35;
   const placed = bricks.reduce((a, b) => a + (b.land <= t ? 1 : 0), 0), building = BUILD.includes(s.scene);
-  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'night' ? 'WARTE…' : s.scene === 'neon' ? 'NACHTS IN MIAMI' : 'TEIL 2?';
+  $('label').textContent = building ? `STEIN ${fmt(placed)} / ${fmt(bricks.length)}` : s.scene === 'wait' ? 'MOTOR BEREIT' : s.scene === 'go' ? 'LOS!' : 'TEIL 2?';
   $('label').style.background = building ? '#e8222c' : '#ff2d95';
   $('bar').style.opacity = building ? 1 : 0; $('bar').firstChild.style.width = (placed / bricks.length * 100) + '%';
   setCaption(t);

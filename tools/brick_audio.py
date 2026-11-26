@@ -46,13 +46,13 @@ def make_mix(b, tl, parts, v=None, name="mix.wav"):
         jet = (np.sin(ph) * .25 + nz * .6) * np.minimum(1, tt / 1.2) * np.exp(-np.maximum(0, tt - 3.5) * 1.2)
         e = min(n, s0 + L); sfx[s0:e] += jet[: e - s0] * .6
     elif "driveT" in tl:  # Motor aufheulen + Reifenquietschen
-        d0 = tl["driveT"]; L = int(3.5 * SR); s0 = int(d0 * SR); tt = np.arange(L) / SR
-        rpm = 55 + 160 * (1 - np.exp(-tt * 1.4)); ph = 2 * np.pi * np.cumsum(rpm) / SR
-        eng = (np.sign(np.sin(ph)) * .35 + np.sin(2 * ph) * .4 + np.sin(3.01 * ph) * .25) * np.minimum(1, tt / .1) * np.exp(-np.maximum(0, tt - 1.6) * 1.3)
+        tank = bool(tl.get("tank")); d0 = tl["driveT"]; L = int((6 if tank else 3.5) * SR); s0 = int(d0 * SR); tt = np.arange(L) / SR
+        rpm = (28 + 60 * (1 - np.exp(-tt * 1.2))) if tank else 55 + 160 * (1 - np.exp(-tt * 1.4)); ph = 2 * np.pi * np.cumsum(rpm) / SR
+        eng = (np.sign(np.sin(ph)) * .35 + np.sin(2 * ph) * .4 + np.sin(3.01 * ph) * .25) * np.minimum(1, tt / .1) * np.exp(-np.maximum(0, tt - (4 if tank else 1.6)) * 1.3)
         eng = np.convolve(eng, np.ones(12) / 12, "same") * 0.55
         sq = np.sin(2 * np.pi * (2300 + 200 * np.sin(2 * np.pi * 13 * tt)) * tt) * np.exp(-tt * 2.2) * np.minimum(1, tt / .03)
         sq += np.convolve(rng.normal(0, 1, L), np.ones(3) / 3, "same") * np.exp(-tt * 2.2) * .3
-        e = min(n, s0 + L); sfx[s0:e] += (eng + sq * .18)[: e - s0]
+        e = min(n, s0 + L); sfx[s0:e] += (eng * (1.4 if tank else 1) + sq * (0 if tank else .18))[: e - s0]
     if "neonT" in tl:  # Neon-Brummen beim Einschalten
         L = int(0.5 * SR); s0 = int(tl["neonT"] * SR); tt = np.arange(L) / SR
         hum = (np.sin(2 * np.pi * 100 * tt) + .5 * np.sin(2 * np.pi * 200 * tt)) * np.exp(-tt * 5) * (np.sin(2 * np.pi * 18 * tt) > -.3) * .35

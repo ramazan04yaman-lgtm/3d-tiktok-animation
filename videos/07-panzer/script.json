@@ -1,0 +1,19 @@
+{
+ "title": "Ich baue einen Panzer",
+ "page": "src/brick/tank.html",
+ "match_words": 2,
+ "extra": {"tank": 1},
+ "events": {"driveT": ["go", "Motor"]},
+ "segments": [
+  {"scene": "hook", "build": "start", "text": "Ich baue einen Panzer. Aus über tausend Steinen."},
+  {"scene": "tracks", "build": "tracks", "text": "Zuerst die Ketten. Mit Laufrädern an jeder Seite."},
+  {"scene": "hull", "build": "hull", "text": "Dann die Wanne. Sandfarben, mit Tarnflecken für die Wüste."},
+  {"scene": "turret", "build": "turret", "text": "Jetzt der Turm. Mit einer Luke oben und Staukästen hinten."},
+  {"scene": "gun", "build": "gun", "text": "Dann das Rohr. Fast so lang wie der ganze Panzer."},
+  {"scene": "details", "build": "details", "text": "Und zum Schluss die Antennen."},
+  {"scene": "done", "show": {"1683": "1.683"}, "text": "Fertig. 1.683 Steine. Komplett mein eigenes Design."},
+  {"scene": "wait", "text": "Aber jetzt wird's laut."},
+  {"scene": "go", "text": "Motor an. Und los."},
+  {"scene": "outro", "text": "Was soll ich als Nächstes bauen? Schreib es in die Kommentare."}
+ ]
+}
