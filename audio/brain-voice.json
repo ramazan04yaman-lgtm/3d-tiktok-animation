@@ -1,0 +1,198 @@
+{
+ "source": "audio/voice_brain.mp3",
+ "video": "out/brain/brain.mp4",
+ "output": "out/brain/brain_voice.mp4",
+ "loudnessLUFS": -14,
+ "note": "Take 53.9 s (Zayn); slowed to 0.95 and pauses lengthened (each ≤ 0.72 s) to fill the video.",
+ "segments": [
+  {
+   "text": "Dein Gehirn läuft mit nur zwanzig Watt –",
+   "src": [
+    0,
+    2.36
+   ],
+   "at": 0.1,
+   "tempo": 0.95
+  },
+  {
+   "text": "weniger als eine Glühbirne.",
+   "src": [
+    2.59,
+    4.12
+   ],
+   "at": 2.968,
+   "tempo": 0.95
+  },
+  {
+   "text": "Und trotzdem steuert es alles, was du bist.",
+   "src": [
+    4.35,
+    6.84
+   ],
+   "at": 4.963,
+   "tempo": 0.95
+  },
+  {
+   "text": "Darin arbeiten sechsundachtzig Milliarden Nervenzellen.",
+   "src": [
+    7.19,
+    10.23
+   ],
+   "at": 8.047,
+   "tempo": 0.95
+  },
+  {
+   "text": "Jede empfängt Signale über feine Äste.",
+   "src": [
+    10.46,
+    12.89
+   ],
+   "at": 11.631,
+   "tempo": 0.95
+  },
+  {
+   "text": "Kommen genug zusammen, feuert sie:",
+   "src": [
+    13.14,
+    15.03
+   ],
+   "at": 14.586,
+   "tempo": 0.95
+  },
+  {
+   "text": "Ein Stromimpuls rast los –",
+   "src": [
+    15.22,
+    17.09
+   ],
+   "at": 16.933,
+   "tempo": 0.95
+  },
+  {
+   "text": "mit bis zu vierhundert Kilometern pro Stunde.",
+   "src": [
+    17.27,
+    19.74
+   ],
+   "at": 19.253,
+   "tempo": 0.95
+  },
+  {
+   "text": "Am Ende wartet ein winziger Spalt,",
+   "src": [
+    20.05,
+    22.22
+   ],
+   "at": 22.29,
+   "tempo": 0.95
+  },
+  {
+   "text": "die Synapse –",
+   "src": [
+    22.39,
+    23.18
+   ],
+   "at": 24.918,
+   "tempo": 0.95
+  },
+  {
+   "text": "und dort passiert etwas Verrücktes.",
+   "src": [
+    23.41,
+    25.58
+   ],
+   "at": 26.134,
+   "tempo": 0.95
+  },
+  {
+   "text": "Wenn du mehr Maschinen von innen sehen willst –",
+   "src": [
+    25.83,
+    29.24
+   ],
+   "at": 28.815,
+   "tempo": 0.95
+  },
+  {
+   "text": "Like und abonnieren.",
+   "src": [
+    29.78,
+    31.27
+   ],
+   "at": 32.994,
+   "tempo": 0.95
+  },
+  {
+   "text": "Aus Strom wird Chemie: Botenstoffe schwimmen hinüber und wecken die nächste Zelle.",
+   "src": [
+    31.56,
+    34.6
+   ],
+   "at": 34.986,
+   "tempo": 0.95
+  },
+  {
+   "text": "Jede Zelle ist mit bis zu zehntausend anderen verbunden.",
+   "src": [
+    34.87,
+    38.08
+   ],
+   "at": 38.597,
+   "tempo": 0.95
+  },
+  {
+   "text": "Feuern zwei oft gemeinsam, wird ihre Verbindung stärker.",
+   "src": [
+    38.29,
+    41.27
+   ],
+   "at": 42.346,
+   "tempo": 0.95
+  },
+  {
+   "text": "Genau so lernst du –",
+   "src": [
+    41.51,
+    42.85
+   ],
+   "at": 45.874,
+   "tempo": 0.95
+  },
+  {
+   "text": "eine Erinnerung ist ein Muster aus Verbindungen.",
+   "src": [
+    43.04,
+    45.6
+   ],
+   "at": 47.642,
+   "tempo": 0.95
+  },
+  {
+   "text": "Und das Überraschende:",
+   "src": [
+    45.89,
+    46.94
+   ],
+   "at": 50.76,
+   "tempo": 0.95
+  },
+  {
+   "text": "Das Gehirn selbst spürt keinen Schmerz.",
+   "src": [
+    47.11,
+    49.51
+   ],
+   "at": 52.21,
+   "tempo": 0.95
+  },
+  {
+   "text": "Deshalb können Ärzte manche Patienten während einer Hirnoperation wach lassen.",
+   "src": [
+    49.71,
+    53.89
+   ],
+   "at": 55.1,
+   "tempo": 0.95
+  }
+ ]
+}

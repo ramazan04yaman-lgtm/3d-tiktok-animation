@@ -12,6 +12,7 @@ import { spoonCamera } from '../projects/spoon/script';
 import { dishCamera } from '../projects/dishwasher/script';
 import { heatingCamera } from '../projects/heating/script';
 import { airconCamera } from '../projects/aircon/script';
+import { brainCamera } from '../projects/brain/script';
 
 /** Analyse a path frame by frame like the exporter would see it. */
 function analyse(path: CameraPath, duration: number) {
@@ -59,6 +60,7 @@ describe('CameraPath', () => {
     ['dishwasher', dishCamera],
     ['heating', heatingCamera],
     ['aircon', airconCamera],
+    ['brain', brainCamera],
   ])('has continuous velocity (no jerks) on the %s camera path', (_name, path) => {
     const { maxSpeed, maxAccel } = analyse(path, 60);
     // Units are decimetres; < 6 dm/s is a calm dolly, accel bound rules out velocity jumps.
