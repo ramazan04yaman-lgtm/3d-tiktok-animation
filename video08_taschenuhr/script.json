@@ -1,0 +1,20 @@
+[
+ {"say": "Ein Granatsplitter trifft einen Offizier direkt in die Brust. Doch er überlebt, wegen einer Taschenuhr.", "cap": "Ein Granatsplitter trifft einen Offizier direkt in die Brust. Doch er überlebt, wegen einer Taschenuhr.", "shots": ["h_hit", "h_watch"], "pause": 0.35},
+ {"say": "Und genau dieser Mann gründet später ein ganzes Land.", "cap": "Und genau dieser Mann gründet später ein ganzes Land.", "shots": ["h_land"], "pause": 0.35},
+ {"say": "Neunzehnhundertfünfzehn, Erster Weltkrieg. Britische und französische Kriegsschiffe wollen durch die Dardanellen bis nach Istanbul.", "cap": "1915, Erster Weltkrieg. Britische und französische Kriegsschiffe wollen durch die Dardanellen bis nach Istanbul.", "shots": ["map", "fleet"]},
+ {"say": "Doch in einer einzigen Nacht legt ein kleines türkisches Schiff heimlich sechsundzwanzig Minen.", "cap": "Doch in einer einzigen Nacht legt ein kleines türkisches Schiff heimlich 26 Minen.", "shots": ["nusret", "mines"], "pause": 0.25},
+ {"say": "Am achtzehnten März sinken drei Schlachtschiffe. Die Flotte dreht ab.", "cap": "Am 18. März sinken drei Schlachtschiffe. Die Flotte dreht ab.", "shots": ["sink", "retreat"], "pause": 0.3},
+ {"say": "Also versuchen sie es an Land, auf der Halbinsel Gallipoli.", "cap": "Also versuchen sie es an Land, auf der Halbinsel Gallipoli.", "shots": ["landing"], "pause": 0.3},
+ {"say": "Was die Taschenuhr damit zu tun hat, kommt gleich. Lass vorher ein Like und ein Abo da!", "cap": "Was die Taschenuhr damit zu tun hat, kommt gleich. Lass vorher ein Like und ein Abo da!", "shots": ["cta"], "pause": 0.3},
+ {"say": "Die türkischen Truppen führt ein deutscher General: Liman von Sanders.", "cap": "Die türkischen Truppen führt ein deutscher General: Liman von Sanders.", "shots": ["hq"], "pause": 0.2},
+ {"say": "Und an der Küste steht ein junger Offizier namens Mustafa Kemal.", "cap": "Und an der Küste steht ein junger Offizier namens Mustafa Kemal.", "shots": ["kemal"], "pause": 0.25},
+ {"say": "Als der Feind die Hügel fast erreicht hat, gibt er einen Befehl, den in der Türkei heute fast jeder kennt.", "cap": "Als der Feind die Hügel fast erreicht hat, gibt er einen Befehl, den in der Türkei heute fast jeder kennt.", "shots": ["hill", "troops"], "pause": 0.2},
+ {"say": "Ich befehle euch nicht anzugreifen. Ich befehle euch zu sterben.", "cap": "Ich befehle euch nicht anzugreifen. Ich befehle euch zu sterben.", "shots": ["order"], "pause": 0.4},
+ {"say": "Fast sein ganzes Regiment fällt. Aber sie halten die Stellung, bis Verstärkung kommt.", "cap": "Fast sein ganzes Regiment fällt. Aber sie halten die Stellung, bis Verstärkung kommt.", "shots": ["fallen", "hold"], "pause": 0.3},
+ {"say": "Im August trifft ihn dann der Splitter. Die Uhr in seiner Brusttasche fängt ihn ab.", "cap": "Im August trifft ihn dann der Splitter. Die Uhr in seiner Brusttasche fängt ihn ab.", "shots": ["shrapnel", "dent"], "pause": 0.3},
+ {"say": "Die zerbeulte Uhr schenkt er dem deutschen General. Der gibt ihm dafür seine eigene.", "cap": "Die zerbeulte Uhr schenkt er dem deutschen General. Der gibt ihm dafür seine eigene.", "shots": ["gift"], "pause": 0.3},
+ {"say": "Im Winter ziehen die Briten und Franzosen ab. Gallipoli ist für sie verloren.", "cap": "Im Winter ziehen die Briten und Franzosen ab. Gallipoli ist für sie verloren.", "shots": ["evac"], "pause": 0.3},
+ {"say": "Und Mustafa Kemal? Er wird als Atatürk der erste Präsident der Türkei.", "cap": "Und Mustafa Kemal? Er wird als Atatürk der erste Präsident der Türkei.", "shots": ["president"], "pause": 0.35},
+ {"say": "Das ist wirklich passiert. Such nach der Taschenuhr von Mustafa Kemal.", "cap": "Das ist wirklich passiert. Such nach der Taschenuhr von Mustafa Kemal.", "shots": ["finale_title"], "pause": 0.35},
+ {"say": "Und du? War das Glück oder Schicksal? Schreib es in die Kommentare!", "cap": "Und du? War das Glück oder Schicksal? Schreib es in die Kommentare!", "shots": ["question"]}
+]
